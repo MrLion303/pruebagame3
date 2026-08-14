@@ -1,0 +1,26 @@
+{
+  "$GMSound":"v2",
+  "%Name":"snd_noelle",
+  "audioGroupId":{
+    "name":"audiogroup_default",
+    "path":"audiogroups/audiogroup_default",
+  },
+  "bitDepth":1,
+  "channelFormat":0,
+  "compression":0,
+  "compressionQuality":4,
+  "conversionMode":0,
+  "duration":0.04328798,
+  "exportDir":"",
+  "name":"snd_noelle",
+  "parent":{
+    "name":"sonidos de habla",
+    "path":"folders/Sistema de Dialogos/sonidos de habla.yy",
+  },
+  "preload":false,
+  "resourceType":"GMSound",
+  "resourceVersion":"2.0",
+  "sampleRate":44100,
+  "soundFile":"snd_noelle.wav",
+  "volume":1.0,
+}

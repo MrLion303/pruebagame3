@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"scr_death_enemigos_bbs",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"scr_death_enemigos_bbs",
+  "parent":{
+    "name":"Enemigos",
+    "path":"folders/Enemigos.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
