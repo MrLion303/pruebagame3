@@ -18,6 +18,10 @@ if (!variable_global_exists("enemigo_actual_id")) {
 var _datos_variante = scr_enemigos_data(global.enemigo_actual_id);
 enemigos = _datos_variante.enemigos;
 musica_batalla_actual = _datos_variante.musica;
+dialogos_turno_actual = _datos_variante.dialogos_turno; // Guardamos los diálogos del turno
+
+// Variable de control para saber si ya pasó el primer turno
+primer_turno_pasado = false;
 
 // Inicializamos el registro de enemigos muertos con nuestro nuevo script
 mapa_enemigos_muertos = scr_inicializar_muertes_enemigos(enemigos);

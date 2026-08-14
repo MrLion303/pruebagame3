@@ -224,7 +224,18 @@ if (draw_char < text_length) {
                         obj_batalla_controller.fase_actual = FASE_BATALLA.ENEMIGO_TURNO;
                     }
                 }
-                text_to_draw = texto_inicio_batalla;
+                
+                var _texto_siguiente = texto_inicio_batalla;
+                if (instance_exists(obj_batalla_controller)) {
+                    if (variable_instance_exists(obj_batalla_controller, "primer_turno_pasado") && obj_batalla_controller.primer_turno_pasado) {
+                        if (variable_instance_exists(obj_batalla_controller, "dialogos_turno_actual") && array_length(obj_batalla_controller.dialogos_turno_actual) > 0) {
+                            var _idx_azar = irandom(array_length(obj_batalla_controller.dialogos_turno_actual) - 1);
+                            _texto_siguiente = obj_batalla_controller.dialogos_turno_actual[_idx_azar];
+                        }
+                    }
+                }
+                
+                text_to_draw = _texto_siguiente;
                 text_length = string_length(text_to_draw);
                 draw_char = 0;
             }

@@ -45,9 +45,21 @@ switch (fase_actual) {
             turno_enemigo_idx = 0;
             fase_actual = FASE_BATALLA.JUGADOR_MENU;
             
+            // Marcamos que el primer turno ya concluyó
+            primer_turno_pasado = true;
+            
+            // Elegimos aleatoriamente un diálogo de turno o mantenemos el de inicio si no hubiera
+            var _texto_a_usar = "";
+            if (primer_turno_pasado && array_length(dialogos_turno_actual) > 0) {
+                var _indice_azar = irandom(array_length(dialogos_turno_actual) - 1);
+                _texto_a_usar = dialogos_turno_actual[_indice_azar];
+            } else {
+                _texto_a_usar = obj_batalla_ui.texto_inicio_batalla;
+            }
+            
             if (instance_exists(obj_batalla_ui)) {
                 obj_batalla_ui.en_resultado_ataque = false;
-                obj_batalla_ui.text_to_draw = obj_batalla_ui.texto_inicio_batalla;
+                obj_batalla_ui.text_to_draw = _texto_a_usar;
                 obj_batalla_ui.text_length = string_length(obj_batalla_ui.text_to_draw);
                 obj_batalla_ui.draw_char = 0;
                 obj_batalla_ui.setup = false;
@@ -94,7 +106,6 @@ switch (fase_actual) {
             ds_map_destroy(mapa_enemigos_muertos);
         }
         
-        // Asegurar que tanto el sonido de inicio como la música de batalla se detengan por completo al salir
         if (audio_is_playing(snd_bbs_start)) {
             audio_stop_sound(snd_bbs_start);
         }
