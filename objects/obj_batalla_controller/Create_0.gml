@@ -1,3 +1,6 @@
+// =========================================================
+// EVENTO: CREAR
+// =========================================================
 enum FASE_BATALLA {
     INICIO,
     JUGADOR_MENU,
@@ -18,12 +21,9 @@ if (!variable_global_exists("enemigo_actual_id")) {
 var _datos_variante = scr_enemigos_data(global.enemigo_actual_id);
 enemigos = _datos_variante.enemigos;
 musica_batalla_actual = _datos_variante.musica;
-dialogos_turno_actual = _datos_variante.dialogos_turno; // Guardamos los diálogos del turno
+dialogos_turno_actual = _datos_variante.dialogos_turno;
 
-// Variable de control para saber si ya pasó el primer turno
 primer_turno_pasado = false;
-
-// Inicializamos el registro de enemigos muertos con nuestro nuevo script
 mapa_enemigos_muertos = scr_inicializar_muertes_enemigos(enemigos);
 
 if (audio_exists(musica_batalla_actual)) {
@@ -31,7 +31,6 @@ if (audio_exists(musica_batalla_actual)) {
     audio_resume_sound(_snd_batalla);
 }
 
-// Variables de control para el turno de los enemigos
 turno_enemigo_idx = 0;
 temporizador_turno_enemigo = 0;
 esperando_input_texto_enemigo = false;

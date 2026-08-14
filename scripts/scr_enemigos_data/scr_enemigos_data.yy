@@ -5,8 +5,8 @@
   "isDnD":false,
   "name":"scr_enemigos_data",
   "parent":{
-    "name":"Enemigos",
-    "path":"folders/Enemigos.yy",
+    "name":"admin obj",
+    "path":"folders/admin obj.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

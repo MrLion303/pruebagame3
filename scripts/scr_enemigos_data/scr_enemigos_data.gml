@@ -3,19 +3,19 @@ function scr_enemigos_data(_id_enemigo) {
         musica: mus_battle_1, 
         enemigos: [],
         dialogos_turno: [
-            "* El viento sopla con fuerza en este lugar.",
-            "* El enemigo te mira fijamente y sonríe.",
-            "* Huele a peligro en el ambiente."
-        ] // Diálogos genéricos por defecto para el 'default'
+            { texto: "El... keke? Oh! Claro que me gusta!", head: spr_bbs_prota_head, snd: snd_noelle },
+            { texto: "* El viento sopla con fuerza en este lugar.", head: noone, snd: snd_text },
+            { texto: "* El enemigo te mira fijamente y sonríe.", head: noone, snd: snd_text }
+        ]
     };
     
     switch (_id_enemigo) {
         case "toby":
             _datos_batalla.musica = mus_battle_1;
             _datos_batalla.dialogos_turno = [
-                "* Toby acomoda su postura de combate.",
-                "* Toby bosteza aburrido.",
-                "* Notas que a Toby le crujen las articulaciones."
+                { texto: "El... keke? Oh! Claro que me gusta!", head: spr_bbs_prota_head, snd: snd_noelle },
+                { texto: "* Toby acomoda su postura de combate.", head: noone, snd: snd_text },
+                { texto: "* Toby bosteza aburrido.", head: spr_bbs_prota_head, snd: snd_text }
             ];
             array_push(_datos_batalla.enemigos, {
                 nombre: "Toby",
@@ -34,9 +34,9 @@ function scr_enemigos_data(_id_enemigo) {
         case "slime":
             _datos_batalla.musica = mus_battle_1;
             _datos_batalla.dialogos_turno = [
-                "* El Slime gotea líquido viscoso.",
-                "* El Slime tiembla ligeramente.",
-                "* Burbujas de aire estallan en el cuerpo del Slime."
+                { texto: "¡Cuidado con este viscoso amigo!", head: spr_bbs_prota_head, snd: snd_noelle },
+                { texto: "* El Slime gotea líquido viscoso.", head: noone, snd: snd_text },
+                { texto: "* Burbujas de aire estallan en el cuerpo del Slime.", head: noone, snd: snd_text }
             ];
             array_push(_datos_batalla.enemigos, {
                 nombre: "Slime Verdoso",
@@ -55,9 +55,9 @@ function scr_enemigos_data(_id_enemigo) {
         case "variante 1":
             _datos_batalla.musica = mus_battle_1; 
             _datos_batalla.dialogos_turno = [
-                "* Los enemigos se coordinan para rodearte.",
-                "* El Slime empuja a Toby por accidente.",
-                "* Se escucha un murmullo amenazante entre los monstruos."
+                { texto: "¿Estás seguro de que podemos con todos?", head: spr_bbs_prota_head, snd: snd_noelle },
+                { texto: "* Los enemigos se coordinan para rodearte.", head: noone, snd: snd_text },
+                { texto: "¡Mira cómo se mueven!", head: spr_bbs_prota_head, snd: snd_noelle }
             ];
             array_push(_datos_batalla.enemigos, {
                 nombre: "Toby A",
@@ -94,7 +94,7 @@ function scr_enemigos_data(_id_enemigo) {
                 texto_muerte: "* Acabaste con Toby B."
             });
             break;
-        
+            
         default:
             _datos_batalla.musica = mus_battle_1;
             array_push(_datos_batalla.enemigos, {

@@ -1,3 +1,6 @@
+// =========================================================
+// EVENTO: STEP
+// =========================================================
 var _accept_key = keyboard_check_pressed(ord("Z")) || keyboard_check_pressed(vk_enter);
 
 switch (fase_actual) {
@@ -45,10 +48,8 @@ switch (fase_actual) {
             turno_enemigo_idx = 0;
             fase_actual = FASE_BATALLA.JUGADOR_MENU;
             
-            // Marcamos que el primer turno ya concluyó
             primer_turno_pasado = true;
             
-            // Elegimos aleatoriamente un diálogo de turno o mantenemos el de inicio si no hubiera
             var _texto_a_usar = "";
             if (primer_turno_pasado && array_length(dialogos_turno_actual) > 0) {
                 var _indice_azar = irandom(array_length(dialogos_turno_actual) - 1);
@@ -59,10 +60,7 @@ switch (fase_actual) {
             
             if (instance_exists(obj_batalla_ui)) {
                 obj_batalla_ui.en_resultado_ataque = false;
-                obj_batalla_ui.text_to_draw = _texto_a_usar;
-                obj_batalla_ui.text_length = string_length(obj_batalla_ui.text_to_draw);
-                obj_batalla_ui.draw_char = 0;
-                obj_batalla_ui.setup = false;
+                obj_batalla_ui.f_procesar_dialogo(_texto_a_usar);
             }
             break;
         }
@@ -80,10 +78,7 @@ switch (fase_actual) {
         
         if (instance_exists(obj_batalla_ui)) {
             obj_batalla_ui.en_resultado_ataque = true;
-            obj_batalla_ui.text_to_draw = "* " + _en_actual.nombre + " ataca y te causa " + string(_dano_enemigo) + " de daño!";
-            obj_batalla_ui.text_length = string_length(obj_batalla_ui.text_to_draw);
-            obj_batalla_ui.draw_char = 0;
-            obj_batalla_ui.setup = false;
+            obj_batalla_ui.f_procesar_dialogo("* " + _en_actual.nombre + " ataca y te causa " + string(_dano_enemigo) + " de daño!");
         }
         
         fase_actual = FASE_BATALLA.ENEMIGO_ATACANDO;

@@ -1,3 +1,6 @@
+// =========================================================
+// EVENTO: STEP (CORREGIDO PARA EVITAR BORRADO ERRÓNEO DE CABEZA)
+// =========================================================
 accept_key = keyboard_check_pressed(ord("Z")) || keyboard_check_pressed(vk_enter);
 skip_key = keyboard_check_pressed(ord("X")) || keyboard_check_pressed(vk_shift) || keyboard_check_pressed(vk_control);
 var _fast_skip_key = keyboard_check(ord("C")) || keyboard_check_pressed(vk_control);
@@ -20,7 +23,6 @@ if (fade_salida_activa) {
 if (!variable_instance_exists(id, "en_resultado_ataque")) en_resultado_ataque = false;
 if (!variable_instance_exists(id, "en_dialogo_victoria_final")) en_dialogo_victoria_final = false;
 
-// 1. Logica de animacion de derrota y temblor
 for (var i = 0; i < array_length(enemigos); i++) {
     if (!variable_struct_exists(enemigos[i], "shake_timer")) enemigos[i].shake_timer = 0;
     if (enemigos[i].shake_timer > 0) enemigos[i].shake_timer--;
@@ -33,7 +35,6 @@ for (var i = 0; i < array_length(enemigos); i++) {
     }
 }
 
-// 2. Comprobacion de fin de batalla (Controlada por el dialogo final)
 var _todos_derrotados = true;
 for (var i = 0; i < array_length(enemigos); i++) {
     if (!variable_struct_exists(enemigos[i], "derrotado") || !enemigos[i].derrotado) {
@@ -59,14 +60,14 @@ if (_todos_derrotados && en_dialogo_victoria_final) {
                     var _letra = string_char_at(text_to_draw, _char_actual);
                     var _es_letra = (_letra >= "a" && _letra <= "z") || (_letra >= "A" && _letra <= "Z");
                     if (_es_letra) {
-                        audio_play_sound(snd_text, 10, false);
+                        var _snd_voz = audio_exists(text_sound_custom) ? text_sound_custom : snd_text;
+                        audio_play_sound(_snd_voz, 10, false);
                     }
                 }
             }
         }
     } else {
         if (accept_key) {
-            // Detener por completo cualquier resto del sonido de inicio y la música de batalla al terminar
             if (audio_is_playing(snd_bbs_start)) {
                 audio_stop_sound(snd_bbs_start);
             }
@@ -82,7 +83,6 @@ if (_todos_derrotados && en_dialogo_victoria_final) {
     exit;
 }
 
-// 3. Logica de menús
 if (!en_resultado_ataque && !en_dialogo_victoria_final) {
     if (en_menu_inventario) {
         if (keyboard_check_pressed(vk_right)) { inv_x = (inv_x + 1) % 2; audio_play_sound(snd_menumove, 10, false); }
@@ -136,7 +136,6 @@ if (!en_resultado_ataque && !en_dialogo_victoria_final) {
     }
 }
 
-// 4. Logica de texto y selección
 if (draw_char < text_length) {
     var _actual_speed = _fast_skip_key ? 999 : text_spd;
     var _char_anterior = floor(draw_char);
@@ -153,13 +152,16 @@ if (draw_char < text_length) {
                 var _letra = string_char_at(text_to_draw, _char_actual);
                 var _es_letra = (_letra >= "a" && _letra <= "z") || (_letra >= "A" && _letra <= "Z");
                 if (_es_letra) {
-                    audio_play_sound(snd_text, 10, false);
+                    var _snd_voz = audio_exists(text_sound_custom) ? text_sound_custom : snd_text;
+                    audio_play_sound(_snd_voz, 10, false);
                 }
             }
         }
     }
 } else {
     if (accept_key) {
+        // ELIMINADA la línea de limpieza manual (head_sprite = noone;) que generaba el error
+		
         if (en_menu_inventario) {
             if (instance_exists(obj_player) && variable_instance_exists(obj_player, "inventory")) {
                 var _inv_index = inv_x + (inv_y * 2) + (inv_scroll * 2);
@@ -177,15 +179,15 @@ if (draw_char < text_length) {
                                 if (instance_exists(obj_player)) _hp_curado = obj_player.hp - _hp_antes;
                                 obj_player.inventory[_inv_index] = -1;
                                 
-                                if (_hp_curado > 0) text_to_draw = "* Consumiste " + _item_data.nombre + "! Te curaste " + string(_hp_curado) + " de vida!";
-                                else if (instance_exists(obj_player) && _hp_antes >= obj_player.hp_max) text_to_draw = "* Consumiste " + _item_data.nombre + ", pero ya tienes la vida llena!";
-                                else text_to_draw = "* Consumiste " + _item_data.nombre + "!";
+                                var _texto_item = "";
+                                if (_hp_curado > 0) _texto_item = "* Consumiste " + _item_data.nombre + "! Te curaste " + string(_hp_curado) + " de vida!";
+                                else if (instance_exists(obj_player) && _hp_antes >= obj_player.hp_max) _texto_item = "* Consumiste " + _item_data.nombre + ", pero ya tienes la vida llena!";
+                                else _texto_item = "* Consumiste " + _item_data.nombre + "!";
+                                
+                                f_procesar_dialogo(_texto_item);
                                 
                                 en_resultado_ataque = true;
                                 en_menu_inventario = false;
-                                text_length = string_length(text_to_draw);
-                                draw_char = 0;
-                                setup = false;
                                 audio_play_sound(snd_menumove, 10, false);
                             }
                         }
@@ -205,10 +207,7 @@ if (draw_char < text_length) {
             
             if (_chequear_todos) {
                 en_dialogo_victoria_final = true;
-                text_to_draw = "* ¡Has ganado la batalla!";
-                text_length = string_length(text_to_draw);
-                draw_char = 0;
-                setup = false;
+                f_procesar_dialogo("* ¡Has ganado la batalla!");
                 audio_play_sound(snd_menumove, 10, false);
             } else {
                 en_menu_fight = false;
@@ -225,19 +224,18 @@ if (draw_char < text_length) {
                     }
                 }
                 
-                var _texto_siguiente = texto_inicio_batalla;
+                var _siguiente_origen = texto_inicio_batalla;
+                
                 if (instance_exists(obj_batalla_controller)) {
                     if (variable_instance_exists(obj_batalla_controller, "primer_turno_pasado") && obj_batalla_controller.primer_turno_pasado) {
                         if (variable_instance_exists(obj_batalla_controller, "dialogos_turno_actual") && array_length(obj_batalla_controller.dialogos_turno_actual) > 0) {
                             var _idx_azar = irandom(array_length(obj_batalla_controller.dialogos_turno_actual) - 1);
-                            _texto_siguiente = obj_batalla_controller.dialogos_turno_actual[_idx_azar];
+                            _siguiente_origen = obj_batalla_controller.dialogos_turno_actual[_idx_azar];
                         }
                     }
                 }
                 
-                text_to_draw = _texto_siguiente;
-                text_length = string_length(text_to_draw);
-                draw_char = 0;
+                f_procesar_dialogo(_siguiente_origen);
             }
             
         } else if (!en_menu_fight && !en_seleccion_enemigo) {
@@ -251,9 +249,9 @@ if (draw_char < text_length) {
                 }
                 audio_play_sound(snd_menumove, 10, false);
             } else if (opcion_seleccionada == 1) {
-                en_menu_inventario = true; inv_x = 0; inv_y = 0; inv_scroll = 0; audio_play_sound(snd_menumove, 10, false);
+                en_menu_inventario = true; inv_x = 0; inv_y = 0; inv_scroll = 0; 
+                audio_play_sound(snd_menumove, 10, false);
             } else if (opcion_seleccionada == 3) {
-                // Detener sonido de inicio y música de batalla al huir
                 if (audio_is_playing(snd_bbs_start)) {
                     audio_stop_sound(snd_bbs_start);
                 }
@@ -277,7 +275,7 @@ if (draw_char < text_length) {
             }
         } else if (en_modo_info) {
             en_modo_info = false; en_menu_fight = false;
-            text_to_draw = texto_inicio_batalla; text_length = string_length(text_to_draw); draw_char = 0; setup = false;
+            f_procesar_dialogo(texto_inicio_batalla);
             audio_play_sound(snd_menumove, 10, false);
         } else {
             var _en_actual = enemigos[enemigo_seleccionado_idx];
@@ -301,6 +299,7 @@ if (draw_char < text_length) {
                 if (audio_is_playing(snd_shake)) audio_stop_sound(snd_shake);
                 audio_play_sound(snd_shake, 10, false);
                 
+                var _texto_ataque = "";
                 if (_en_actual.vida_actual <= 0) {
                     _en_actual.vida_actual = 0;
                     _en_actual.derrotado = true;
@@ -310,7 +309,7 @@ if (draw_char < text_length) {
                     }
                     
                     audio_play_sound(snd_enemy_killed, 10, false);
-                    text_to_draw = variable_struct_exists(_en_actual, "texto_muerte") ? string_replace_all(_en_actual.texto_muerte, "\n", " ") : "* Venciste a " + _en_actual.nombre + "!";
+                    _texto_ataque = variable_struct_exists(_en_actual, "texto_muerte") ? string_replace_all(_en_actual.texto_muerte, "\n", " ") : "* Venciste a " + _en_actual.nombre + "!";
                     
                     var _chequear_todos_muertos = true;
                     for (var i = 0; i < array_length(enemigos); i++) {
@@ -332,23 +331,19 @@ if (draw_char < text_length) {
                     }
                     
                 } else {
-                    text_to_draw = "* Hiciste " + string(_dano) + " de daño a " + _en_actual.nombre + "!";
+                    _texto_ataque = "* Hiciste " + string(_dano) + " de daño a " + _en_actual.nombre + "!";
                 }
+                
+                f_procesar_dialogo(_texto_ataque);
                 
                 en_resultado_ataque = true;
                 en_menu_fight = false;
                 en_seleccion_enemigo = false;
                 en_modo_info = false;
-                text_length = string_length(text_to_draw);
-                draw_char = 0;
-                setup = false;
                 audio_play_sound(snd_menumove, 10, false);
             } else {
                 en_modo_info = true;
-                text_to_draw = string_replace_all(_en_actual.descripcion, "\n", " ");
-                text_length = string_length(text_to_draw);
-                draw_char = 0;
-                setup = false;
+                f_procesar_dialogo(string_replace_all(_en_actual.descripcion, "\n", " "));
                 audio_play_sound(snd_menumove, 10, false);
             }
         }
@@ -360,7 +355,7 @@ if (skip_key && !en_resultado_ataque && !en_dialogo_victoria_final) {
         en_menu_inventario = false; audio_play_sound(snd_menumove, 10, false);
     } else if (en_modo_info) {
         en_modo_info = false; en_menu_fight = false;
-        text_to_draw = texto_inicio_batalla; text_length = string_length(text_to_draw); draw_char = 0; setup = false;
+        f_procesar_dialogo(texto_inicio_batalla);
         audio_play_sound(snd_menumove, 10, false);
     } else if (en_menu_fight) {
         en_menu_fight = false; en_seleccion_enemigo = true; audio_play_sound(snd_menumove, 10, false);

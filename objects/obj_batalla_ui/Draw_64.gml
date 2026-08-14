@@ -1,5 +1,11 @@
+// =========================================================
+// EVENTO: DIBUJAR GUI
+// =========================================================
 var _s = 2;
 if (!variable_instance_exists(id, "alpha_aparicion")) alpha_aparicion = 0.0;
+if (!variable_instance_exists(id, "timer_dolor")) timer_dolor = 0;
+if (!variable_instance_exists(id, "hp_anterior")) hp_anterior = -1;
+
 if (alpha_aparicion < 1.0) alpha_aparicion += 0.05;
 
 var _fade_transicion = 1.0;
@@ -7,14 +13,12 @@ if (instance_exists(obj_transicion_bbs)) {
     _fade_transicion = obj_transicion_bbs.image_alpha;
 }
 
-// Multiplicamos por alpha_salida para lograr el fundido al terminar la batalla
 var _alpha_final = alpha_aparicion * _fade_transicion * alpha_salida;
 
 if (!variable_instance_exists(id, "enemigo_img_index")) {
     enemigo_img_index = 0;
 }
 
-// 1. Dibujar enemigos en pantalla con soporte de temblor (shake)
 var _total_enemigos = array_length(enemigos);
 var _centro_pantalla_x = (320 * _s) / 2;
 for (var i = 0; i < _total_enemigos; i++) {
@@ -50,7 +54,6 @@ for (var i = 0; i < _total_enemigos; i++) {
     }
 }
 
-// 2. Lógica de dibujo de Caja de Texto / Inventario
 draw_sprite_ext(spr_bbs_textbox, 0, 14 * _s, 125 * _s, 5.666667 * _s, 1.0 * _s, 0, c_white, _alpha_final);
 
 if (variable_global_exists("font_main")) {
@@ -59,8 +62,19 @@ if (variable_global_exists("font_main")) {
 
 if (!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario) {
     // --- MODO TEXTO DE BATALLA ---
-    var _p_left_margin = 16 * _s;
-    var _p_avail_width = (260 * _s);
+    var _tiene_cabeza = false;
+    
+    if (variable_instance_exists(id, "head_sprite") && head_sprite != noone && sprite_exists(head_sprite)) {
+        if (!en_seleccion_enemigo && !en_menu_fight && !en_modo_info && !en_menu_inventario) {
+            if (variable_instance_exists(id, "text_to_draw") && string_length(text_to_draw) > 0) {
+                _tiene_cabeza = true;
+            }
+        }
+    }
+    
+    var _p_left_margin = _tiene_cabeza ? (65 * _s) : (24 * _s);
+    var _p_avail_width = _tiene_cabeza ? (200 * _s) : (250 * _s);
+    
     if (setup == false) {
         setup = true;
         text_length = string_length(text_to_draw);
@@ -111,6 +125,11 @@ if (!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario) 
         }
     }
     
+    if (_tiene_cabeza) {
+        var _head_scale = 1.35 * _s;
+        draw_sprite_ext(head_sprite, 0, (14 + 10) * _s, (125 + 10) * _s, _head_scale, _head_scale, 0, c_white, _alpha_final);
+    }
+    
     if (en_seleccion_enemigo) {
         draw_text_color((14 + 16) * _s, (125 + 10) * _s, "* Elige a quien atacar!", c_white, c_white, c_white, c_white, _alpha_final);
     } else if (en_menu_fight && !en_modo_info) {
@@ -149,7 +168,6 @@ if (!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario) 
         }
     }
 } else {
-    // --- MODO INVENTARIO DENTRO DE LA CAJA ---
     var _start_x = (14 * _s) + (18 * _s);
     var _start_y = (125 * _s) + (8 * _s);
     if (instance_exists(obj_player) && variable_instance_exists(obj_player, "inventory")) {
@@ -171,7 +189,6 @@ if (!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario) 
             }
         }
         
-        // --- BARRA LATERAL DE SCROLL ---
         var _total_items = array_length(obj_player.inventory);
         var _items_por_fila = 2;
         var _filas_totales = ceil(_total_items / _items_por_fila);
@@ -200,18 +217,36 @@ if (!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario) 
     }
 }
 
-// 4. Paneles inferiores fijos (HP y Botones)
-draw_set_alpha(_alpha_final);
-draw_sprite_ext(spr_bbs_textbox, 0, 6 * _s, 183 * _s, 2.27451 * _s, 1.0 * _s, 0, c_white, _alpha_final);
-draw_sprite_ext(spr_bbs_prota_head, 0, 14 * _s, 195 * _s, 1.0 * _s, 1.0 * _s, 0, c_white, _alpha_final);
-draw_sprite_ext(spr_bbs_textbox, 0, 126 * _s, 183 * _s, 3.666666 * _s, 1.0 * _s, 0, c_white, _alpha_final);
-
+// --- MONITOREO DE DAÑO Y FRAME DE LA CABEZA ---
 var _hp_actual = 80;
 var _hp_max = 80;
 if (instance_exists(obj_player)) {
     _hp_actual = obj_player.hp;
     _hp_max = obj_player.hp_max;
 }
+
+if (hp_anterior == -1) {
+    hp_anterior = _hp_actual;
+} else if (_hp_actual < hp_anterior) {
+    timer_dolor = game_get_speed(gamespeed_fps) * 0.5; // Activa durante 0.5s
+    hp_anterior = _hp_actual;
+} else {
+    hp_anterior = _hp_actual;
+}
+
+var _prota_head_frame = 0;
+if (timer_dolor > 0) {
+    timer_dolor--;
+    _prota_head_frame = 1; // Frame de dolor
+}
+
+draw_set_alpha(_alpha_final);
+draw_sprite_ext(spr_bbs_textbox, 0, 6 * _s, 183 * _s, 2.27451 * _s, 1.0 * _s, 0, c_white, _alpha_final);
+
+// Dibuja el sprite del protagonista usando el frame dinamico (_prota_head_frame)
+draw_sprite_ext(spr_bbs_prota_head, _prota_head_frame, 14 * _s, 195 * _s, 1.0 * _s, 1.0 * _s, 0, c_white, _alpha_final);
+
+draw_sprite_ext(spr_bbs_textbox, 0, 126 * _s, 183 * _s, 3.666666 * _s, 1.0 * _s, 0, c_white, _alpha_final);
 
 var _info_x = 55 * _s;
 var _info_y = 189 * _s;

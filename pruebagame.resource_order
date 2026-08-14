@@ -47,7 +47,7 @@
     {"name":"rm_title","order":5,"path":"rooms/rm_title/rm_title.yy",},
     {"name":"test","order":6,"path":"rooms/test/test.yy",},
     {"name":"scr_death_enemigos_bbs","order":4,"path":"scripts/scr_death_enemigos_bbs/scr_death_enemigos_bbs.yy",},
-    {"name":"scr_enemigos_data","order":2,"path":"scripts/scr_enemigos_data/scr_enemigos_data.yy",},
+    {"name":"scr_enemigos_data","order":8,"path":"scripts/scr_enemigos_data/scr_enemigos_data.yy",},
     {"name":"scr_equipped","order":3,"path":"scripts/scr_equipped/scr_equipped.yy",},
     {"name":"scr_equips_data","order":2,"path":"scripts/scr_equips_data/scr_equips_data.yy",},
     {"name":"scr_game_text","order":5,"path":"scripts/scr_game_text/scr_game_text.yy",},
