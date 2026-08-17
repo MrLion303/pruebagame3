@@ -27,10 +27,29 @@ ui_x_caja_der = 420;
 ui_y_caja_der = 640;
 
 // =========================================================
+// CONTROL DE CABEZA DEL PROTAGONISTA
+// =========================================================
+// head_sprite contiene el sprite correspondiente al diálogo actual.
+// head_visible determina EXCLUSIVAMENTE si debe dibujarse.
+//
+// Esto evita que la cabeza del diálogo anterior aparezca
+// durante un frame al cambiar de texto.
+head_sprite = noone;
+head_visible = false;
+
+// =========================================================
 // MÉTODO GLOBAL DE INSTANCIA PARA PROCESAR DIÁLOGOS CORRECTAMENTE
 // =========================================================
 f_procesar_dialogo = function(_entrada) {
-    head_sprite = noone; // Limpieza por defecto
+    
+    // =====================================================
+    // IMPORTANTE:
+    // Primero apagamos completamente la cabeza anterior.
+    // Esto ocurre ANTES de procesar el nuevo diálogo.
+    // =====================================================
+    head_sprite = noone;
+    head_visible = false;
+    
     text_sound_custom = snd_text;
 
     if (is_struct(_entrada)) {
@@ -38,18 +57,35 @@ f_procesar_dialogo = function(_entrada) {
         text_to_draw = is_string(_txt) ? _txt : string(_txt);
         
         if (variable_struct_exists(_entrada, "head")) {
-            head_sprite = _entrada.head; // Solo se asigna si existe explícitamente
+            if (_entrada.head != noone && sprite_exists(_entrada.head)) {
+                head_sprite = _entrada.head;
+                head_visible = true;
+            }
         }
+        
         if (variable_struct_exists(_entrada, "snd")) {
             text_sound_custom = _entrada.snd;
         }
     } else {
         text_to_draw = string(_entrada);
-        head_sprite = noone; // Si es texto plano, nos aseguramos de que no haya cabeza
+        
+        // Un texto simple NUNCA tiene cabeza.
+        head_sprite = noone;
+        head_visible = false;
+    }
+    
+    // =====================================================
+    // SEGURIDAD EXTRA:
+    // Si el texto está vacío, tampoco puede existir cabeza.
+    // =====================================================
+    if (string_length(text_to_draw) <= 0) {
+        head_sprite = noone;
+        head_visible = false;
     }
     
     text_to_draw = string_replace_all(text_to_draw, "\n", " ");
     text_to_draw = string_replace_all(text_to_draw, "\r", " ");
+    
     text_length = string_length(text_to_draw);
     draw_char = 0;
     setup = false;
@@ -85,6 +121,7 @@ if (audio_exists(musica_batalla_actual)) {
 }
 
 head_sprite = noone;
+head_visible = false;
 text_sound_custom = snd_text;
 
 var _raw_inicio = (array_length(enemigos) > 0 && variable_struct_exists(enemigos[0], "texto_inicio")) ? enemigos[0].texto_inicio : "¡Un combate comienza!";

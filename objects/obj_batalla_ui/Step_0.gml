@@ -1,9 +1,23 @@
 // =========================================================
-// EVENTO: STEP (CORREGIDO PARA EVITAR BORRADO ERRÓNEO DE CABEZA)
+// EVENTO: STEP
 // =========================================================
 accept_key = keyboard_check_pressed(ord("Z")) || keyboard_check_pressed(vk_enter);
 skip_key = keyboard_check_pressed(ord("X")) || keyboard_check_pressed(vk_shift) || keyboard_check_pressed(vk_control);
 var _fast_skip_key = keyboard_check(ord("C")) || keyboard_check_pressed(vk_control);
+
+// =========================================================
+// SEGURIDAD DE CABEZA
+// =========================================================
+// Si no existe un diálogo válido, jamás debe aparecer la cabeza.
+if (string_length(text_to_draw) <= 0) {
+    head_visible = false;
+    head_sprite = noone;
+}
+
+// Si el diálogo actual no tiene cabeza, se mantiene apagada.
+if (head_sprite == noone) {
+    head_visible = false;
+}
 
 if (instance_exists(obj_batalla_controller)) {
     if (obj_batalla_controller.fase_actual == FASE_BATALLA.VICTORIA || obj_batalla_controller.fase_actual == FASE_BATALLA.HUIR) {
@@ -160,8 +174,7 @@ if (draw_char < text_length) {
     }
 } else {
     if (accept_key) {
-        // ELIMINADA la línea de limpieza manual (head_sprite = noone;) que generaba el error
-		
+        
         if (en_menu_inventario) {
             if (instance_exists(obj_player) && variable_instance_exists(obj_player, "inventory")) {
                 var _inv_index = inv_x + (inv_y * 2) + (inv_scroll * 2);
@@ -249,7 +262,10 @@ if (draw_char < text_length) {
                 }
                 audio_play_sound(snd_menumove, 10, false);
             } else if (opcion_seleccionada == 1) {
-                en_menu_inventario = true; inv_x = 0; inv_y = 0; inv_scroll = 0; 
+                en_menu_inventario = true;
+                inv_x = 0;
+                inv_y = 0;
+                inv_scroll = 0; 
                 audio_play_sound(snd_menumove, 10, false);
             } else if (opcion_seleccionada == 3) {
                 if (audio_is_playing(snd_bbs_start)) {
@@ -270,24 +286,34 @@ if (draw_char < text_length) {
                 if (audio_is_playing(snd_error)) audio_stop_sound(snd_error);
                 audio_play_sound(snd_error, 10, false);
             } else {
-                en_seleccion_enemigo = false; en_menu_fight = true; en_modo_info = false; opcion_fight_seleccionada = 0;
+                en_seleccion_enemigo = false;
+                en_menu_fight = true;
+                en_modo_info = false;
+                opcion_fight_seleccionada = 0;
                 audio_play_sound(snd_menumove, 10, false);
             }
         } else if (en_modo_info) {
-            en_modo_info = false; en_menu_fight = false;
+            en_modo_info = false;
+            en_menu_fight = false;
             f_procesar_dialogo(texto_inicio_batalla);
             audio_play_sound(snd_menumove, 10, false);
         } else {
             var _en_actual = enemigos[enemigo_seleccionado_idx];
+            
             if (opcion_fight_seleccionada == 0) {
                 var _atk_base = 0;
+                
                 if (instance_exists(obj_player)) {
                     _atk_base = obj_player.ataque_base;
+                    
                     if (variable_global_exists("equip_db")) {
-                        if (is_struct(obj_player.equipo_arma) && variable_struct_exists(obj_player.equipo_arma, "ataque")) _atk_base += obj_player.equipo_arma.ataque;
-                        else if (obj_player.equipo_arma != -1) {
+                        if (is_struct(obj_player.equipo_arma) && variable_struct_exists(obj_player.equipo_arma, "ataque")) {
+                            _atk_base += obj_player.equipo_arma.ataque;
+                        } else if (obj_player.equipo_arma != -1) {
                             var _arma = global.equip_db[$ obj_player.equipo_arma];
-                            if (_arma != undefined && struct_exists(_arma, "ataque")) _atk_base += _arma.ataque;
+                            if (_arma != undefined && struct_exists(_arma, "ataque")) {
+                                _atk_base += _arma.ataque;
+                            }
                         }
                     }
                 }
@@ -300,6 +326,7 @@ if (draw_char < text_length) {
                 audio_play_sound(snd_shake, 10, false);
                 
                 var _texto_ataque = "";
+                
                 if (_en_actual.vida_actual <= 0) {
                     _en_actual.vida_actual = 0;
                     _en_actual.derrotado = true;
@@ -309,9 +336,13 @@ if (draw_char < text_length) {
                     }
                     
                     audio_play_sound(snd_enemy_killed, 10, false);
-                    _texto_ataque = variable_struct_exists(_en_actual, "texto_muerte") ? string_replace_all(_en_actual.texto_muerte, "\n", " ") : "* Venciste a " + _en_actual.nombre + "!";
+                    
+                    _texto_ataque = variable_struct_exists(_en_actual, "texto_muerte")
+                        ? string_replace_all(_en_actual.texto_muerte, "\n", " ")
+                        : "* Venciste a " + _en_actual.nombre + "!";
                     
                     var _chequear_todos_muertos = true;
+                    
                     for (var i = 0; i < array_length(enemigos); i++) {
                         if (!variable_struct_exists(enemigos[i], "derrotado") || !enemigos[i].derrotado) {
                             _chequear_todos_muertos = false;
@@ -323,6 +354,7 @@ if (draw_char < text_length) {
                         if (audio_is_playing(snd_bbs_start)) {
                             audio_stop_sound(snd_bbs_start);
                         }
+                        
                         if (variable_instance_exists(id, "musica_batalla_actual") && audio_exists(musica_batalla_actual)) {
                             if (audio_is_playing(musica_batalla_actual)) {
                                 audio_stop_sound(musica_batalla_actual);
@@ -341,6 +373,7 @@ if (draw_char < text_length) {
                 en_seleccion_enemigo = false;
                 en_modo_info = false;
                 audio_play_sound(snd_menumove, 10, false);
+                
             } else {
                 en_modo_info = true;
                 f_procesar_dialogo(string_replace_all(_en_actual.descripcion, "\n", " "));
@@ -352,14 +385,19 @@ if (draw_char < text_length) {
 
 if (skip_key && !en_resultado_ataque && !en_dialogo_victoria_final) {
     if (en_menu_inventario) {
-        en_menu_inventario = false; audio_play_sound(snd_menumove, 10, false);
+        en_menu_inventario = false;
+        audio_play_sound(snd_menumove, 10, false);
     } else if (en_modo_info) {
-        en_modo_info = false; en_menu_fight = false;
+        en_modo_info = false;
+        en_menu_fight = false;
         f_procesar_dialogo(texto_inicio_batalla);
         audio_play_sound(snd_menumove, 10, false);
     } else if (en_menu_fight) {
-        en_menu_fight = false; en_seleccion_enemigo = true; audio_play_sound(snd_menumove, 10, false);
+        en_menu_fight = false;
+        en_seleccion_enemigo = true;
+        audio_play_sound(snd_menumove, 10, false);
     } else if (en_seleccion_enemigo) {
-        en_seleccion_enemigo = false; audio_play_sound(snd_menumove, 10, false);
+        en_seleccion_enemigo = false;
+        audio_play_sound(snd_menumove, 10, false);
     }
 }
