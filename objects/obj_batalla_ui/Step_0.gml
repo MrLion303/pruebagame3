@@ -1,6 +1,3 @@
-// =========================================================
-// EVENTO: STEP
-// =========================================================
 accept_key = keyboard_check_pressed(ord("Z")) || keyboard_check_pressed(vk_enter);
 skip_key = keyboard_check_pressed(ord("X")) || keyboard_check_pressed(vk_shift) || keyboard_check_pressed(vk_control);
 var _fast_skip_key = keyboard_check(ord("C")) || keyboard_check_pressed(vk_control);
@@ -99,53 +96,114 @@ if (_todos_derrotados && en_dialogo_victoria_final) {
 
 if (!en_resultado_ataque && !en_dialogo_victoria_final) {
     if (en_menu_inventario) {
-        if (keyboard_check_pressed(vk_right)) { inv_x = (inv_x + 1) % 2; audio_play_sound(snd_menumove, 10, false); }
-        if (keyboard_check_pressed(vk_left)) { inv_x = (inv_x - 1 + 2) % 2; audio_play_sound(snd_menumove, 10, false); }
+        if (keyboard_check_pressed(vk_right)) {
+            inv_x = (inv_x + 1) % 2;
+            audio_play_sound(snd_menumove, 10, false);
+        }
+        if (keyboard_check_pressed(vk_left)) {
+            inv_x = (inv_x - 1 + 2) % 2;
+            audio_play_sound(snd_menumove, 10, false);
+        }
         if (keyboard_check_pressed(vk_down)) {
             var _total_items = (instance_exists(obj_player) && variable_instance_exists(obj_player, "inventory")) ? array_length(obj_player.inventory) : 0;
-            var _filas_totales = ceil(_total_items / 2);
+            var _filas_totales = max(1, ceil(_total_items / 2));
             var _max_scroll = max(0, _filas_totales - 2);
             inv_y++;
-            if (inv_y > 1) { inv_y = 1; if (inv_scroll < _max_scroll) inv_scroll++; }
+            if (inv_y > 1) {
+                inv_y = 1;
+                if (inv_scroll < _max_scroll) inv_scroll++;
+            }
             audio_play_sound(snd_menumove, 10, false);
         }
         if (keyboard_check_pressed(vk_up)) {
             inv_y--;
-            if (inv_y < 0) { inv_y = 0; if (inv_scroll > 0) inv_scroll--; }
+            if (inv_y < 0) {
+                inv_y = 0;
+                if (inv_scroll > 0) inv_scroll--;
+            }
             audio_play_sound(snd_menumove, 10, false);
         }
-        if (skip_key) { en_menu_inventario = false; audio_play_sound(snd_menumove, 10, false); }
+        if (skip_key) {
+            en_menu_inventario = false;
+            audio_play_sound(snd_menumove, 10, false);
+        }
+    } else if (en_menu_toys) {
+        if (keyboard_check_pressed(vk_right)) {
+            toy_x = (toy_x + 1) % 2;
+            audio_play_sound(snd_menumove, 10, false);
+        }
+        if (keyboard_check_pressed(vk_left)) {
+            toy_x = (toy_x - 1 + 2) % 2;
+            audio_play_sound(snd_menumove, 10, false);
+        }
+        if (keyboard_check_pressed(vk_down)) {
+            var _toy_total = variable_global_exists("toy_inventory") ? array_length(global.toy_inventory) : 0;
+            var _toy_rows = max(1, ceil(_toy_total / 2));
+            var _toy_max_scroll = max(0, _toy_rows - 2);
+            toy_y++;
+            if (toy_y > 1) {
+                toy_y = 1;
+                if (toy_scroll < _toy_max_scroll) toy_scroll++;
+            }
+            audio_play_sound(snd_menumove, 10, false);
+        }
+        if (keyboard_check_pressed(vk_up)) {
+            toy_y--;
+            if (toy_y < 0) {
+                toy_y = 0;
+                if (toy_scroll > 0) toy_scroll--;
+            }
+            audio_play_sound(snd_menumove, 10, false);
+        }
+        if (skip_key) {
+            en_menu_toys = false;
+            audio_play_sound(snd_menumove, 10, false);
+        }
     } else if (!en_menu_fight && !en_seleccion_enemigo) {
-        if (keyboard_check_pressed(vk_right)) { opcion_seleccionada++; if (opcion_seleccionada > 3) opcion_seleccionada = 0; audio_play_sound(snd_menumove, 10, false); }
-        if (keyboard_check_pressed(vk_left)) { opcion_seleccionada--; if (opcion_seleccionada < 0) opcion_seleccionada = 3; audio_play_sound(snd_menumove, 10, false); }
+        if (keyboard_check_pressed(vk_right)) {
+            opcion_seleccionada++;
+            if (opcion_seleccionada > 3) opcion_seleccionada = 0;
+            audio_play_sound(snd_menumove, 10, false);
+        }
+        if (keyboard_check_pressed(vk_left)) {
+            opcion_seleccionada--;
+            if (opcion_seleccionada < 0) opcion_seleccionada = 3;
+            audio_play_sound(snd_menumove, 10, false);
+        }
     } else if (en_seleccion_enemigo) {
         var _total_en = array_length(enemigos);
-        if (keyboard_check_pressed(vk_right) || keyboard_check_pressed(vk_down)) {
-            enemigo_seleccionado_idx = (enemigo_seleccionado_idx + 1) % _total_en;
-            var _inicio = enemigo_seleccionado_idx;
-            while (variable_struct_exists(enemigos[enemigo_seleccionado_idx], "derrotado") && enemigos[enemigo_seleccionado_idx].derrotado) {
+        if (_total_en > 0) {
+            if (keyboard_check_pressed(vk_right) || keyboard_check_pressed(vk_down)) {
                 enemigo_seleccionado_idx = (enemigo_seleccionado_idx + 1) % _total_en;
-                if (enemigo_seleccionado_idx == _inicio) break;
+                var _inicio = enemigo_seleccionado_idx;
+                while (variable_struct_exists(enemigos[enemigo_seleccionado_idx], "derrotado") && enemigos[enemigo_seleccionado_idx].derrotado) {
+                    enemigo_seleccionado_idx = (enemigo_seleccionado_idx + 1) % _total_en;
+                    if (enemigo_seleccionado_idx == _inicio) break;
+                }
+                audio_play_sound(snd_menumove, 10, false);
             }
-            audio_play_sound(snd_menumove, 10, false);
-        }
-        if (keyboard_check_pressed(vk_left) || keyboard_check_pressed(vk_up)) {
-            enemigo_seleccionado_idx--;
-            if (enemigo_seleccionado_idx < 0) enemigo_seleccionado_idx = _total_en - 1;
-            var _inicio = enemigo_seleccionado_idx;
-            while (variable_struct_exists(enemigos[enemigo_seleccionado_idx], "derrotado") && enemigos[enemigo_seleccionado_idx].derrotado) {
+            if (keyboard_check_pressed(vk_left) || keyboard_check_pressed(vk_up)) {
                 enemigo_seleccionado_idx--;
                 if (enemigo_seleccionado_idx < 0) enemigo_seleccionado_idx = _total_en - 1;
-                if (enemigo_seleccionado_idx == _inicio) break;
+                var _inicio = enemigo_seleccionado_idx;
+                while (variable_struct_exists(enemigos[enemigo_seleccionado_idx], "derrotado") && enemigos[enemigo_seleccionado_idx].derrotado) {
+                    enemigo_seleccionado_idx--;
+                    if (enemigo_seleccionado_idx < 0) enemigo_seleccionado_idx = _total_en - 1;
+                    if (enemigo_seleccionado_idx == _inicio) break;
+                }
+                audio_play_sound(snd_menumove, 10, false);
             }
-            audio_play_sound(snd_menumove, 10, false);
         }
     } else if (!en_modo_info) {
         if (keyboard_check_pressed(vk_right) || keyboard_check_pressed(vk_down)) {
-            opcion_fight_seleccionada++; if (opcion_fight_seleccionada > 1) opcion_fight_seleccionada = 0; audio_play_sound(snd_menumove, 10, false);
+            opcion_fight_seleccionada++;
+            if (opcion_fight_seleccionada > 1) opcion_fight_seleccionada = 0;
+            audio_play_sound(snd_menumove, 10, false);
         }
         if (keyboard_check_pressed(vk_left) || keyboard_check_pressed(vk_up)) {
-            opcion_fight_seleccionada--; if (opcion_fight_seleccionada < 0) opcion_fight_seleccionada = 1; audio_play_sound(snd_menumove, 10, false);
+            opcion_fight_seleccionada--;
+            if (opcion_fight_seleccionada < 0) opcion_fight_seleccionada = 1;
+            audio_play_sound(snd_menumove, 10, false);
         }
     }
 }
@@ -174,42 +232,100 @@ if (draw_char < text_length) {
     }
 } else {
     if (accept_key) {
-        
+
+        // =====================================================
+        // INVENTARIO NORMAL DE BATALLA
+        // =====================================================
         if (en_menu_inventario) {
-            if (instance_exists(obj_player) && variable_instance_exists(obj_player, "inventory")) {
-                var _inv_index = inv_x + (inv_y * 2) + (inv_scroll * 2);
-                if (_inv_index < array_length(obj_player.inventory)) {
-                    var _item_key = obj_player.inventory[_inv_index];
-                    if (_item_key != -1 && _item_key != undefined) {
-                        if (variable_global_exists("item_db") && global.item_db[$ _item_key] != undefined) {
-                            var _item_data = global.item_db[$ _item_key];
-                            var _es_consumible = variable_struct_exists(_item_data, "tipo") ? (_item_data.tipo == "consumible") : true;
-                            if (_es_consumible) {
-                                var _hp_antes = 0;
-                                if (instance_exists(obj_player)) _hp_antes = obj_player.hp;
-                                if (variable_struct_exists(_item_data, "efecto")) _item_data.efecto();
-                                var _hp_curado = 0;
-                                if (instance_exists(obj_player)) _hp_curado = obj_player.hp - _hp_antes;
-                                obj_player.inventory[_inv_index] = -1;
-                                
-                                var _texto_item = "";
-                                if (_hp_curado > 0) _texto_item = "* Consumiste " + _item_data.nombre + "! Te curaste " + string(_hp_curado) + " de vida!";
-                                else if (instance_exists(obj_player) && _hp_antes >= obj_player.hp_max) _texto_item = "* Consumiste " + _item_data.nombre + ", pero ya tienes la vida llena!";
-                                else _texto_item = "* Consumiste " + _item_data.nombre + "!";
-                                
-                                f_procesar_dialogo(_texto_item);
-                                
-                                en_resultado_ataque = true;
-                                en_menu_inventario = false;
-                                audio_play_sound(snd_menumove, 10, false);
-                            }
-                        }
+            var _inv_index = inv_x + (inv_y * 2) + (inv_scroll * 2);
+
+            if (instance_exists(obj_player) && variable_instance_exists(obj_player, "inventory") && _inv_index < array_length(obj_player.inventory)) {
+                var _item_key = obj_player.inventory[_inv_index];
+                var _item_valido = false;
+
+                if (_item_key != -1 && _item_key != undefined && variable_global_exists("item_db")) {
+                    var _item_data = global.item_db[$ _item_key];
+                    if (_item_data != undefined) {
+                        _item_valido = !variable_struct_exists(_item_data, "tipo") || _item_data.tipo == "consumible";
                     }
                 }
+
+                if (_item_valido) {
+                    var _item_data = global.item_db[$ _item_key];
+                    var _hp_antes = instance_exists(obj_player) ? obj_player.hp : 0;
+
+                    if (variable_struct_exists(_item_data, "efecto")) {
+                        _item_data.efecto();
+                    }
+
+                    var _hp_curado = instance_exists(obj_player) ? obj_player.hp - _hp_antes : 0;
+                    obj_player.inventory[_inv_index] = -1;
+
+                    var _texto_item = "";
+                    if (_hp_curado > 0) {
+                        _texto_item = "* Consumiste " + _item_data.nombre + "! Te curaste " + string(_hp_curado) + " de vida!";
+                    } else if (instance_exists(obj_player) && _hp_antes >= obj_player.hp_max) {
+                        _texto_item = "* Consumiste " + _item_data.nombre + ", pero ya tienes la vida llena!";
+                    } else {
+                        _texto_item = "* Consumiste " + _item_data.nombre + "!";
+                    }
+
+                    f_procesar_dialogo(_texto_item);
+                    en_resultado_ataque = true;
+                    en_menu_inventario = false;
+                    audio_play_sound(snd_menumove, 10, false);
+                } else {
+                    if (audio_is_playing(snd_error)) audio_stop_sound(snd_error);
+                    audio_play_sound(snd_error, 10, false);
+                }
+            } else {
+                if (audio_is_playing(snd_error)) audio_stop_sound(snd_error);
+                audio_play_sound(snd_error, 10, false);
             }
+
+        // =====================================================
+        // INVENTARIO DE TOYS DE BATALLA
+        // =====================================================
+        } else if (en_menu_toys) {
+            var _toy_index = toy_x + (toy_y * 2) + (toy_scroll * 2);
+            var _toy_key = -1;
+            var _toy_valido = false;
+
+            if (variable_global_exists("toy_inventory") && _toy_index >= 0 && _toy_index < array_length(global.toy_inventory)) {
+                _toy_key = global.toy_inventory[_toy_index];
+
+                if (_toy_key != -1 && _toy_key != undefined && variable_global_exists("toy_db")) {
+                    var _toy_data = global.toy_db[$ _toy_key];
+                    if (_toy_data != undefined) _toy_valido = true;
+                }
+            }
+
+            if (_toy_valido) {
+                toy_selected_slot = _toy_index;
+                toy_selected_key = _toy_key;
+                en_menu_toys = false;
+
+                enemigo_seleccionado_idx = 0;
+                for (var i = 0; i < array_length(enemigos); i++) {
+                    if (!variable_struct_exists(enemigos[i], "derrotado") || !enemigos[i].derrotado) {
+                        enemigo_seleccionado_idx = i;
+                        break;
+                    }
+                }
+
+                en_seleccion_enemigo = true;
+                audio_play_sound(snd_menumove, 10, false);
+            } else {
+                if (audio_is_playing(snd_error)) audio_stop_sound(snd_error);
+                audio_play_sound(snd_error, 10, false);
+            }
+
+        // =====================================================
+        // RESULTADO DE UNA ACCIÓN
+        // =====================================================
         } else if (en_resultado_ataque) {
             en_resultado_ataque = false;
-            
+
             var _chequear_todos = true;
             for (var i = 0; i < array_length(enemigos); i++) {
                 if (!variable_struct_exists(enemigos[i], "derrotado") || !enemigos[i].derrotado) {
@@ -217,7 +333,7 @@ if (draw_char < text_length) {
                     break;
                 }
             }
-            
+
             if (_chequear_todos) {
                 en_dialogo_victoria_final = true;
                 f_procesar_dialogo("* ¡Has ganado la batalla!");
@@ -226,19 +342,22 @@ if (draw_char < text_length) {
                 en_menu_fight = false;
                 en_seleccion_enemigo = false;
                 en_modo_info = false;
+                en_menu_toys = false;
                 opcion_seleccionada = 0;
+                toy_selected_key = -1;
+                toy_selected_slot = -1;
                 setup = false;
                 audio_play_sound(snd_menumove, 10, false);
-                
+
                 if (instance_exists(obj_batalla_controller)) {
                     if (obj_batalla_controller.fase_actual == FASE_BATALLA.JUGADOR_MENU) {
                         obj_batalla_controller.turno_enemigo_idx = 0;
                         obj_batalla_controller.fase_actual = FASE_BATALLA.ENEMIGO_TURNO;
                     }
                 }
-                
+
                 var _siguiente_origen = texto_inicio_batalla;
-                
+
                 if (instance_exists(obj_batalla_controller)) {
                     if (variable_instance_exists(obj_batalla_controller, "primer_turno_pasado") && obj_batalla_controller.primer_turno_pasado) {
                         if (variable_instance_exists(obj_batalla_controller, "dialogos_turno_actual") && array_length(obj_batalla_controller.dialogos_turno_actual) > 0) {
@@ -247,10 +366,13 @@ if (draw_char < text_length) {
                         }
                     }
                 }
-                
+
                 f_procesar_dialogo(_siguiente_origen);
             }
-            
+
+        // =====================================================
+        // MENÚ PRINCIPAL DE BATALLA
+        // =====================================================
         } else if (!en_menu_fight && !en_seleccion_enemigo) {
             if (opcion_seleccionada == 0) {
                 en_seleccion_enemigo = true;
@@ -260,13 +382,65 @@ if (draw_char < text_length) {
                         break;
                     }
                 }
+                toy_selected_key = -1;
+                toy_selected_slot = -1;
                 audio_play_sound(snd_menumove, 10, false);
+
             } else if (opcion_seleccionada == 1) {
-                en_menu_inventario = true;
-                inv_x = 0;
-                inv_y = 0;
-                inv_scroll = 0; 
-                audio_play_sound(snd_menumove, 10, false);
+                var _hay_consumibles = false;
+
+                if (instance_exists(obj_player) && variable_instance_exists(obj_player, "inventory")) {
+                    for (var i = 0; i < array_length(obj_player.inventory); i++) {
+                        var _key = obj_player.inventory[i];
+                        if (_key != -1 && _key != undefined && variable_global_exists("item_db")) {
+                            var _data = global.item_db[$ _key];
+                            if (_data != undefined && (!variable_struct_exists(_data, "tipo") || _data.tipo == "consumible")) {
+                                _hay_consumibles = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (_hay_consumibles) {
+                    en_menu_inventario = true;
+                    inv_x = 0;
+                    inv_y = 0;
+                    inv_scroll = 0;
+                    audio_play_sound(snd_menumove, 10, false);
+                } else {
+                    if (audio_is_playing(snd_error)) audio_stop_sound(snd_error);
+                    audio_play_sound(snd_error, 10, false);
+                }
+
+            } else if (opcion_seleccionada == 2) {
+                var _hay_toys = false;
+
+                if (variable_global_exists("toy_inventory")) {
+                    for (var i = 0; i < array_length(global.toy_inventory); i++) {
+                        var _toy_key_check = global.toy_inventory[i];
+                        if (_toy_key_check != -1 && _toy_key_check != undefined && variable_global_exists("toy_db")) {
+                            if (global.toy_db[$ _toy_key_check] != undefined) {
+                                _hay_toys = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (_hay_toys) {
+                    en_menu_toys = true;
+                    toy_x = 0;
+                    toy_y = 0;
+                    toy_scroll = 0;
+                    toy_selected_key = -1;
+                    toy_selected_slot = -1;
+                    audio_play_sound(snd_menumove, 10, false);
+                } else {
+                    if (audio_is_playing(snd_error)) audio_stop_sound(snd_error);
+                    audio_play_sound(snd_error, 10, false);
+                }
+
             } else if (opcion_seleccionada == 3) {
                 if (audio_is_playing(snd_bbs_start)) {
                     audio_stop_sound(snd_bbs_start);
@@ -276,15 +450,56 @@ if (draw_char < text_length) {
                         audio_stop_sound(musica_batalla_actual);
                     }
                 }
-                audio_resume_all(); 
+                audio_resume_all();
                 audio_play_sound(snd_board_escaped, 10, false);
                 if (instance_exists(obj_batalla_controller)) obj_batalla_controller.fase_actual = FASE_BATALLA.HUIR;
             }
+
+        // =====================================================
+        // SELECCIÓN DE ENEMIGO
+        // =====================================================
         } else if (en_seleccion_enemigo) {
             var _en_sel = enemigos[enemigo_seleccionado_idx];
+
             if (variable_struct_exists(_en_sel, "derrotado") && _en_sel.derrotado) {
                 if (audio_is_playing(snd_error)) audio_stop_sound(snd_error);
                 audio_play_sound(snd_error, 10, false);
+            } else if (toy_selected_key != -1) {
+                var _toy_data_use = global.toy_db[$ toy_selected_key];
+
+                if (_toy_data_use != undefined) {
+                    if (!variable_struct_exists(_en_sel, "turnos_stun")) _en_sel.turnos_stun = 0;
+                    if (!variable_struct_exists(_en_sel, "ataque_reducido")) _en_sel.ataque_reducido = 0;
+                    if (!variable_struct_exists(_en_sel, "defensa_reducida")) _en_sel.defensa_reducida = 0;
+
+                    if (variable_struct_exists(_toy_data_use, "stun_turnos")) {
+                        _en_sel.turnos_stun = max(_en_sel.turnos_stun, _toy_data_use.stun_turnos);
+                    }
+
+                    if (variable_struct_exists(_toy_data_use, "reduccion_ataque")) {
+                        _en_sel.ataque_reducido += _toy_data_use.reduccion_ataque;
+                    }
+
+                    if (variable_struct_exists(_toy_data_use, "reduccion_defensa")) {
+                        _en_sel.defensa_reducida += _toy_data_use.reduccion_defensa;
+                    }
+
+                    var _texto_toy = "* Usaste " + _toy_data_use.nombre + " en " + _en_sel.nombre + "!";
+                    f_procesar_dialogo(_texto_toy);
+
+                    if (variable_global_exists("toy_inventory") && toy_selected_slot >= 0 && toy_selected_slot < array_length(global.toy_inventory)) {
+                        global.toy_inventory[toy_selected_slot] = -1;
+                    }
+
+                    toy_selected_key = -1;
+                    toy_selected_slot = -1;
+                    en_seleccion_enemigo = false;
+                    en_resultado_ataque = true;
+                    audio_play_sound(snd_menumove, 10, false);
+                } else {
+                    if (audio_is_playing(snd_error)) audio_stop_sound(snd_error);
+                    audio_play_sound(snd_error, 10, false);
+                }
             } else {
                 en_seleccion_enemigo = false;
                 en_menu_fight = true;
@@ -292,20 +507,22 @@ if (draw_char < text_length) {
                 opcion_fight_seleccionada = 0;
                 audio_play_sound(snd_menumove, 10, false);
             }
+
         } else if (en_modo_info) {
             en_modo_info = false;
             en_menu_fight = false;
             f_procesar_dialogo(texto_inicio_batalla);
             audio_play_sound(snd_menumove, 10, false);
+
         } else {
             var _en_actual = enemigos[enemigo_seleccionado_idx];
-            
+
             if (opcion_fight_seleccionada == 0) {
                 var _atk_base = 0;
-                
+
                 if (instance_exists(obj_player)) {
                     _atk_base = obj_player.ataque_base;
-                    
+
                     if (variable_global_exists("equip_db")) {
                         if (is_struct(obj_player.equipo_arma) && variable_struct_exists(obj_player.equipo_arma, "ataque")) {
                             _atk_base += obj_player.equipo_arma.ataque;
@@ -317,63 +534,67 @@ if (draw_char < text_length) {
                         }
                     }
                 }
-                
-                var _dano = 10 + (_atk_base * 2);
+
+                var _def_enemigo = variable_struct_exists(_en_actual, "defensa") ? _en_actual.defensa : 0;
+                var _reduccion_defensa = variable_struct_exists(_en_actual, "defensa_reducida") ? _en_actual.defensa_reducida : 0;
+                var _defensa_real = max(0, _def_enemigo - _reduccion_defensa);
+
+                var _dano = max(1, 10 + (_atk_base * 2) - _defensa_real);
                 _en_actual.vida_actual -= _dano;
                 _en_actual.shake_timer = 15;
-                
+
                 if (audio_is_playing(snd_shake)) audio_stop_sound(snd_shake);
                 audio_play_sound(snd_shake, 10, false);
-                
+
                 var _texto_ataque = "";
-                
+
                 if (_en_actual.vida_actual <= 0) {
                     _en_actual.vida_actual = 0;
                     _en_actual.derrotado = true;
-                    
+
                     if (instance_exists(obj_batalla_controller) && variable_instance_exists(obj_batalla_controller, "mapa_enemigos_muertos")) {
                         scr_marcar_enemigo_muerto(obj_batalla_controller.mapa_enemigos_muertos, enemigo_seleccionado_idx);
                     }
-                    
+
                     audio_play_sound(snd_enemy_killed, 10, false);
-                    
+
                     _texto_ataque = variable_struct_exists(_en_actual, "texto_muerte")
                         ? string_replace_all(_en_actual.texto_muerte, "\n", " ")
                         : "* Venciste a " + _en_actual.nombre + "!";
-                    
+
                     var _chequear_todos_muertos = true;
-                    
+
                     for (var i = 0; i < array_length(enemigos); i++) {
                         if (!variable_struct_exists(enemigos[i], "derrotado") || !enemigos[i].derrotado) {
                             _chequear_todos_muertos = false;
                             break;
                         }
                     }
-                    
+
                     if (_chequear_todos_muertos) {
                         if (audio_is_playing(snd_bbs_start)) {
                             audio_stop_sound(snd_bbs_start);
                         }
-                        
+
                         if (variable_instance_exists(id, "musica_batalla_actual") && audio_exists(musica_batalla_actual)) {
                             if (audio_is_playing(musica_batalla_actual)) {
                                 audio_stop_sound(musica_batalla_actual);
                             }
                         }
                     }
-                    
+
                 } else {
                     _texto_ataque = "* Hiciste " + string(_dano) + " de daño a " + _en_actual.nombre + "!";
                 }
-                
+
                 f_procesar_dialogo(_texto_ataque);
-                
+
                 en_resultado_ataque = true;
                 en_menu_fight = false;
                 en_seleccion_enemigo = false;
                 en_modo_info = false;
                 audio_play_sound(snd_menumove, 10, false);
-                
+
             } else {
                 en_modo_info = true;
                 f_procesar_dialogo(string_replace_all(_en_actual.descripcion, "\n", " "));
@@ -387,6 +608,11 @@ if (skip_key && !en_resultado_ataque && !en_dialogo_victoria_final) {
     if (en_menu_inventario) {
         en_menu_inventario = false;
         audio_play_sound(snd_menumove, 10, false);
+    } else if (en_menu_toys) {
+        en_menu_toys = false;
+        toy_selected_key = -1;
+        toy_selected_slot = -1;
+        audio_play_sound(snd_menumove, 10, false);
     } else if (en_modo_info) {
         en_modo_info = false;
         en_menu_fight = false;
@@ -398,6 +624,8 @@ if (skip_key && !en_resultado_ataque && !en_dialogo_victoria_final) {
         audio_play_sound(snd_menumove, 10, false);
     } else if (en_seleccion_enemigo) {
         en_seleccion_enemigo = false;
+        toy_selected_key = -1;
+        toy_selected_slot = -1;
         audio_play_sound(snd_menumove, 10, false);
     }
 }

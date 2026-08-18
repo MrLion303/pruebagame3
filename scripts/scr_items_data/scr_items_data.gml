@@ -7,7 +7,7 @@ function scr_item_db() {
             efecto: function() {
                 var _p = obj_player;
                 if (instance_exists(_p)) {
-                    _p.hp = min(_p.hp_max, _p.hp + 1);
+                    _p.hp = min(_p.hp_max, _p.hp + 10);
                 }
 				audio_play_sound(snd_health, 10, false);
             },

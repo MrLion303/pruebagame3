@@ -16,6 +16,25 @@ inv_y = 0;
 inv_scroll = 0;
 en_item_resultado = false;
 
+// =========================================================
+// INVENTARIO DE TOYS EN BATALLA
+// =========================================================
+en_menu_toys = false;
+toy_x = 0;
+toy_y = 0;
+toy_scroll = 0;
+toy_selected_slot = -1;
+toy_selected_key = -1;
+
+if (!variable_global_exists("toy_db")) {
+    scr_toys_data();
+}
+
+if (!variable_global_exists("toy_inventory")) {
+    global.toy_inventory = array_create(30, -1);
+    global.toy_inventory[0] = "brillitos";
+}
+
 // VARIABLES DE FADE OUT DE SALIDA Y VICTORIA
 fade_salida_activa = false;
 alpha_salida = 1.0;

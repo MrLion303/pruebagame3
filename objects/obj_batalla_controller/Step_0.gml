@@ -65,22 +65,46 @@ switch (fase_actual) {
             break;
         }
         
-        var _dano_enemigo = variable_struct_exists(_en_actual, "ataque") ? (_en_actual.ataque + irandom_range(0, 3)) : irandom_range(5, 12);
-        
+        // =====================================================
+        // TOYS: COMPROBAR SI EL ENEMIGO ESTÁ ATURDIDO
+        // =====================================================
+        if (!variable_struct_exists(_en_actual, "turnos_stun")) {
+            _en_actual.turnos_stun = 0;
+        }
+
+        if (_en_actual.turnos_stun > 0) {
+            _en_actual.turnos_stun--;
+
+            if (instance_exists(obj_batalla_ui)) {
+                obj_batalla_ui.en_resultado_ataque = true;
+                obj_batalla_ui.f_procesar_dialogo("* " + _en_actual.nombre + " está aturdido y no puede atacar!");
+            }
+
+            fase_actual = FASE_BATALLA.ENEMIGO_ATACANDO;
+            break;
+        }
+
+        // =====================================================
+        // ATAQUE DEL ENEMIGO + REDUCCIÓN DE ATAQUE POR TOYS
+        // =====================================================
+        var _ataque_base_enemigo = variable_struct_exists(_en_actual, "ataque") ? _en_actual.ataque : irandom_range(5, 12);
+        var _reduccion_ataque = variable_struct_exists(_en_actual, "ataque_reducido") ? _en_actual.ataque_reducido : 0;
+        var _dano_enemigo = max(0, (_ataque_base_enemigo - _reduccion_ataque) + irandom_range(0, 3));
+
         if (instance_exists(obj_player)) {
             obj_player.hp = max(0, obj_player.hp - _dano_enemigo);
         }
-        
+
         if (audio_is_playing(snd_atacado)) {
             audio_stop_sound(snd_atacado);
         }
         audio_play_sound(snd_atacado, 10, false);
-        
+
         if (instance_exists(obj_batalla_ui)) {
             obj_batalla_ui.en_resultado_ataque = true;
             obj_batalla_ui.f_procesar_dialogo("* " + _en_actual.nombre + " ataca y te causa " + string(_dano_enemigo) + " de daño!");
         }
-        
+
         fase_actual = FASE_BATALLA.ENEMIGO_ATACANDO;
         break;
         

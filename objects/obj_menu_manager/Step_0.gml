@@ -5,6 +5,18 @@ if (_room_actual == "bbs" || _room_actual == "rm_title") {
     exit; 
 }
 
+// =========================================================
+// RESTAURAR DATOS PERSISTENTES AL CAMBIAR DE ROOM/BATALLA
+// =========================================================
+if (variable_global_exists("equipment_inventory")) {
+    equipment = global.equipment_inventory;
+}
+
+if (instance_exists(obj_player)) {
+    if (variable_global_exists("equipped_arma")) obj_player.equipo_arma = global.equipped_arma;
+    if (variable_global_exists("equipped_armadura")) obj_player.equipo_armadura = global.equipped_armadura;
+}
+
 // Abrir menú principal con C o Ctrl
 if (state == MENU_STATE.CLOSED) {
     if (keyboard_check_pressed(ord("C")) || keyboard_check_pressed(vk_control)) {
@@ -30,6 +42,16 @@ if (keyboard_check_pressed(ord("X")) || keyboard_check_pressed(vk_shift)) {
     } else if (state == MENU_STATE.ITEM_DROP_CONFIRM) {
         state = MENU_STATE.ITEM_ACTION;
     } 
+    // Retrocesos para TOYS
+    else if (state == MENU_STATE.TOY_MENU) {
+        state = MENU_STATE.MAIN;
+    } else if (state == MENU_STATE.TOY_ACTION) {
+        state = MENU_STATE.TOY_MENU;
+    } else if (state == MENU_STATE.TOY_INFO) {
+        state = MENU_STATE.TOY_ACTION;
+    } else if (state == MENU_STATE.TOY_DROP_CONFIRM) {
+        state = MENU_STATE.TOY_ACTION;
+    }
     // Retrocesos para EQUIP
     else if (state == MENU_STATE.EQUIP_MENU) {
         state = MENU_STATE.MAIN;
@@ -80,19 +102,24 @@ switch (state) {
                     state = MENU_STATE.INVENTORY;
                     inv_x = 0; inv_y = 0; inv_scroll = 0;
                     break;
-                case 1: // EQUIP
+                case 1: // TOYS
+                    state = MENU_STATE.TOY_MENU;
+                    toy_x = 0; toy_y = 0; toy_scroll = 0;
+                    toy_action_index = 0;
+                    break;
+                case 2: // EQUIP
                     state = MENU_STATE.EQUIP_MENU;
                     equip_x = 0; equip_y = 0; equip_scroll = 0;
                     break;
-                case 2: // STAD
+                case 3: // STAD
                     state = MENU_STATE.INFO_MENU;
                     break;
-                case 3: // CONFIG
+                case 4: // CONFIG
                     state = MENU_STATE.CONFIG_MENU;
                     config_tab = 0;
                     config_index = -1; 
                     break;
-                case 4: // CERRAR
+                case 5: // CERRAR
                     state = MENU_STATE.GAME_CLOSE_CONFIRM;
                     close_confirm_index = 1;
                     break;
@@ -171,11 +198,17 @@ switch (state) {
                 
                 switch (action_index) {
                     case 0: // Usar
-                        if (item_data != undefined && item_data.efecto != undefined) {
+                        if (item_data != undefined &&
+                            variable_struct_exists(item_data, "tipo") &&
+                            item_data.tipo == "consumible" &&
+                            variable_struct_exists(item_data, "efecto")) {
                             item_data.efecto();
                             obj_player.inventory[slot_index] = -1;
+                            state = MENU_STATE.CLOSED;
+                        } else {
+                            if (audio_is_playing(snd_error)) audio_stop_sound(snd_error);
+                            audio_play_sound(snd_error, 10, false);
                         }
-                        state = MENU_STATE.CLOSED;
                         break;
                     case 1: // Tirar
                         state = MENU_STATE.ITEM_DROP_CONFIRM;
@@ -223,7 +256,155 @@ switch (state) {
         }
         break;
 
-    // --- LÓGICA PARA EQUIP (50 slots) ---
+    // --- LÓGICA PARA TOYS (30 slots) ---
+    case MENU_STATE.TOY_MENU:
+        var _moved_toy = false;
+
+        if (keyboard_check_pressed(vk_right) || keyboard_check_pressed(ord("D"))) {
+            toy_x = (toy_x + 1) % 3;
+            _moved_toy = true;
+        }
+        if (keyboard_check_pressed(vk_left) || keyboard_check_pressed(ord("A"))) {
+            toy_x = (toy_x - 1 + 3) % 3;
+            _moved_toy = true;
+        }
+        if (keyboard_check_pressed(vk_down) || keyboard_check_pressed(ord("S"))) {
+            if (toy_y < 2) {
+                toy_y++;
+                _moved_toy = true;
+            } else if (toy_scroll < 7) {
+                toy_scroll++;
+                _moved_toy = true;
+            }
+        }
+        if (keyboard_check_pressed(vk_up) || keyboard_check_pressed(ord("W"))) {
+            if (toy_y > 0) {
+                toy_y--;
+                _moved_toy = true;
+            } else if (toy_scroll > 0) {
+                toy_scroll--;
+                _moved_toy = true;
+            }
+        }
+
+        if (_moved_toy) {
+            audio_play_sound(snd_menumove, 10, false);
+        }
+
+        if (keyboard_check_pressed(ord("Z")) || keyboard_check_pressed(vk_enter)) {
+            var _toy_slot = (toy_y + toy_scroll) * 3 + toy_x;
+
+            if (variable_global_exists("toy_inventory") &&
+                _toy_slot >= 0 &&
+                _toy_slot < array_length(global.toy_inventory) &&
+                global.toy_inventory[_toy_slot] != -1 &&
+                variable_global_exists("toy_db") &&
+                global.toy_db[$ global.toy_inventory[_toy_slot]] != undefined) {
+
+                toy_action_index = 0;
+                audio_play_sound(snd_menumove, 10, false);
+                state = MENU_STATE.TOY_ACTION;
+            } else {
+                if (audio_is_playing(snd_error)) audio_stop_sound(snd_error);
+                audio_play_sound(snd_error, 10, false);
+            }
+        }
+        break;
+
+    case MENU_STATE.TOY_ACTION:
+        var _moved_ta = false;
+
+        if (keyboard_check_pressed(vk_right) || keyboard_check_pressed(ord("D"))) {
+            toy_action_index = (toy_action_index + 1) % 3;
+            _moved_ta = true;
+        }
+        if (keyboard_check_pressed(vk_left) || keyboard_check_pressed(ord("A"))) {
+            toy_action_index = (toy_action_index - 1 + 3) % 3;
+            _moved_ta = true;
+        }
+
+        if (_moved_ta) audio_play_sound(snd_menumove, 10, false);
+
+        if (keyboard_check_pressed(ord("Z")) || keyboard_check_pressed(vk_enter)) {
+            var _toy_slot = (toy_y + toy_scroll) * 3 + toy_x;
+
+            if (variable_global_exists("toy_inventory") &&
+                _toy_slot >= 0 &&
+                _toy_slot < array_length(global.toy_inventory)) {
+
+                var _toy_key = global.toy_inventory[_toy_slot];
+                var _toy_data = (variable_global_exists("toy_db") && _toy_key != -1 && _toy_key != undefined)
+                    ? global.toy_db[$ _toy_key]
+                    : undefined;
+
+                if (_toy_data != undefined) {
+                    if (toy_action_index == 0) {
+                        var _textbox_toy = instance_create_layer(x, y, layer, obj_textbox);
+                        _textbox_toy.text = ["Los toys se usan durante una batalla."];
+                        _textbox_toy.page_number = array_length(_textbox_toy.text);
+                        state = MENU_STATE.CLOSED;
+                    }
+                    else if (toy_action_index == 1) {
+                        state = MENU_STATE.TOY_DROP_CONFIRM;
+                        toy_drop_confirm_index = 1;
+                    }
+                    else {
+                        state = MENU_STATE.TOY_INFO;
+                    }
+
+                    audio_play_sound(snd_menumove, 10, false);
+                } else {
+                    if (audio_is_playing(snd_error)) audio_stop_sound(snd_error);
+                    audio_play_sound(snd_error, 10, false);
+                }
+            }
+        }
+        break;
+
+    case MENU_STATE.TOY_INFO:
+        if (keyboard_check_pressed(ord("Z")) || keyboard_check_pressed(vk_enter)) {
+            audio_play_sound(snd_menumove, 10, false);
+            state = MENU_STATE.TOY_ACTION;
+        }
+        break;
+
+    case MENU_STATE.TOY_DROP_CONFIRM:
+        if (keyboard_check_pressed(vk_right) || keyboard_check_pressed(ord("D")) ||
+            keyboard_check_pressed(vk_left) || keyboard_check_pressed(ord("A"))) {
+            toy_drop_confirm_index = (toy_drop_confirm_index + 1) % 2;
+            audio_play_sound(snd_menumove, 10, false);
+        }
+
+        if (keyboard_check_pressed(ord("Z")) || keyboard_check_pressed(vk_enter)) {
+            audio_play_sound(snd_menumove, 10, false);
+
+            var _toy_slot = (toy_y + toy_scroll) * 3 + toy_x;
+
+            if (variable_global_exists("toy_inventory") &&
+                _toy_slot >= 0 &&
+                _toy_slot < array_length(global.toy_inventory)) {
+
+                var _toy_key = global.toy_inventory[_toy_slot];
+                var _toy_data = (variable_global_exists("toy_db") && _toy_key != -1 && _toy_key != undefined)
+                    ? global.toy_db[$ _toy_key]
+                    : undefined;
+                var _toy_name = (_toy_data != undefined) ? _toy_data.nombre : "toy";
+
+                if (toy_drop_confirm_index == 0) {
+                    global.toy_inventory[_toy_slot] = -1;
+                    state = MENU_STATE.CLOSED;
+
+                    var _textbox = instance_create_layer(x, y, layer, obj_textbox);
+                    _textbox.text = ["Has tirado " + _toy_name + "."];
+                    _textbox.page_number = array_length(_textbox.text);
+                } else {
+                    state = MENU_STATE.TOY_MENU;
+                }
+            }
+        }
+        break;
+
+    // --- LÓGICA PARA EQUIP (51 slots) ---
     case MENU_STATE.EQUIP_MENU:
         var _moved_eq = false;
         if (keyboard_check_pressed(vk_right) || keyboard_check_pressed(ord("D"))) {
@@ -299,23 +480,27 @@ switch (state) {
                         
                         if (eq_data.tipo == "arma") {
                             var _arma_vieja = _p.equipo_arma;
-                            _p.equipo_arma = eq_key; 
-                            
+                            _p.equipo_arma = eq_key;
+                            global.equipped_arma = eq_key;
+
                             if (_arma_vieja != -1) {
-                                equipment[eq_slot] = _arma_vieja; 
+                                global.equipment_inventory[eq_slot] = _arma_vieja;
                             } else {
-                                equipment[eq_slot] = -1; 
+                                global.equipment_inventory[eq_slot] = -1;
                             }
+                            equipment = global.equipment_inventory;
                         } 
                         else if (eq_data.tipo == "armadura") {
                             var _armadura_vieja = _p.equipo_armadura;
-                            _p.equipo_armadura = eq_key; 
-                            
+                            _p.equipo_armadura = eq_key;
+                            global.equipped_armadura = eq_key;
+
                             if (_armadura_vieja != -1) {
-                                equipment[eq_slot] = _armadura_vieja; 
+                                global.equipment_inventory[eq_slot] = _armadura_vieja;
                             } else {
-                                equipment[eq_slot] = -1; 
+                                global.equipment_inventory[eq_slot] = -1;
                             }
+                            equipment = global.equipment_inventory;
                         }
                         
                         audio_play_sound(snd_equip, 10, false);
@@ -359,7 +544,8 @@ switch (state) {
             var eq_name = (eq_data != undefined) ? eq_data.nombre : "equipamiento";
             
             if (drop_confirm_index == 0) {
-                equipment[eq_slot] = -1;
+                global.equipment_inventory[eq_slot] = -1;
+                equipment = global.equipment_inventory;
                 state = MENU_STATE.CLOSED;
                 var _textbox = instance_create_layer(x, y, layer, obj_textbox);
                 _textbox.text = ["Has tirado " + eq_name + "."];

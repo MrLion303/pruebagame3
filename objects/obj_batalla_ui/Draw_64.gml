@@ -1,6 +1,3 @@
-// =========================================================
-// EVENTO: DIBUJAR GUI
-// =========================================================
 var _s = 2;
 
 if (!variable_instance_exists(id, "alpha_aparicion")) alpha_aparicion = 0.0;
@@ -98,7 +95,7 @@ if (variable_global_exists("font_main")) {
 // =========================================================
 // CAJA PRINCIPAL DE DIÁLOGO / MENÚ
 // =========================================================
-if (!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario) {
+if ((!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario) && (!variable_instance_exists(id, "en_menu_toys") || !en_menu_toys)) {
     
     // =====================================================
     // CABEZA DEL PROTAGONISTA
@@ -231,10 +228,12 @@ if (!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario) 
     // SELECCIÓN DE ENEMIGO
     // =====================================================
     if (en_seleccion_enemigo) {
+        var _texto_seleccion = (toy_selected_key != -1) ? "* Elige a quien usar el toy!" : "* Elige a quien atacar!";
+
         draw_text_color(
             (14 + 16) * _s,
             (125 + 10) * _s,
-            "* Elige a quien atacar!",
+            "¡Elige el enemigo!",
             c_white,
             c_white,
             c_white,
@@ -336,7 +335,7 @@ if (!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario) 
         }
     }
     
-} else {
+} else if (en_menu_inventario) {
     
     // =====================================================
     // INVENTARIO
@@ -454,6 +453,102 @@ if (!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario) 
                 false
             );
             
+            draw_set_alpha(1.0);
+        }
+    }
+}
+
+else if (en_menu_toys) {
+
+    // =====================================================
+    // INVENTARIO DE TOYS EN BATALLA: 30 SLOTS
+    // =====================================================
+    var _toy_start_x = (14 * _s) + (18 * _s);
+    var _toy_start_y = (125 * _s) + (8 * _s);
+
+    if (variable_global_exists("toy_inventory")) {
+        for (var i = 0; i < 4; i++) {
+            var _toy_index = i + (toy_scroll * 2);
+            var _toy_col = i % 2;
+            var _toy_row = floor(i / 2);
+
+            var _toy_cx = _toy_start_x + (_toy_col * (130 * _s));
+            var _toy_cy = _toy_start_y + (_toy_row * (18 * _s));
+            var _toy_is_selected = (toy_x == _toy_col && toy_y == _toy_row);
+
+            var _toy_key_draw = -1;
+            if (_toy_index < array_length(global.toy_inventory)) {
+                _toy_key_draw = global.toy_inventory[_toy_index];
+            }
+
+            var _toy_nombre = "-----";
+            if (_toy_key_draw != -1 && _toy_key_draw != undefined && variable_global_exists("toy_db")) {
+                var _toy_data_draw = global.toy_db[$ _toy_key_draw];
+                if (_toy_data_draw != undefined) {
+                    _toy_nombre = _toy_data_draw.nombre;
+                }
+            }
+
+            var _toy_txt_color = _toy_is_selected ? c_yellow : c_white;
+            if (_toy_key_draw == -1 || _toy_key_draw == undefined) {
+                _toy_txt_color = _toy_is_selected ? c_yellow : c_gray;
+            }
+
+            draw_text_transformed_color(
+                _toy_cx,
+                _toy_cy,
+                "* " + _toy_nombre,
+                0.8,
+                0.8,
+                0,
+                _toy_txt_color,
+                _toy_txt_color,
+                _toy_txt_color,
+                _toy_txt_color,
+                _alpha_final
+            );
+        }
+
+        var _toy_total_slots = array_length(global.toy_inventory);
+        var _toy_rows_total = max(1, ceil(_toy_total_slots / 2));
+        var _toy_visible_rows = 2;
+
+        if (_toy_rows_total > _toy_visible_rows) {
+            var _toy_bar_x = (14 * _s) + (268 * _s);
+            var _toy_bar_y = _toy_start_y;
+            var _toy_bar_w = 4 * _s;
+            var _toy_bar_h = 36 * _s;
+
+            draw_set_alpha(_alpha_final * 0.4);
+            draw_rectangle_color(
+                _toy_bar_x,
+                _toy_bar_y,
+                _toy_bar_x + _toy_bar_w,
+                _toy_bar_y + _toy_bar_h,
+                c_gray,
+                c_gray,
+                c_gray,
+                c_gray,
+                false
+            );
+
+            var _toy_max_scroll_draw = _toy_rows_total - _toy_visible_rows;
+            var _toy_scroll_ratio = (_toy_max_scroll_draw > 0) ? clamp(toy_scroll / _toy_max_scroll_draw, 0, 1) : 0;
+            var _toy_thumb_h = max((_toy_visible_rows / _toy_rows_total) * _toy_bar_h, 8 * _s);
+            var _toy_thumb_y = _toy_bar_y + (_toy_scroll_ratio * (_toy_bar_h - _toy_thumb_h));
+
+            draw_set_alpha(_alpha_final);
+            draw_rectangle_color(
+                _toy_bar_x,
+                _toy_thumb_y,
+                _toy_bar_x + _toy_bar_w,
+                _toy_thumb_y + _toy_thumb_h,
+                c_white,
+                c_white,
+                c_white,
+                c_white,
+                false
+            );
             draw_set_alpha(1.0);
         }
     }
@@ -581,9 +676,9 @@ var _ancho_total_texto =
 
 draw_rectangle_color(
     _info_x,
-    _hp_label_y + 9 * _s,
+    _hp_label_y + 10 * _s,
     _info_x + _ancho_total_texto,
-    _hp_label_y + 9 * _s + 6 * _s,
+    _hp_label_y + 10 * _s + 6 * _s,
     $202020,
     $202020,
     $202020,
@@ -599,9 +694,9 @@ var _porcentaje_hp = clamp(
 
 draw_rectangle_color(
     _info_x,
-    _hp_label_y + 9 * _s,
+    _hp_label_y + 10 * _s,
     _info_x + (_ancho_total_texto * _porcentaje_hp),
-    _hp_label_y + 9 * _s + 6 * _s,
+    _hp_label_y + 10 * _s + 6 * _s,
     c_yellow,
     c_yellow,
     c_yellow,

@@ -216,7 +216,131 @@ else if (state >= MENU_STATE.INVENTORY && state <= MENU_STATE.ITEM_DROP_CONFIRM)
         }
     }
 }
-// CASO D: MENÚ DE EQUIPAMIENTO (51 slots)
+// CASO D: MENÚ DE TOYS (30 slots)
+else if (state >= MENU_STATE.TOY_MENU && state <= MENU_STATE.TOY_DROP_CONFIRM) {
+    draw_set_halign(fa_left);
+
+    var toy_box_x = m_x + m_w + 12;
+    var toy_box_y = m_y;
+    var toy_box_w = 346;
+    var toy_box_h = m_h;
+
+    draw_sprite_stretched(spr_textbox, 0, toy_box_x, toy_box_y, toy_box_w, toy_box_h);
+
+    var toy_start_x = toy_box_x + 24;
+    var toy_start_y = toy_box_y + 20;
+    var toy_cell_w = 100;
+    var toy_cell_h = 45;
+
+    for (var yy = 0; yy < 3; yy++) {
+        for (var xx = 0; xx < 3; xx++) {
+            var toy_index = (yy + toy_scroll) * 3 + xx;
+            var toy_cx = toy_start_x + (xx * toy_cell_w);
+            var toy_cy = toy_start_y + (yy * toy_cell_h);
+
+            if (state == MENU_STATE.TOY_MENU && toy_x == xx && toy_y == yy) {
+                draw_set_color(c_yellow);
+                draw_rectangle(toy_cx - 4, toy_cy - 4, toy_cx + toy_cell_w - 18, toy_cy + toy_cell_h - 10, true);
+            }
+
+            var toy_key = -1;
+            if (variable_global_exists("toy_inventory") && toy_index < array_length(global.toy_inventory)) {
+                toy_key = global.toy_inventory[toy_index];
+            }
+
+            if (toy_key != -1 && toy_key != undefined && variable_global_exists("toy_db")) {
+                var toy_item = global.toy_db[$ toy_key];
+                if (toy_item != undefined) {
+                    draw_set_color(c_orange);
+                    draw_text_ext_transformed(toy_cx, toy_cy, toy_item.nombre, 23, 120, 0.66, 0.66, 0);
+                } else {
+                    draw_set_color(c_dkgray);
+                    draw_text_transformed(toy_cx, toy_cy, "-----", 0.66, 0.66, 0);
+                }
+            } else {
+                draw_set_color(c_dkgray);
+                draw_text_transformed(toy_cx, toy_cy, "-----", 0.66, 0.66, 0);
+            }
+        }
+    }
+
+    var toy_bar_x = toy_box_x + 322;
+    var toy_bar_y = toy_start_y;
+    var toy_bar_h = 120;
+
+    draw_set_color(c_dkgray);
+    draw_line_width(toy_bar_x, toy_bar_y, toy_bar_x, toy_bar_y + toy_bar_h, 2);
+
+    var toy_max_scroll = 7;
+    var toy_dot_y = toy_bar_y + (toy_max_scroll > 0 ? (toy_scroll / toy_max_scroll) * toy_bar_h : 0);
+    var toy_sq_size = 4;
+
+    draw_set_color(c_white);
+    draw_rectangle(toy_bar_x - toy_sq_size, toy_dot_y - toy_sq_size, toy_bar_x + toy_sq_size, toy_dot_y + toy_sq_size, false);
+
+    var toy_inf_x = toy_box_x + 16;
+    var toy_inf_y = toy_box_y + 175;
+    var toy_inf_w = 314;
+    var toy_inf_h = 115;
+
+    draw_sprite_stretched(spr_textbox, 0, toy_inf_x, toy_inf_y, toy_inf_w, toy_inf_h);
+
+    var toy_info_index = (toy_y + toy_scroll) * 3 + toy_x;
+    var toy_info_key = -1;
+
+    if (variable_global_exists("toy_inventory") &&
+        toy_info_index >= 0 &&
+        toy_info_index < array_length(global.toy_inventory)) {
+        toy_info_key = global.toy_inventory[toy_info_index];
+    }
+
+    var toy_info = (toy_info_key != -1 && toy_info_key != undefined && variable_global_exists("toy_db"))
+        ? global.toy_db[$ toy_info_key]
+        : undefined;
+
+    if (state == MENU_STATE.TOY_ACTION) {
+        var toy_actions = ["Usar", "Tirar", "Info"];
+        for (var a = 0; a < array_length(toy_actions); a++) {
+            var toy_col_a = (toy_action_index == a) ? c_yellow : c_white;
+            draw_set_color(toy_col_a);
+            draw_text(toy_inf_x + 12 + (a * 102), toy_inf_y + 16, toy_actions[a]);
+        }
+        draw_set_color(c_ltgray);
+        draw_text(toy_inf_x + 16, toy_inf_y + 65, "Z: Selecc | X: Volver");
+    }
+    else if (state == MENU_STATE.TOY_INFO) {
+        if (toy_info != undefined) {
+            draw_set_color(c_yellow);
+            draw_text(toy_inf_x + 16, toy_inf_y + 16, toy_info.nombre);
+            draw_set_color(c_white);
+            draw_text_ext(toy_inf_x + 16, toy_inf_y + 45, toy_info.descripcion, 25, 280);
+        }
+    }
+    else if (state == MENU_STATE.TOY_DROP_CONFIRM) {
+        draw_set_halign(fa_center);
+        draw_set_color(c_yellow);
+        draw_text(toy_inf_x + (toy_inf_w / 2), toy_inf_y + 20, "Estas seguro?");
+
+        var toy_options_drop = ["Si", "No"];
+        for (var d = 0; d < 2; d++) {
+            var toy_col_d = (toy_drop_confirm_index == d) ? c_yellow : c_white;
+            draw_set_color(toy_col_d);
+            var toy_btn_x = toy_inf_x + (toy_inf_w / 2) + ((d - 0.5) * 90);
+            draw_text(toy_btn_x, toy_inf_y + 65, toy_options_drop[d]);
+        }
+        draw_set_halign(fa_left);
+    }
+    else {
+        if (toy_info != undefined) {
+            draw_set_color(c_white);
+            draw_text_ext(toy_inf_x + 16, toy_inf_y + 20, toy_info.descripcion, 25, 280);
+        } else {
+            draw_set_color(c_white);
+            draw_text(toy_inf_x + 16, toy_inf_y + 25, "Espacio vacio.");
+        }
+    }
+}
+// CASO E: MENÚ DE EQUIPAMIENTO (51 slots)
 else if (state >= MENU_STATE.EQUIP_MENU && state <= MENU_STATE.EQUIP_DROP_CONFIRM) {
     draw_set_halign(fa_left);
     var eq_box_x = m_x + m_w + 12;
