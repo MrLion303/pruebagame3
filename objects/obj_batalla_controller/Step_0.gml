@@ -50,6 +50,9 @@ switch (fase_actual) {
             
             primer_turno_pasado = true;
             
+            // SE EVALÚA LA SUERTE DEL SIGUIENTE TURNO DEL JUGADOR
+            exito_escape_turno = (random(1.0) < probabilidad_escapar);
+            
             var _texto_a_usar = "";
             if (primer_turno_pasado && array_length(dialogos_turno_actual) > 0) {
                 var _indice_azar = irandom(array_length(dialogos_turno_actual) - 1);
@@ -89,7 +92,9 @@ switch (fase_actual) {
         // =====================================================
         var _ataque_base_enemigo = variable_struct_exists(_en_actual, "ataque") ? _en_actual.ataque : irandom_range(5, 12);
         var _reduccion_ataque = variable_struct_exists(_en_actual, "ataque_reducido") ? _en_actual.ataque_reducido : 0;
-        var _dano_enemigo = max(0, (_ataque_base_enemigo - _reduccion_ataque) + irandom_range(0, 3));
+        var _multiplicador_ataque = max(0, 1 - (_reduccion_ataque * 0.08));
+        var _ataque_real = max(0, round(_ataque_base_enemigo * _multiplicador_ataque));
+        var _dano_enemigo = max(0, _ataque_real + irandom_range(0, 3));
 
         if (instance_exists(obj_player)) {
             obj_player.hp = max(0, obj_player.hp - _dano_enemigo);
@@ -120,6 +125,11 @@ switch (fase_actual) {
         break;
         
     case FASE_BATALLA.VICTORIA:
+        if (victoria_finalizada) {
+            fase_actual = FASE_BATALLA.HUIR;
+        }
+        break;
+
     case FASE_BATALLA.HUIR:
         if (variable_instance_exists(id, "mapa_enemigos_muertos") && ds_exists(mapa_enemigos_muertos, ds_type_map)) {
             ds_map_destroy(mapa_enemigos_muertos);

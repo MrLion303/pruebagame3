@@ -1,3 +1,6 @@
+// =========================================================
+// EVENTO: DRAW GUI
+// =========================================================
 var _s = 2;
 
 if (!variable_instance_exists(id, "alpha_aparicion")) alpha_aparicion = 0.0;
@@ -97,21 +100,6 @@ if (variable_global_exists("font_main")) {
 // =========================================================
 if ((!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario) && (!variable_instance_exists(id, "en_menu_toys") || !en_menu_toys)) {
     
-    // =====================================================
-    // CABEZA DEL PROTAGONISTA
-    // =====================================================
-    //
-    // La cabeza SOLO puede aparecer si:
-    //
-    // 1. head_visible == true
-    // 2. head_sprite existe
-    // 3. existe texto
-    // 4. el texto ya comenzó a aparecer
-    // 5. no estamos en un menú
-    //
-    // Esto elimina completamente el frame residual.
-    // =====================================================
-    
     var _tiene_cabeza = false;
     
     if (
@@ -205,9 +193,7 @@ if ((!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario)
         }
     }
     
-    // =====================================================
     // DIBUJAR CABEZA
-    // =====================================================
     if (_tiene_cabeza) {
         var _head_scale = 1.35 * _s;
         
@@ -224,9 +210,7 @@ if ((!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario)
         );
     }
     
-    // =====================================================
     // SELECCIÓN DE ENEMIGO
-    // =====================================================
     if (en_seleccion_enemigo) {
         var _texto_seleccion = (toy_selected_key != -1) ? "* Elige a quien usar el toy!" : "* Elige a quien atacar!";
 
@@ -241,9 +225,7 @@ if ((!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario)
             _alpha_final
         );
         
-    // =====================================================
     // MENÚ FIGHT
-    // =====================================================
     } else if (en_menu_fight && !en_modo_info) {
         var _tx = (14 + 16) * _s;
         var _ty = (125 + 10) * _s;
@@ -305,9 +287,7 @@ if ((!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario)
         
         draw_set_alpha(1.0);
         
-    // =====================================================
     // TEXTO NORMAL
-    // =====================================================
     } else {
         var _caracteres_visibles = floor(draw_char);
         
@@ -337,9 +317,7 @@ if ((!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario)
     
 } else if (en_menu_inventario) {
     
-    // =====================================================
     // INVENTARIO
-    // =====================================================
     var _start_x = (14 * _s) + (18 * _s);
     var _start_y = (125 * _s) + (8 * _s);
     
@@ -460,9 +438,7 @@ if ((!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario)
 
 else if (en_menu_toys) {
 
-    // =====================================================
     // INVENTARIO DE TOYS EN BATALLA: 30 SLOTS
-    // =====================================================
     var _toy_start_x = (14 * _s) + (18 * _s);
     var _toy_start_y = (125 * _s) + (8 * _s);
 
@@ -554,9 +530,7 @@ else if (en_menu_toys) {
     }
 }
 
-// =========================================================
 // MONITOREO DE DAÑO Y FRAME DE LA CABEZA DEL PROTAGONISTA
-// =========================================================
 var _hp_actual = 80;
 var _hp_max = 80;
 
@@ -595,7 +569,6 @@ draw_sprite_ext(
     _alpha_final
 );
 
-// Dibuja el sprite del protagonista usando el frame dinámico
 _prota_head_frame = clamp(_prota_head_frame, 0, 1);
 
 draw_sprite_ext(
@@ -706,9 +679,7 @@ draw_rectangle_color(
 
 draw_set_alpha(1.0);
 
-// =========================================================
 // BOTONES PRINCIPALES
-// =========================================================
 var _escala_btn = 1.310613 * _s;
 var _pos_x_btn = [132.371, 177.0, 221.0769, 265.0];
 

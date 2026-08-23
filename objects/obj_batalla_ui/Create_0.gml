@@ -39,6 +39,10 @@ if (!variable_global_exists("toy_inventory")) {
 fade_salida_activa = false;
 alpha_salida = 1.0;
 en_dialogo_victoria_final = false;
+victoria_etapa = 0;
+victoria_xp = 0;
+victoria_nivel_antes = 1;
+victoria_sonido_nivel_reproducido = false;
 
 ui_x_caja_izq = 30;
 ui_y_caja_izq = 640;
@@ -48,27 +52,15 @@ ui_y_caja_der = 640;
 // =========================================================
 // CONTROL DE CABEZA DEL PROTAGONISTA
 // =========================================================
-// head_sprite contiene el sprite correspondiente al diálogo actual.
-// head_visible determina EXCLUSIVAMENTE si debe dibujarse.
-//
-// Esto evita que la cabeza del diálogo anterior aparezca
-// durante un frame al cambiar de texto.
 head_sprite = noone;
 head_visible = false;
 
 // =========================================================
-// MÉTODO GLOBAL DE INSTANCIA PARA PROCESAR DIÁLOGOS CORRECTAMENTE
+// MÉTODO GLOBAL DE INSTANCIA PARA PROCESAR DIÁLOGOS
 // =========================================================
 f_procesar_dialogo = function(_entrada) {
-    
-    // =====================================================
-    // IMPORTANTE:
-    // Primero apagamos completamente la cabeza anterior.
-    // Esto ocurre ANTES de procesar el nuevo diálogo.
-    // =====================================================
     head_sprite = noone;
     head_visible = false;
-    
     text_sound_custom = snd_text;
 
     if (is_struct(_entrada)) {
@@ -87,16 +79,10 @@ f_procesar_dialogo = function(_entrada) {
         }
     } else {
         text_to_draw = string(_entrada);
-        
-        // Un texto simple NUNCA tiene cabeza.
         head_sprite = noone;
         head_visible = false;
     }
     
-    // =====================================================
-    // SEGURIDAD EXTRA:
-    // Si el texto está vacío, tampoco puede existir cabeza.
-    // =====================================================
     if (string_length(text_to_draw) <= 0) {
         head_sprite = noone;
         head_visible = false;

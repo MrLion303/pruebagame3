@@ -22,6 +22,13 @@ var _datos_variante = scr_enemigos_data(global.enemigo_actual_id);
 enemigos = _datos_variante.enemigos;
 musica_batalla_actual = _datos_variante.musica;
 dialogos_turno_actual = _datos_variante.dialogos_turno;
+experiencia_batalla = variable_struct_exists(_datos_variante, "experiencia") ? _datos_variante.experiencia : 0;
+
+// SISTEMA DE PROBABILIDAD DE ESCAPE
+probabilidad_escapar = variable_struct_exists(_datos_variante, "probabilidad_escapar") ? _datos_variante.probabilidad_escapar : 0.5;
+exito_escape_turno = (random(1.0) < probabilidad_escapar);
+
+victoria_finalizada = false;
 
 primer_turno_pasado = false;
 mapa_enemigos_muertos = scr_inicializar_muertes_enemigos(enemigos);

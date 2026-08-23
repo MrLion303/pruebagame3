@@ -28,5 +28,3 @@ function scr_item_db() {
         }
     };
 }
-
- 

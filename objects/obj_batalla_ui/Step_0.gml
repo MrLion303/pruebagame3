@@ -1,23 +1,21 @@
+// =========================================================
+// EVENTO: STEP
+// =========================================================
 accept_key = keyboard_check_pressed(ord("Z")) || keyboard_check_pressed(vk_enter);
 skip_key = keyboard_check_pressed(ord("X")) || keyboard_check_pressed(vk_shift) || keyboard_check_pressed(vk_control);
 var _fast_skip_key = keyboard_check(ord("C")) || keyboard_check_pressed(vk_control);
 
-// =========================================================
-// SEGURIDAD DE CABEZA
-// =========================================================
-// Si no existe un diálogo válido, jamás debe aparecer la cabeza.
 if (string_length(text_to_draw) <= 0) {
     head_visible = false;
     head_sprite = noone;
 }
 
-// Si el diálogo actual no tiene cabeza, se mantiene apagada.
 if (head_sprite == noone) {
     head_visible = false;
 }
 
 if (instance_exists(obj_batalla_controller)) {
-    if (obj_batalla_controller.fase_actual == FASE_BATALLA.VICTORIA || obj_batalla_controller.fase_actual == FASE_BATALLA.HUIR) {
+    if (obj_batalla_controller.fase_actual == FASE_BATALLA.HUIR) {
         fade_salida_activa = true;
     }
 }
@@ -61,7 +59,7 @@ if (_todos_derrotados && en_dialogo_victoria_final) {
         draw_char += _actual_speed;
         draw_char = clamp(draw_char, 0, text_length);
         if (skip_key || _fast_skip_key || accept_key) draw_char = text_length;
-        
+
         if (!_fast_skip_key) {
             text_sound_timer++;
             if (text_sound_timer >= text_sound_delay) {
@@ -70,25 +68,38 @@ if (_todos_derrotados && en_dialogo_victoria_final) {
                 if (_char_actual > _char_anterior) {
                     var _letra = string_char_at(text_to_draw, _char_actual);
                     var _es_letra = (_letra >= "a" && _letra <= "z") || (_letra >= "A" && _letra <= "Z");
-                    if (_es_letra) {
-                        var _snd_voz = audio_exists(text_sound_custom) ? text_sound_custom : snd_text;
-                        audio_play_sound(_snd_voz, 10, false);
-                    }
+                    if (_es_letra) audio_play_sound(snd_text, 10, false);
                 }
             }
         }
-    } else {
-        if (accept_key) {
-            if (audio_is_playing(snd_bbs_start)) {
-                audio_stop_sound(snd_bbs_start);
-            }
-            if (variable_instance_exists(id, "musica_batalla_actual") && audio_exists(musica_batalla_actual)) {
-                if (audio_is_playing(musica_batalla_actual)) {
-                    audio_stop_sound(musica_batalla_actual);
+    } else if (accept_key) {
+        if (victoria_etapa == 0) {
+            victoria_xp = instance_exists(obj_batalla_controller) ? obj_batalla_controller.experiencia_batalla : 0;
+            victoria_nivel_antes = instance_exists(obj_player) && variable_instance_exists(obj_player, "nivel") ? obj_player.nivel : 1;
+
+            if (victoria_xp > 0) scr_level_ganar_experiencia(victoria_xp);
+
+            var _subio = instance_exists(obj_player) && variable_instance_exists(obj_player, "nivel") && obj_player.nivel > victoria_nivel_antes;
+            victoria_etapa = _subio ? 1 : 2;
+
+            if (_subio) {
+                if (!victoria_sonido_nivel_reproducido) {
+                    victoria_sonido_nivel_reproducido = true;
+                    audio_play_sound(snd_levelup, 10, false);
+                }
+                f_procesar_dialogo("¡Subiste de nivel!");
+            } else {
+                if (instance_exists(obj_batalla_controller)) {
+                    obj_batalla_controller.victoria_finalizada = true;
+                    obj_batalla_controller.fase_actual = FASE_BATALLA.HUIR;
                 }
             }
-            audio_resume_all();
-            if (instance_exists(obj_batalla_controller)) obj_batalla_controller.fase_actual = FASE_BATALLA.VICTORIA;
+        } else if (victoria_etapa == 1) {
+            victoria_etapa = 2;
+            if (instance_exists(obj_batalla_controller)) {
+                obj_batalla_controller.victoria_finalizada = true;
+                obj_batalla_controller.fase_actual = FASE_BATALLA.HUIR;
+            }
         }
     }
     exit;
@@ -336,7 +347,10 @@ if (draw_char < text_length) {
 
             if (_chequear_todos) {
                 en_dialogo_victoria_final = true;
-                f_procesar_dialogo("* ¡Has ganado la batalla!");
+                victoria_etapa = 0;
+                victoria_sonido_nivel_reproducido = false;
+                victoria_xp = instance_exists(obj_batalla_controller) ? obj_batalla_controller.experiencia_batalla : 0;
+                f_procesar_dialogo("* ¡Has ganado la batalla! Ganaste " + string(victoria_xp) + " XP.");
                 audio_play_sound(snd_menumove, 10, false);
             } else {
                 en_menu_fight = false;
@@ -442,17 +456,29 @@ if (draw_char < text_length) {
                 }
 
             } else if (opcion_seleccionada == 3) {
-                if (audio_is_playing(snd_bbs_start)) {
-                    audio_stop_sound(snd_bbs_start);
+                // ACCIÓN DE HUIR CON VALIDACIÓN DE SUERTE
+                var _puede_escapar = false;
+                if (instance_exists(obj_batalla_controller) && variable_instance_exists(obj_batalla_controller, "exito_escape_turno")) {
+                    _puede_escapar = obj_batalla_controller.exito_escape_turno;
                 }
-                if (variable_instance_exists(id, "musica_batalla_actual") && audio_exists(musica_batalla_actual)) {
-                    if (audio_is_playing(musica_batalla_actual)) {
-                        audio_stop_sound(musica_batalla_actual);
+
+                if (_puede_escapar) {
+                    if (audio_is_playing(snd_bbs_start)) {
+                        audio_stop_sound(snd_bbs_start);
                     }
+                    if (variable_instance_exists(id, "musica_batalla_actual") && audio_exists(musica_batalla_actual)) {
+                        if (audio_is_playing(musica_batalla_actual)) {
+                            audio_stop_sound(musica_batalla_actual);
+                        }
+                    }
+                    audio_resume_all();
+                    audio_play_sound(snd_board_escaped, 10, false);
+                    if (instance_exists(obj_batalla_controller)) obj_batalla_controller.fase_actual = FASE_BATALLA.HUIR;
+                } else {
+                    f_procesar_dialogo("* Intentaste huir, ¡pero no pudiste escapar!");
+                    en_resultado_ataque = true;
+                    audio_play_sound(snd_menumove, 10, false);
                 }
-                audio_resume_all();
-                audio_play_sound(snd_board_escaped, 10, false);
-                if (instance_exists(obj_batalla_controller)) obj_batalla_controller.fase_actual = FASE_BATALLA.HUIR;
             }
 
         // =====================================================
@@ -468,24 +494,14 @@ if (draw_char < text_length) {
                 var _toy_data_use = global.toy_db[$ toy_selected_key];
 
                 if (_toy_data_use != undefined) {
-                    if (!variable_struct_exists(_en_sel, "turnos_stun")) _en_sel.turnos_stun = 0;
-                    if (!variable_struct_exists(_en_sel, "ataque_reducido")) _en_sel.ataque_reducido = 0;
-                    if (!variable_struct_exists(_en_sel, "defensa_reducida")) _en_sel.defensa_reducida = 0;
-
-                    if (variable_struct_exists(_toy_data_use, "stun_turnos")) {
-                        _en_sel.turnos_stun = max(_en_sel.turnos_stun, _toy_data_use.stun_turnos);
+                    var _toy_aplicado = false;
+                    if (variable_struct_exists(_toy_data_use, "efecto")) {
+                        _toy_aplicado = _toy_data_use.efecto(_en_sel, _toy_data_use);
                     }
 
-                    if (variable_struct_exists(_toy_data_use, "reduccion_ataque")) {
-                        _en_sel.ataque_reducido += _toy_data_use.reduccion_ataque;
-                    }
-
-                    if (variable_struct_exists(_toy_data_use, "reduccion_defensa")) {
-                        _en_sel.defensa_reducida += _toy_data_use.reduccion_defensa;
-                    }
-
-                    var _texto_toy = "* Usaste " + _toy_data_use.nombre + " en " + _en_sel.nombre + "!";
-                    f_procesar_dialogo(_texto_toy);
+                    if (_toy_aplicado) {
+                        var _texto_toy = "* Usaste " + _toy_data_use.nombre + " en " + _en_sel.nombre + "!";
+                        f_procesar_dialogo(_texto_toy);
 
                     if (variable_global_exists("toy_inventory") && toy_selected_slot >= 0 && toy_selected_slot < array_length(global.toy_inventory)) {
                         global.toy_inventory[toy_selected_slot] = -1;
@@ -496,6 +512,10 @@ if (draw_char < text_length) {
                     en_seleccion_enemigo = false;
                     en_resultado_ataque = true;
                     audio_play_sound(snd_menumove, 10, false);
+                    } else {
+                        if (audio_is_playing(snd_error)) audio_stop_sound(snd_error);
+                        audio_play_sound(snd_error, 10, false);
+                    }
                 } else {
                     if (audio_is_playing(snd_error)) audio_stop_sound(snd_error);
                     audio_play_sound(snd_error, 10, false);
@@ -537,7 +557,8 @@ if (draw_char < text_length) {
 
                 var _def_enemigo = variable_struct_exists(_en_actual, "defensa") ? _en_actual.defensa : 0;
                 var _reduccion_defensa = variable_struct_exists(_en_actual, "defensa_reducida") ? _en_actual.defensa_reducida : 0;
-                var _defensa_real = max(0, _def_enemigo - _reduccion_defensa);
+                var _multiplicador_defensa = max(0, 1 - (_reduccion_defensa * 0.08));
+                var _defensa_real = max(0, round(_def_enemigo * _multiplicador_defensa));
 
                 var _dano = max(1, 10 + (_atk_base * 2) - _defensa_real);
                 _en_actual.vida_actual -= _dano;

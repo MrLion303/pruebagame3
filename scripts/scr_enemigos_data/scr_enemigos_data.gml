@@ -1,6 +1,8 @@
 function scr_enemigos_data(_id_enemigo) {
     var _datos_batalla = {
         musica: mus_battle_1, 
+        experiencia: 0,
+        probabilidad_escapar: 0.5,
         enemigos: [],
         dialogos_turno: [
             { texto: "El... keke? Oh! Claro que me gusta!", head: spr_bbs_prota_head, snd: snd_noelle },
@@ -12,6 +14,8 @@ function scr_enemigos_data(_id_enemigo) {
     switch (_id_enemigo) {
         case "toby":
             _datos_batalla.musica = mus_battle_1;
+            _datos_batalla.experiencia = 100;
+            _datos_batalla.probabilidad_escapar = 0.5;
             _datos_batalla.dialogos_turno = [
                 { texto: "El... keke? Oh! Claro que me gusta!", head: spr_bbs_prota_head, snd: snd_noelle },
                 { texto: "* Toby acomoda su postura de combate.", head: noone, snd: snd_text },
@@ -33,6 +37,8 @@ function scr_enemigos_data(_id_enemigo) {
             
         case "slime":
             _datos_batalla.musica = mus_battle_1;
+            _datos_batalla.experiencia = 50;
+            _datos_batalla.probabilidad_escapar = 0.5;
             _datos_batalla.dialogos_turno = [
                 { texto: "¡Cuidado con este viscoso amigo!", head: spr_bbs_prota_head, snd: snd_noelle },
                 { texto: "* El Slime gotea líquido viscoso.", head: noone, snd: snd_text },
@@ -46,14 +52,16 @@ function scr_enemigos_data(_id_enemigo) {
                 vida_actual: 15,
                 ataque: 1,
                 defensa: 1,
-                descripcion: "Un pequeno monstruo gelatinoso.",
+                descripcion: "Un pequeño monstruo gelatinoso.",
                 texto_inicio: "Un Slime gelatinoso bloquea el paso!",
                 texto_muerte: "* Derrotaste al Slime Verdoso."
             });
             break;
             
         case "variante 1":
-            _datos_batalla.musica = mus_battle_1; 
+            _datos_batalla.musica = mus_battle_1;
+            _datos_batalla.experiencia = 150; 
+            _datos_batalla.probabilidad_escapar = 0.5;
             _datos_batalla.dialogos_turno = [
                 { texto: "¿Estás seguro de que podemos con todos?", head: spr_bbs_prota_head, snd: snd_noelle },
                 { texto: "* Los enemigos se coordinan para rodearte.", head: noone, snd: snd_text },
@@ -79,7 +87,7 @@ function scr_enemigos_data(_id_enemigo) {
                 vida_actual: 15,
                 ataque: 1,
                 defensa: 1,
-                descripcion: "Un pequeno monstruo gelatinoso.",
+                descripcion: "Un pequeño monstruo gelatinoso.",
                 texto_muerte: "* Derrotaste al Slime Verdoso."
             });
             array_push(_datos_batalla.enemigos, {
@@ -97,6 +105,8 @@ function scr_enemigos_data(_id_enemigo) {
             
         default:
             _datos_batalla.musica = mus_battle_1;
+            _datos_batalla.experiencia = 0;
+            _datos_batalla.probabilidad_escapar = 0.5;
             array_push(_datos_batalla.enemigos, {
                 nombre: "Desconocido",
                 sprite: spr_enemigo_1,
@@ -106,7 +116,7 @@ function scr_enemigos_data(_id_enemigo) {
                 ataque: 1,
                 defensa: 0,
                 descripcion: "Un error en la matrix.",
-                texto_inicio: "Algo extrano emerge de la oscuridad...",
+                texto_inicio: "Algo extraño emerge de la oscuridad...",
                 texto_muerte: "* El enemigo desconocido se desvanece."
             });
             break;

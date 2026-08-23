@@ -1,3 +1,7 @@
+// =========================================================
+// FUENTE PRINCIPAL DEL JUEGO
+// =========================================================
+
 global.font_main = font_add_sprite_ext(
     spr_main_font,
     " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~ÁÉÍÓÚÜÑáéíóúüñ¿¡",
@@ -5,16 +9,28 @@ global.font_main = font_add_sprite_ext(
     1
 );
 
-// Inicializamos la base de datos universal de ítems y equipamiento
-scr_item_db();
-scr_equips_data(); 
+// =========================================================
+// BASE DE DATOS UNIVERSAL
+// =========================================================
 
-// Inicializar variable de auto-correr si no existe
+// Items
+scr_item_db();
+
+// Equipamiento
+scr_equips_data();
+
+// =========================================================
+// AUTO-CORRER
+// =========================================================
+
 if (!variable_global_exists("autocorrer_enabled")) {
-    global.autocorrer_enabled = false; 
+    global.autocorrer_enabled = false;
 }
 
-// Creamos el gestor de menús de forma persistente y automática
+// =========================================================
+// CREAR GESTOR DE MENÚ
+// =========================================================
+
 if (!instance_exists(obj_menu_manager)) {
     instance_create_layer(0, 0, "Instances", obj_menu_manager);
 }

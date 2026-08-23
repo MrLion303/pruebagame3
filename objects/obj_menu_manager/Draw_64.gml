@@ -502,3 +502,4 @@ else if (state == MENU_STATE.CONFIG_MENU || state == MENU_STATE.CONFIG_ACTION) {
 
 draw_set_halign(fa_left);
 draw_set_color(c_white);
+
