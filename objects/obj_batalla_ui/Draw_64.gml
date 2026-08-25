@@ -95,9 +95,7 @@ if (variable_global_exists("font_main")) {
     draw_set_font(global.font_main);
 }
 
-// =========================================================
 // CAJA PRINCIPAL DE DIÁLOGO / MENÚ
-// =========================================================
 if ((!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario) && (!variable_instance_exists(id, "en_menu_toys") || !en_menu_toys)) {
     
     var _tiene_cabeza = false;
@@ -287,7 +285,7 @@ if ((!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario)
         
         draw_set_alpha(1.0);
         
-    // TEXTO NORMAL
+    // TEXTO NORMAL O CINEMÁTICA
     } else {
         var _caracteres_visibles = floor(draw_char);
         
@@ -438,7 +436,6 @@ if ((!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario)
 
 else if (en_menu_toys) {
 
-    // INVENTARIO DE TOYS EN BATALLA: 30 SLOTS
     var _toy_start_x = (14 * _s) + (18 * _s);
     var _toy_start_y = (125 * _s) + (8 * _s);
 

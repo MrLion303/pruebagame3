@@ -1,6 +1,6 @@
 {
   "$GMSound":"v2",
-  "%Name":"mus_battle_1",
+  "%Name":"mus_jevil",
   "audioGroupId":{
     "name":"audiogroup_default",
     "path":"audiogroups/audiogroup_default",
@@ -10,9 +10,9 @@
   "compression":0,
   "compressionQuality":4,
   "conversionMode":0,
-  "duration":0.0,
+  "duration":101.05263,
   "exportDir":"",
-  "name":"mus_battle_1",
+  "name":"mus_jevil",
   "parent":{
     "name":"musica de batalla",
     "path":"folders/MSistema de Batallas/musica de batalla.yy",
@@ -21,6 +21,6 @@
   "resourceType":"GMSound",
   "resourceVersion":"2.0",
   "sampleRate":44100,
-  "soundFile":"mus_battle_1.ogg",
+  "soundFile":"mus_jevil.ogg",
   "volume":1.0,
 }

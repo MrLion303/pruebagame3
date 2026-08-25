@@ -44,6 +44,34 @@ for (var i = 0; i < array_length(enemigos); i++) {
     }
 }
 
+// SI ESTAMOS EN CINEMÁTICA, EL CONTROLLER SE ENCARGA DE AVANZAR
+if (instance_exists(obj_batalla_controller) && obj_batalla_controller.fase_actual == FASE_BATALLA.CINEMATICA) {
+    if (draw_char < text_length) {
+        var _actual_speed = _fast_skip_key ? 999 : text_spd;
+        var _char_anterior = floor(draw_char);
+        draw_char += _actual_speed;
+        draw_char = clamp(draw_char, 0, text_length);
+        if (skip_key || _fast_skip_key || accept_key) draw_char = text_length;
+
+        if (!_fast_skip_key) {
+            text_sound_timer++;
+            if (text_sound_timer >= text_sound_delay) {
+                text_sound_timer = 0;
+                var _char_actual = floor(draw_char);
+                if (_char_actual > _char_anterior) {
+                    var _letra = string_char_at(text_to_draw, _char_actual);
+                    var _es_letra = (_letra >= "a" && _letra <= "z") || (_letra >= "A" && _letra <= "Z");
+                    if (_es_letra) {
+                        var _snd_voz = audio_exists(text_sound_custom) ? text_sound_custom : snd_text;
+                        audio_play_sound(_snd_voz, 10, false);
+                    }
+                }
+            }
+        }
+    }
+    exit;
+}
+
 var _todos_derrotados = true;
 for (var i = 0; i < array_length(enemigos); i++) {
     if (!variable_struct_exists(enemigos[i], "derrotado") || !enemigos[i].derrotado) {
@@ -244,9 +272,6 @@ if (draw_char < text_length) {
 } else {
     if (accept_key) {
 
-        // =====================================================
-        // INVENTARIO NORMAL DE BATALLA
-        // =====================================================
         if (en_menu_inventario) {
             var _inv_index = inv_x + (inv_y * 2) + (inv_scroll * 2);
 
@@ -294,9 +319,6 @@ if (draw_char < text_length) {
                 audio_play_sound(snd_error, 10, false);
             }
 
-        // =====================================================
-        // INVENTARIO DE TOYS DE BATALLA
-        // =====================================================
         } else if (en_menu_toys) {
             var _toy_index = toy_x + (toy_y * 2) + (toy_scroll * 2);
             var _toy_key = -1;
@@ -331,9 +353,6 @@ if (draw_char < text_length) {
                 audio_play_sound(snd_error, 10, false);
             }
 
-        // =====================================================
-        // RESULTADO DE UNA ACCIÓN
-        // =====================================================
         } else if (en_resultado_ataque) {
             en_resultado_ataque = false;
 
@@ -384,9 +403,6 @@ if (draw_char < text_length) {
                 f_procesar_dialogo(_siguiente_origen);
             }
 
-        // =====================================================
-        // MENÚ PRINCIPAL DE BATALLA
-        // =====================================================
         } else if (!en_menu_fight && !en_seleccion_enemigo) {
             if (opcion_seleccionada == 0) {
                 en_seleccion_enemigo = true;
@@ -456,7 +472,6 @@ if (draw_char < text_length) {
                 }
 
             } else if (opcion_seleccionada == 3) {
-                // ACCIÓN DE HUIR CON VALIDACIÓN DE SUERTE
                 var _puede_escapar = false;
                 if (instance_exists(obj_batalla_controller) && variable_instance_exists(obj_batalla_controller, "exito_escape_turno")) {
                     _puede_escapar = obj_batalla_controller.exito_escape_turno;
@@ -481,9 +496,6 @@ if (draw_char < text_length) {
                 }
             }
 
-        // =====================================================
-        // SELECCIÓN DE ENEMIGO
-        // =====================================================
         } else if (en_seleccion_enemigo) {
             var _en_sel = enemigos[enemigo_seleccionado_idx];
 

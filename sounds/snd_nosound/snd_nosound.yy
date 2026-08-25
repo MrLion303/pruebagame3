@@ -1,6 +1,6 @@
 {
   "$GMSound":"v2",
-  "%Name":"mus_battle_1",
+  "%Name":"snd_nosound",
   "audioGroupId":{
     "name":"audiogroup_default",
     "path":"audiogroups/audiogroup_default",
@@ -10,17 +10,17 @@
   "compression":0,
   "compressionQuality":4,
   "conversionMode":0,
-  "duration":0.0,
+  "duration":0.1,
   "exportDir":"",
-  "name":"mus_battle_1",
+  "name":"snd_nosound",
   "parent":{
-    "name":"musica de batalla",
-    "path":"folders/MSistema de Batallas/musica de batalla.yy",
+    "name":"Sonidos de batalla",
+    "path":"folders/MSistema de Batallas/Sonidos de batalla.yy",
   },
   "preload":false,
   "resourceType":"GMSound",
   "resourceVersion":"2.0",
   "sampleRate":44100,
-  "soundFile":"mus_battle_1.ogg",
+  "soundFile":"snd_nosound.wav",
   "volume":1.0,
 }

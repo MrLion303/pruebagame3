@@ -16,9 +16,7 @@ inv_y = 0;
 inv_scroll = 0;
 en_item_resultado = false;
 
-// =========================================================
 // INVENTARIO DE TOYS EN BATALLA
-// =========================================================
 en_menu_toys = false;
 toy_x = 0;
 toy_y = 0;
@@ -49,15 +47,11 @@ ui_y_caja_izq = 640;
 ui_x_caja_der = 420;
 ui_y_caja_der = 640;
 
-// =========================================================
 // CONTROL DE CABEZA DEL PROTAGONISTA
-// =========================================================
 head_sprite = noone;
 head_visible = false;
 
-// =========================================================
 // MÉTODO GLOBAL DE INSTANCIA PARA PROCESAR DIÁLOGOS
-// =========================================================
 f_procesar_dialogo = function(_entrada) {
     head_sprite = noone;
     head_visible = false;
@@ -96,9 +90,6 @@ f_procesar_dialogo = function(_entrada) {
     setup = false;
 };
 
-// =========================================================
-// OBTENER DATOS DE ENEMIGOS Y PAUSAR MÚSICA ANTERIOR
-// =========================================================
 audio_pause_all();
 
 if (!variable_global_exists("enemigo_actual_id")) {
