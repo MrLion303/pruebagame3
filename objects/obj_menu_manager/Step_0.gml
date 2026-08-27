@@ -13,17 +13,21 @@ if (variable_global_exists("equipment_inventory")) {
 }
 
 if (instance_exists(obj_player)) {
-    if (variable_global_exists("equipped_arma")) obj_player.equipo_arma = global.equipped_arma;
-    if (variable_global_exists("equipped_armadura")) obj_player.equipo_armadura = global.equipped_armadura;
+    // CORRECCIÓN: El menú lee lo que el jugador tiene cargado
+    global.equipped_arma = obj_player.equipo_arma;
+    global.equipped_armadura = obj_player.equipo_armadura;
 }
 
 // Abrir menú principal con C o Ctrl
 if (state == MENU_STATE.CLOSED) {
-    if (keyboard_check_pressed(ord("C")) || keyboard_check_pressed(vk_control)) {
-        if (!instance_exists(obj_textbox)) {
-            state = MENU_STATE.MAIN;
-            main_index = 0;
-            audio_play_sound(snd_menumove, 10, false);
+    // BLOQUEO: Solo permitir abrir si el menú de guardado NO está abierto
+    if (!instance_exists(obj_save_menu)) {
+        if (keyboard_check_pressed(ord("C")) || keyboard_check_pressed(vk_control)) {
+            if (!instance_exists(obj_textbox)) {
+                state = MENU_STATE.MAIN;
+                main_index = 0;
+                audio_play_sound(snd_menumove, 10, false);
+            }
         }
     }
     exit;

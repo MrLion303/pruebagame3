@@ -1,4 +1,3 @@
-room_to_save = global.rm1
-
-//pasillo school = 0
-//toriel_salon = 1
+// Por si olvidas poner el código de creación en el mapa, 
+// le damos un valor por defecto para que no dé error.
+room_to_save = global.rm1;

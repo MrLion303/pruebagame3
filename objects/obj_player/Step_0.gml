@@ -8,6 +8,10 @@ if (instance_exists(obj_menu_manager)) {
         _menu_abierto = true;
     }
 }
+// NUEVO: Si el menú de guardado existe, lo marcamos como menú abierto para frenar al jugador
+if (instance_exists(obj_save_menu)) {
+    _menu_abierto = true;
+}
 
 // === CONDICIÓN MAESTRA DE MOVIMIENTO ===
 if (!instance_exists(obj_pauser) && !instance_exists(obj_textbox) && !_menu_abierto && !instance_exists(obj_transicion_bbs) && room != bbs && puede_moverse)
@@ -26,8 +30,18 @@ if (!instance_exists(obj_pauser) && !instance_exists(obj_textbox) && !_menu_abie
         if (_tecla_lenta) { _vel = 6; } else { _vel = 4; }
     }
 
+    // --- LECTURA DE TECLAS CON ANULACIÓN DE OPUESTOS ---
+    var _key_right = keyboard_check(vk_right);
+    var _key_left  = keyboard_check(vk_left);
+    var _key_up    = keyboard_check(vk_up);
+    var _key_down  = keyboard_check(vk_down);
+    
+    // Si se presionan teclas opuestas al mismo tiempo, se anulan mutuamente
+    if (_key_right && _key_left) { _key_right = false; _key_left = false; }
+    if (_key_up && _key_down)    { _key_up = false; _key_down = false; }
+
     // Derecha
-    if (keyboard_check(vk_right))
+    if (_key_right)
     {
         direccion = "derecha";
         face = RIGHT;
@@ -49,7 +63,7 @@ if (!instance_exists(obj_pauser) && !instance_exists(obj_textbox) && !_menu_abie
     }
 
     // Izquierda
-    if (keyboard_check(vk_left))
+    if (_key_left)
     {
         direccion = "izquierda";
         face = LEFT;
@@ -71,7 +85,7 @@ if (!instance_exists(obj_pauser) && !instance_exists(obj_textbox) && !_menu_abie
     }
 
     // Arriba
-    if (keyboard_check(vk_up))
+    if (_key_up)
     {
         direccion = "arriba";
         face = UP;
@@ -82,7 +96,7 @@ if (!instance_exists(obj_pauser) && !instance_exists(obj_textbox) && !_menu_abie
     }
 
     // Abajo
-    if (keyboard_check(vk_down))
+    if (_key_down)
     {
         direccion = "abajo";
         face = DOWN;
@@ -90,6 +104,26 @@ if (!instance_exists(obj_pauser) && !instance_exists(obj_textbox) && !_menu_abie
             y += _vel;
             movimiento = true;
         }
+    }
+    
+// --- SONIDO DE CAMINAR ---
+    if (movimiento) {
+        paso_timer -= 1;
+        
+        if (paso_timer <= 0) {
+            audio_stop_sound(snd_step1); // Evita que se superpongan los audios
+            audio_play_sound(snd_step1, 0, false);
+            
+            // Redujimos los valores para que suene más rápido
+            if (_vel == 6) {
+                paso_timer = 10; // Antes era 12 (Corriendo)
+            } else {
+                paso_timer = 14; // Antes era 16 (Caminando normal)
+            }
+        }
+    } else {
+        // Reiniciamos el timer para que al volver a moverse, el sonido suene inmediatamente
+        paso_timer = 0; 
     }
     
     // --- COMBATE POR TURNOS: CORREGIDO Y BLINDADO ---
@@ -104,31 +138,25 @@ if (!instance_exists(obj_pauser) && !instance_exists(obj_textbox) && !_menu_abie
             case 3: _yy -= 20; break; // Arriba
         }
         
-        // Usamos asset_get_index para asegurar que GameMaker busque el objeto por su nombre como recurso global sin confundirlo con variable
         var _target = instance_place(_xx, _yy, asset_get_index("obj_padre_enemy"));
         
-        // Si por alguna razón asset_get_index falla, intentamos una segunda opción segura buscando por el nombre del objeto directo usando id
         if (_target == noone) {
-            // Buscamos colisión genérica en esa posición exacta con el objeto
             _target = instance_position(_xx, _yy, asset_get_index("obj_padre_enemy"));
         }
         
         if (_target != noone && _target != self) {
-            // Guardar posición para regresar después
             global.return_x = x;
             global.return_y = y;
             global.return_room = room;
             
-            // Pasar datos del enemigo y del jugador a globales
             if (variable_instance_exists(_target, "enemigo_id")) {
                 global.battle_enemy_id = _target.enemigo_id;
             } else {
-                global.battle_enemy_id = 0; // Valor por defecto por seguridad
+                global.battle_enemy_id = 0; 
             }
             
             global.player_hp_current = hp;
             
-            // Ir a la room de batalla
             room_goto(bbs);
         }
     }

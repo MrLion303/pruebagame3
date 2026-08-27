@@ -56,3 +56,11 @@ inv_max_slots = 12;
 inv_scroll = 0;
 inv_x = 0;
 inv_y = 0;
+
+// --- CARGAR DATOS SI ES CONTINUAR ---
+if (!global.new_game) {
+    scr_aplicar_datos_cargados(id);
+}
+
+// --- SISTEMA DE AUDIO DE PASOS ---
+paso_timer = 0;

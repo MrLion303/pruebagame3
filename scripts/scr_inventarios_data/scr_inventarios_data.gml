@@ -21,8 +21,26 @@ function scr_inventarios_data() {
 
 function scr_inventarios_sync() {
     scr_inventarios_data();
+    
+    // Sincronizar arreglos de inventario
     global.inventory_data.toys = global.toy_inventory;
-    if (variable_global_exists("equipment_inventory")) global.inventory_data.equipamiento = global.equipment_inventory;
-    if (instance_exists(obj_player) && variable_instance_exists(obj_player, "inventory")) global.inventory_data.consumibles = obj_player.inventory;
+    if (variable_global_exists("equipment_inventory")) {
+        global.inventory_data.equipamiento = global.equipment_inventory;
+    }
+    
+    // Sincronizar TODO lo del jugador hacia la base de datos global
+    if (instance_exists(obj_player)) {
+        if (variable_instance_exists(obj_player, "inventory")) {
+            global.inventory_data.consumibles = obj_player.inventory;
+        }
+        // NUEVO: Asegurarnos de que el equipo activo se registre globalmente
+        if (variable_instance_exists(obj_player, "equipo_arma")) {
+            global.inventory_data.equipado_arma = obj_player.equipo_arma;
+        }
+        if (variable_instance_exists(obj_player, "equipo_armadura")) {
+            global.inventory_data.equipado_armadura = obj_player.equipo_armadura;
+        }
+    }
+    
     return global.inventory_data;
 }

@@ -159,9 +159,8 @@ if (instance_exists(obj_player)) {
     if (!variable_instance_exists(obj_player, "equipo_armadura")) {
         obj_player.equipo_armadura = global.equipped_armadura;
     }
-
-    obj_player.equipo_arma = global.equipped_arma;
-    obj_player.equipo_armadura = global.equipped_armadura;
+    
+    // (Líneas dictadoras eliminadas correctamente de aquí)
 }
 
 // =========================================================
@@ -176,23 +175,10 @@ if (!variable_global_exists("toy_db")) {
 // INVENTARIO DE TOYS PERSISTENTE
 // =========================================================
 
-/*
-    scr_inventarios_data() es el encargado de crear
-    y preparar global.toy_inventory.
-    
-    NO usamos function_exists(), porque GameMaker
-    no reconoce esa función de la manera en que
-    estaba escrita anteriormente.
-*/
-
 scr_inventarios_data();
 
-// Si por alguna razón el script no creó el inventario,
-// lo creamos aquí como respaldo.
 if (!variable_global_exists("toy_inventory")) {
-
     global.toy_inventory = array_create(30, -1);
-
     global.toy_inventory[0] = "brillitos";
 }
 

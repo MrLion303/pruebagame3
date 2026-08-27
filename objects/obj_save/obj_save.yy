@@ -9,8 +9,8 @@
   "name":"obj_save",
   "overriddenProperties":[],
   "parent":{
-    "name":"admin obj",
-    "path":"folders/admin obj.yy",
+    "name":"SAVE",
+    "path":"folders/admin obj/SAVE.yy",
   },
   "parentObjectId":null,
   "persistent":false,
@@ -29,7 +29,7 @@
   "properties":[],
   "resourceType":"GMObject",
   "resourceVersion":"2.0",
-  "solid":false,
+  "solid":true,
   "spriteId":{
     "name":"spr_save",
     "path":"sprites/spr_save/spr_save.yy",
