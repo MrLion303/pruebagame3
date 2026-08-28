@@ -1,3 +1,7 @@
-// Por si olvidas poner el código de creación en el mapa, 
-// le damos un valor por defecto para que no dé error.
+// =========================================================
+// OBJ_SAVE
+// CREATE
+// =========================================================
+
+// Valor por defecto.
 room_to_save = global.rm1;
