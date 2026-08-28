@@ -36,16 +36,12 @@ transicion_activa = false;
 // 3 = fade desde negro
 transicion_fase = 0;
 
-// Progreso de 0 a 1.
 transicion_progreso = 0;
 
-// Velocidad.
-//
-// 0.04 = aproximadamente 25 frames.
-// Puedes bajar a 0.03 si la quieres más lenta.
+// Velocidad del fade.
 transicion_velocidad = 0.04;
 
-// Slot que cargaremos cuando la pantalla esté cubierta.
+// Slot que cargaremos.
 transicion_seccion = "";
 
 // Destino.
@@ -53,8 +49,8 @@ transicion_room = room;
 transicion_x = 0;
 transicion_y = 0;
 
-// Durante el fade-out en la nueva room
-// ya no dibujaremos la interfaz de guardado.
+// Durante el fade de salida en la nueva room
+// ocultamos la interfaz de guardado.
 mostrar_interfaz = true;
 
 

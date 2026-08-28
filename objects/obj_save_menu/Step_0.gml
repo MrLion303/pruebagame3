@@ -15,9 +15,6 @@ keyboard_clear(vk_control);
 
 if (guardado_confirmado)
 {
-    // Después de guardar únicamente esperamos
-    // Z o Enter para cerrar.
-
     if (
         keyboard_check_pressed(ord("Z"))
         ||
@@ -45,28 +42,36 @@ if (guardado_confirmado)
 
 if (transicion_activa)
 {
-    // -----------------------------------------------------
+    // =====================================================
     // FASE 1
     // CUBRIR LA PANTALLA
-    // -----------------------------------------------------
+    // =====================================================
 
     if (transicion_fase == 1)
     {
-        transicion_progreso += transicion_velocidad;
+        transicion_progreso +=
+            transicion_velocidad;
+
 
         if (transicion_progreso >= 1)
         {
-            transicion_progreso = 1;
+            transicion_progreso =
+                1;
 
 
-            // =============================================
-            // AHORA QUE TODO ESTÁ CUBIERTO,
-            // CARGAMOS LA PARTIDA
-            // =============================================
+            // =================================================
+            // CARGAR PARTIDA CUANDO TODO ESTÁ CUBIERTO
+            // =================================================
 
-            if (scr_cargar_juego(transicion_seccion))
+            if (
+                scr_cargar_juego(
+                    transicion_seccion
+                )
+            )
             {
-                ini_open("save.ini");
+                ini_open(
+                    "save.ini"
+                );
 
 
                 transicion_room =
@@ -96,76 +101,97 @@ if (transicion_activa)
                 ini_close();
 
 
-                global.new_game = false;
+                global.new_game =
+                    false;
+
 
                 global.start_room =
                     transicion_room;
 
+
                 global.start_x =
                     transicion_x;
+
 
                 global.start_y =
                     transicion_y;
 
 
-                // -----------------------------------------
-                // IMPORTANTE:
-                // El propio menú sobrevivirá al cambio.
-                // -----------------------------------------
-
-                persistent = true;
-
-                transicion_fase = 2;
+                // El menú sobrevivirá al cambio.
+                persistent =
+                    true;
 
 
-                // Cambiar habitación únicamente cuando
-                // la pantalla está totalmente cubierta.
+                transicion_fase =
+                    2;
+
+
                 room_goto(
                     transicion_room
                 );
+
 
                 exit;
             }
             else
             {
-                // Falló la carga:
-                // retiramos el fade.
-                transicion_fase = 3;
+                // =================================================
+                // CARGA FALLIDA
+                // =================================================
+                //
+                // Esto ya no debería ocurrir normalmente porque
+                // comprobamos el slot ANTES de empezar el fade.
+                // =================================================
+
+                if (audio_is_playing(snd_error))
+                {
+                    audio_stop_sound(
+                        snd_error
+                    );
+                }
+
+
+                audio_play_sound(
+                    snd_error,
+                    10,
+                    false
+                );
+
+
+                transicion_fase =
+                    3;
             }
         }
     }
 
 
-    // -----------------------------------------------------
+    // =====================================================
     // FASE 2
     // ESPERANDO ROOM START
-    // -----------------------------------------------------
+    // =====================================================
 
     else if (transicion_fase == 2)
     {
-        // No hacer nada.
-        //
-        // Room Start continuará el proceso.
+        // Room Start continuará.
     }
 
 
-    // -----------------------------------------------------
+    // =====================================================
     // FASE 3
-    // DESCUBRIR LA NUEVA ROOM
-    // -----------------------------------------------------
+    // DESCUBRIR NUEVA ROOM
+    // =====================================================
 
     else if (transicion_fase == 3)
     {
-        transicion_progreso -= transicion_velocidad;
+        transicion_progreso -=
+            transicion_velocidad;
+
 
         if (transicion_progreso <= 0)
         {
-            transicion_progreso = 0;
+            transicion_progreso =
+                0;
 
-
-            // ---------------------------------------------
-            // DEVOLVER MOVIMIENTO
-            // ---------------------------------------------
 
             if (instance_exists(obj_player))
             {
@@ -176,8 +202,10 @@ if (transicion_activa)
                     )
                 )
                 {
-                    obj_player.puede_moverse = true;
+                    obj_player.puede_moverse =
+                        true;
                 }
+
 
                 if (
                     variable_instance_exists(
@@ -186,23 +214,24 @@ if (transicion_activa)
                     )
                 )
                 {
-                    obj_player.can_move = true;
+                    obj_player.can_move =
+                        true;
                 }
             }
 
 
-            // Ya no necesitamos persistencia.
-            persistent = false;
+            persistent =
+                false;
+
 
             instance_destroy();
+
 
             exit;
         }
     }
 
 
-    // Mientras haya transición no aceptamos
-    // ningún control del menú.
     exit;
 }
 
@@ -215,21 +244,28 @@ if (transicion_activa)
 if (state == 0)
 {
     var min_idx =
-        from_title ? 1 : 0;
+        from_title
+        ?
+        1
+        :
+        0;
 
 
-    // -----------------------------------------------------
+    // =====================================================
     // ABAJO
-    // -----------------------------------------------------
+    // =====================================================
 
     if (keyboard_check_pressed(vk_down))
     {
         action_index++;
 
+
         if (action_index > 2)
         {
-            action_index = min_idx;
+            action_index =
+                min_idx;
         }
+
 
         audio_play_sound(
             snd_menumove,
@@ -239,18 +275,21 @@ if (state == 0)
     }
 
 
-    // -----------------------------------------------------
+    // =====================================================
     // ARRIBA
-    // -----------------------------------------------------
+    // =====================================================
 
     if (keyboard_check_pressed(vk_up))
     {
         action_index--;
 
+
         if (action_index < min_idx)
         {
-            action_index = 2;
+            action_index =
+                2;
         }
+
 
         audio_play_sound(
             snd_menumove,
@@ -260,9 +299,9 @@ if (state == 0)
     }
 
 
-    // -----------------------------------------------------
+    // =====================================================
     // CONFIRMAR
-    // -----------------------------------------------------
+    // =====================================================
 
     if (
         keyboard_check_pressed(ord("Z"))
@@ -276,13 +315,15 @@ if (state == 0)
             false
         );
 
-        state = 1;
+
+        state =
+            1;
     }
 
 
-    // -----------------------------------------------------
+    // =====================================================
     // CERRAR
-    // -----------------------------------------------------
+    // =====================================================
 
     if (keyboard_check_pressed(ord("X")))
     {
@@ -291,6 +332,7 @@ if (state == 0)
             10,
             false
         );
+
 
         instance_destroy();
     }
@@ -304,14 +346,17 @@ if (state == 0)
 
 else if (state == 1)
 {
-    // -----------------------------------------------------
+    // =====================================================
     // ABAJO
-    // -----------------------------------------------------
+    // =====================================================
 
     if (keyboard_check_pressed(vk_down))
     {
         slot_index =
-            (slot_index + 1) % 3;
+            (slot_index + 1)
+            %
+            3;
+
 
         audio_play_sound(
             snd_menumove,
@@ -321,14 +366,17 @@ else if (state == 1)
     }
 
 
-    // -----------------------------------------------------
+    // =====================================================
     // ARRIBA
-    // -----------------------------------------------------
+    // =====================================================
 
     if (keyboard_check_pressed(vk_up))
     {
         slot_index =
-            (slot_index - 1 + 3) % 3;
+            (slot_index - 1 + 3)
+            %
+            3;
+
 
         audio_play_sound(
             snd_menumove,
@@ -338,11 +386,12 @@ else if (state == 1)
     }
 
 
-    // -----------------------------------------------------
+    // =====================================================
     // VOLVER
-    // -----------------------------------------------------
+    // =====================================================
 
-    if (keyboard_check_pressed(ord("X")))
+    if (keyboard_check_pressed(ord("X"))
+    )
     {
         audio_play_sound(
             snd_menumove,
@@ -350,7 +399,10 @@ else if (state == 1)
             false
         );
 
-        state = 0;
+
+        state =
+            0;
+
 
         exit;
     }
@@ -367,10 +419,17 @@ else if (state == 1)
     )
     {
         var _accion =
-            action_options[action_index];
+            action_options[
+                action_index
+            ];
+
 
         var _seccion_actual =
-            "Save" + string(slot_index + 1);
+            "Save"
+            +
+            string(
+                slot_index + 1
+            );
 
 
         // =================================================
@@ -393,22 +452,25 @@ else if (state == 1)
                 );
 
 
-                slots_data[slot_index].lugar =
-                    get_room_name(room);
+                slots_data[
+                    slot_index
+                ].lugar =
+                    get_room_name(
+                        room
+                    );
 
 
-                slots_data[slot_index].tiempo =
+                slots_data[
+                    slot_index
+                ].tiempo =
                     scr_format_playtime(
                         global.playtime_frames
                     );
 
 
-                // NO cerrar.
-                //
-                // Cambiamos visualmente el nombre del
-                // archivo a "Partida Salvada".
                 guardado_slot =
                     slot_index;
+
 
                 guardado_confirmado =
                     true;
@@ -422,11 +484,92 @@ else if (state == 1)
 
         else if (_accion == "Cargar")
         {
-            // IMPORTANTE:
-            //
-            // NO se ejecuta scr_cargar_juego aquí.
-            //
-            // Primero iniciamos el fade.
+            // =================================================
+            // COMPROBAR SI EL SLOT TIENE GUARDADO
+            // =================================================
+
+            var _slot_tiene_guardado =
+                false;
+
+
+            // ---------------------------------------------
+            // Primero comprobamos que save.ini exista.
+            // ---------------------------------------------
+
+            if (file_exists("save.ini"))
+            {
+                ini_open(
+                    "save.ini"
+                );
+
+
+                // -----------------------------------------
+                // Debe tener al menos:
+                //
+                // - room
+                // - extra_data
+                //
+                // extra_data es donde está realmente
+                // toda la información del guardado.
+                // -----------------------------------------
+
+                var _tiene_room =
+                    ini_key_exists(
+                        _seccion_actual,
+                        "room"
+                    );
+
+
+                var _extra_guardado =
+                    ini_read_string(
+                        _seccion_actual,
+                        "extra_data",
+                        ""
+                    );
+
+
+                ini_close();
+
+
+                _slot_tiene_guardado =
+                    _tiene_room
+                    &&
+                    (_extra_guardado != "");
+            }
+
+
+            // =================================================
+            // SLOT VACÍO
+            // =================================================
+
+            if (!_slot_tiene_guardado)
+            {
+                // Cortar el error anterior para evitar
+                // que se acumulen sonidos al spamear Z.
+                if (audio_is_playing(snd_error))
+                {
+                    audio_stop_sound(
+                        snd_error
+                    );
+                }
+
+
+                audio_play_sound(
+                    snd_error,
+                    10,
+                    false
+                );
+
+
+                // No iniciar transición.
+                // No salir del menú.
+                exit;
+            }
+
+
+            // =================================================
+            // SLOT VÁLIDO
+            // =================================================
 
             audio_play_sound(
                 snd_shineselect,
@@ -438,11 +581,14 @@ else if (state == 1)
             transicion_seccion =
                 _seccion_actual;
 
+
             transicion_progreso =
                 0;
 
+
             transicion_fase =
                 1;
+
 
             transicion_activa =
                 true;
@@ -458,8 +604,10 @@ else if (state == 1)
                     )
                 )
                 {
-                    obj_player.puede_moverse = false;
+                    obj_player.puede_moverse =
+                        false;
                 }
+
 
                 if (
                     variable_instance_exists(
@@ -468,7 +616,8 @@ else if (state == 1)
                     )
                 )
                 {
-                    obj_player.can_move = false;
+                    obj_player.can_move =
+                        false;
                 }
             }
         }
@@ -487,22 +636,30 @@ else if (state == 1)
             );
 
 
-            ini_open("save.ini");
+            ini_open(
+                "save.ini"
+            );
+
 
             ini_section_delete(
                 _seccion_actual
             );
 
+
             ini_close();
 
 
-            slots_data[slot_index].lugar =
+            slots_data[
+                slot_index
+            ].lugar =
                 scr_loc_src(
                     "Datos vacios"
                 );
 
 
-            slots_data[slot_index].tiempo =
+            slots_data[
+                slot_index
+            ].tiempo =
                 "--:--:--";
         }
     }

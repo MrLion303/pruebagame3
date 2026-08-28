@@ -12,28 +12,42 @@
 function scr_guardar_juego(_seccion)
 {
     // =====================================================
-    // SINCRONIZAR SISTEMAS
+    // ASEGURAR SISTEMAS
+    // =====================================================
+
+    scr_level_data();
+
+    scr_inventarios_data();
+
+    scr_config_data();
+
+    scr_cofre_init();
+
+
+    // =====================================================
+    // SINCRONIZAR DATOS ACTUALES
     // =====================================================
 
     scr_config_sync();
 
     scr_inventarios_sync();
 
-    // Asegura que el cofre global exista
-    // y tenga sus 50 espacios.
-    scr_cofre_init();
-
 
     // =====================================================
     // POSICIÓN
     // =====================================================
 
-    var _px = 0;
-    var _py = 0;
+    var _px =
+        0;
 
-    var _proom = room;
+    var _py =
+        0;
 
-    var _facing = 2;
+    var _proom =
+        room;
+
+    var _facing =
+        2;
 
 
     // =====================================================
@@ -45,48 +59,58 @@ function scr_guardar_juego(_seccion)
         _px =
             obj_player.x;
 
+
         _py =
             obj_player.y;
 
+
         _proom =
             room;
+
 
         _facing =
             obj_player.face;
 
 
-        // -------------------------------------------------
+        // =================================================
         // NIVEL
-        // -------------------------------------------------
+        // =================================================
 
         global.level_data.nivel =
             obj_player.nivel;
 
+
         global.level_data.exp_actual =
             obj_player.exp_actual;
+
 
         global.level_data.exp_siguiente =
             obj_player.exp_siguiente;
 
+
         global.level_data.ataque_base =
             obj_player.ataque_base;
 
+
         global.level_data.defensa_base =
             obj_player.defensa_base;
+
 
         global.level_data.hp_max =
             obj_player.hp_max;
 
 
-        // -------------------------------------------------
-        // INVENTARIOS
-        // -------------------------------------------------
+        // =================================================
+        // INVENTARIO
+        // =================================================
 
         global.inventory_data.consumibles =
             obj_player.inventory;
 
+
         global.inventory_data.equipado_arma =
             obj_player.equipo_arma;
+
 
         global.inventory_data.equipado_armadura =
             obj_player.equipo_armadura;
@@ -94,30 +118,38 @@ function scr_guardar_juego(_seccion)
 
 
     // =====================================================
-    // TODOS LOS DATOS DEL SAVE
-    // =====================================================
-    //
-    // El cofre se guarda completo dentro de extra_data.
-    //
-    // global.chest_data contiene exactamente 50 slots.
-    //
-    // Cada Save tiene su propio cofre:
-    //
-    // Save1 -> su contenido
-    // Save2 -> su contenido
-    // Save3 -> su contenido
+    // DATOS COMPLETOS DEL SAVE
     // =====================================================
 
     var _save_data =
     {
+        // -------------------------------------------------
+        // CONFIGURACIÓN
+        // -------------------------------------------------
+
         config:
             global.config_data,
+
+
+        // -------------------------------------------------
+        // INVENTARIOS
+        // -------------------------------------------------
 
         inventarios:
             global.inventory_data,
 
+
+        // -------------------------------------------------
+        // NIVEL
+        // -------------------------------------------------
+
         nivel:
             global.level_data,
+
+
+        // -------------------------------------------------
+        // COFRE
+        // -------------------------------------------------
 
         cofre:
             global.chest_data
@@ -125,7 +157,7 @@ function scr_guardar_juego(_seccion)
 
 
     // =====================================================
-    // JSON + BASE64
+    // JSON
     // =====================================================
 
     var _json_string =
@@ -134,6 +166,10 @@ function scr_guardar_juego(_seccion)
         );
 
 
+    // =====================================================
+    // BASE64
+    // =====================================================
+
     var _base64_string =
         base64_encode(
             _json_string
@@ -141,10 +177,12 @@ function scr_guardar_juego(_seccion)
 
 
     // =====================================================
-    // ESCRIBIR SAVE.INI
+    // GUARDAR EN SAVE.INI
     // =====================================================
 
-    ini_open("save.ini");
+    ini_open(
+        "save.ini"
+    );
 
 
     ini_write_real(
@@ -175,9 +213,9 @@ function scr_guardar_juego(_seccion)
     );
 
 
-    // -----------------------------------------------------
-    // TIEMPO DE JUEGO
-    // -----------------------------------------------------
+    // =====================================================
+    // TIEMPO
+    // =====================================================
 
     ini_write_real(
         _seccion,
@@ -186,9 +224,9 @@ function scr_guardar_juego(_seccion)
     );
 
 
-    // -----------------------------------------------------
-    // DATOS EXTRA
-    // -----------------------------------------------------
+    // =====================================================
+    // DATOS COMPLETOS
+    // =====================================================
 
     ini_write_string(
         _seccion,
@@ -219,7 +257,7 @@ function scr_guardar_juego(_seccion)
 function scr_cargar_juego(_seccion)
 {
     // =====================================================
-    // COMPROBAR ARCHIVO
+    // ARCHIVO NO EXISTE
     // =====================================================
 
     if (!file_exists("save.ini"))
@@ -229,10 +267,12 @@ function scr_cargar_juego(_seccion)
 
 
     // =====================================================
-    // LEER DATOS PRINCIPALES
+    // LEER SAVE
     // =====================================================
 
-    ini_open("save.ini");
+    ini_open(
+        "save.ini"
+    );
 
 
     var _extra =
@@ -273,7 +313,7 @@ function scr_cargar_juego(_seccion)
 
 
     // =====================================================
-    // DECODIFICAR SAVE
+    // DECODIFICAR
     // =====================================================
 
     var _json_string =
@@ -288,15 +328,23 @@ function scr_cargar_juego(_seccion)
         );
 
 
-    // Seguridad.
     if (!is_struct(_save_data))
     {
-        show_debug_message(
-            "[SAVE] Error: extra_data no contiene un struct válido."
-        );
-
         return false;
     }
+
+
+    // =====================================================
+    // ASEGURAR VALORES BASE
+    // =====================================================
+
+    scr_config_data();
+
+    scr_inventarios_data();
+
+    scr_level_data();
+
+    scr_cofre_init();
 
 
     // =====================================================
@@ -308,11 +356,17 @@ function scr_cargar_juego(_seccion)
             _save_data,
             "config"
         )
+        &&
+        is_struct(_save_data.config)
     )
     {
         global.config_data =
             _save_data.config;
     }
+
+
+    // Añadir campos faltantes de saves antiguos.
+    scr_config_data();
 
 
     // =====================================================
@@ -324,6 +378,8 @@ function scr_cargar_juego(_seccion)
             _save_data,
             "inventarios"
         )
+        &&
+        is_struct(_save_data.inventarios)
     )
     {
         global.inventory_data =
@@ -340,6 +396,8 @@ function scr_cargar_juego(_seccion)
             _save_data,
             "nivel"
         )
+        &&
+        is_struct(_save_data.nivel)
     )
     {
         global.level_data =
@@ -351,14 +409,15 @@ function scr_cargar_juego(_seccion)
     // COFRE
     // =====================================================
     //
-    // El cofre actual siempre tendrá 50 espacios.
+    // Siempre reconstruimos un cofre nuevo de 50 slots.
     //
-    // Esto también permite cargar:
+    // Después copiamos lo que exista dentro del save.
     //
-    // - saves viejos de 20 slots
-    // - saves nuevos de 50 slots
-    // - saves que todavía no tenían cofre
+    // Así:
     //
+    // - saves viejos de 20 slots funcionan
+    // - saves actuales de 50 funcionan
+    // - nunca quedan slots basura
     // =====================================================
 
     global.chest_data =
@@ -374,26 +433,12 @@ function scr_cargar_juego(_seccion)
             "cofre"
         )
         &&
-        is_array(
-            _save_data.cofre
-        )
+        is_array(_save_data.cofre)
     )
     {
         var _cofre_guardado =
             _save_data.cofre;
 
-
-        // ---------------------------------------------
-        // COPIAR CONTENIDO
-        // ---------------------------------------------
-        //
-        // Si el save tenía:
-        //
-        // 20 slots -> copia los 20 y deja 30 vacíos.
-        // 50 slots -> copia los 50.
-        // más de 50 -> conserva solamente los primeros 50.
-        //
-        // ---------------------------------------------
 
         var _cantidad_copiar =
             min(
@@ -417,41 +462,12 @@ function scr_cargar_juego(_seccion)
 
 
     // =====================================================
-    // RESTAURAR CONFIGURACIÓN DERIVADA
-    // =====================================================
-
-    if (
-        variable_global_exists(
-            "config_data"
-        )
-    )
-    {
-        if (
-            is_struct(global.config_data)
-            &&
-            variable_struct_exists(
-                global.config_data,
-                "autocorrer_enabled"
-            )
-        )
-        {
-            global.autocorrer_enabled =
-                global.config_data.autocorrer_enabled;
-        }
-    }
-
-
-    // =====================================================
-    // RESTAURAR INVENTARIOS GLOBALES
+    // RESTAURAR INVENTARIOS DERIVADOS
     // =====================================================
 
     if (
         variable_global_exists(
             "inventory_data"
-        )
-        &&
-        is_struct(
-            global.inventory_data
         )
     )
     {
@@ -481,24 +497,25 @@ function scr_cargar_juego(_seccion)
 
 
     // =====================================================
-    // DIRECCIÓN DEL JUGADOR
+    // APLICAR CONFIGURACIÓN CARGADA
+    // =====================================================
+    //
+    // Aquí es donde realmente cambia:
+    //
+    // volumen
+    // fullscreen
+    // auto-correr
+    // =====================================================
+
+    scr_config_apply();
+
+
+    // =====================================================
+    // DIRECCIÓN
     // =====================================================
 
     global.load_facing =
         _facing;
-
-
-    show_debug_message(
-        "[SAVE] Partida cargada desde "
-        +
-        _seccion
-        +
-        ". Cofre: "
-        +
-        string(array_length(global.chest_data))
-        +
-        " slots."
-    );
 
 
     return true;
@@ -511,7 +528,6 @@ function scr_cargar_juego(_seccion)
 // =========================================================
 
 /// @function scr_aplicar_datos_cargados(_jugador)
-/// @description Pasa los globales al jugador al iniciar la room
 function scr_aplicar_datos_cargados(_jugador)
 {
     // =====================================================
@@ -578,7 +594,10 @@ function scr_aplicar_datos_cargados(_jugador)
 
         switch (global.load_facing)
         {
+            // =================================================
             // DERECHA
+            // =================================================
+
             case 0:
 
                 _jugador.face =
@@ -590,7 +609,10 @@ function scr_aplicar_datos_cargados(_jugador)
                 break;
 
 
+            // =================================================
             // IZQUIERDA
+            // =================================================
+
             case 1:
 
                 _jugador.face =
@@ -602,7 +624,10 @@ function scr_aplicar_datos_cargados(_jugador)
                 break;
 
 
+            // =================================================
             // ABAJO
+            // =================================================
+
             case 2:
 
                 _jugador.face =
@@ -614,7 +639,10 @@ function scr_aplicar_datos_cargados(_jugador)
                 break;
 
 
+            // =================================================
             // ARRIBA
+            // =================================================
+
             case 3:
 
                 _jugador.face =
