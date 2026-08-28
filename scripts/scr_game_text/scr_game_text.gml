@@ -16,7 +16,7 @@ function scr_game_text(_text_id){
 
         case "npc 1":
             scr_text(scr_loc("Hola como tai yo bien y usted? jejejej12344"));
-            scr_text(scr_loc("EL PITITO TE LO COMES HOLA SOY GERMAN"));
+            scr_text(scr_loc("EL PITITO TE LO COMES HOLA SOY GERMAN Wiwiwiwi"));
             scr_text(scr_loc("Bueno... te gusta el keke?"));
 				scr_option(scr_loc("Yeah ME ENCANTA"), "npc 1 - yes");
 				scr_option(scr_loc("Ni de pedoooo"), "npc 1 - no");

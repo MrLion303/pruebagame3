@@ -1,0 +1,9 @@
+﻿REPORTE DE LOCALIZACION
+=======================
+Textos detectados: 159
+Traducciones inglesas pendientes: 159
+Entradas inglesas obsoletas archivadas: 1
+
+Proyecto: C:\Users\rodri\Documents\GitHub\pruebagame\pruebagame
+ES: C:\Users\rodri\Documents\GitHub\pruebagame\pruebagame\datafiles\idioma_es.json
+EN: C:\Users\rodri\Documents\GitHub\pruebagame\pruebagame\datafiles\idioma_en.json

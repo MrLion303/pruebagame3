@@ -1,0 +1,269 @@
+﻿param(
+    [switch]$Watch
+)
+
+$ErrorActionPreference = "Stop"
+$Root = Split-Path -Parent $MyInvocation.MyCommand.Path
+
+$SkipDirs = @(
+    ".git", ".svn", ".hg", ".localizacion", "datafiles",
+    "build", "cache", "Temp", "temp", "output", "bin", "obj", "node_modules"
+)
+
+# Detecta exactamente:
+# scr_loc("...")
+# scr_loc_src("...")
+# scr_locf("...", ...)
+$LocRegex = [regex]'(?ms)\b(?:scr_loc|scr_loc_src|scr_locf)\s*\(\s*(("(?:\\.|[^"\\])*"))'
+
+function Get-GmlFiles {
+    Get-ChildItem -Path $Root -Recurse -File -Filter "*.gml" | Where-Object {
+        $full = $_.FullName
+        $relative = $full.Substring($Root.Length).TrimStart([char[]]"\/")
+        $parts = $relative -split '[\\/]'
+        $blocked = $false
+
+        if ($parts.Length -gt 1) {
+            foreach ($part in $parts[0..($parts.Length - 2)]) {
+                if ($SkipDirs -contains $part) {
+                    $blocked = $true
+                    break
+                }
+            }
+        }
+
+        -not $blocked
+    } | Sort-Object FullName
+}
+
+function Decode-GmlLiteral([string]$Literal) {
+    try {
+        # Para el subconjunto de strings usado por el proyecto,
+        # un literal GML con comillas dobles es compatible con JSON.
+        return ($Literal | ConvertFrom-Json)
+    }
+    catch {
+        $body = $Literal.Substring(1, $Literal.Length - 2)
+        $body = $body.Replace('\"', '"')
+        $body = $body.Replace('\\', '\')
+        $body = $body.Replace('\n', "`n")
+        $body = $body.Replace('\r', "`r")
+        $body = $body.Replace('\t', "`t")
+        return $body
+    }
+}
+
+function Read-JsonObject([string]$Path) {
+    if (-not (Test-Path -LiteralPath $Path)) {
+        return $null
+    }
+
+    try {
+        $raw = Get-Content -LiteralPath $Path -Raw -Encoding UTF8
+        if ([string]::IsNullOrWhiteSpace($raw)) {
+            return $null
+        }
+        return ($raw | ConvertFrom-Json)
+    }
+    catch {
+        Write-Host "[LOCALIZACION] ADVERTENCIA: no pude leer $Path" -ForegroundColor Yellow
+        return $null
+    }
+}
+
+function Write-Json([string]$Path, $Data) {
+    $dir = Split-Path -Parent $Path
+    if (-not (Test-Path -LiteralPath $dir)) {
+        New-Item -ItemType Directory -Path $dir -Force | Out-Null
+    }
+
+    $json = $Data | ConvertTo-Json -Depth 20
+    # UTF-8. PowerShell 5 puede poner BOM en JSON; GameMaker lo tolera.
+    Set-Content -LiteralPath $Path -Value $json -Encoding UTF8
+}
+
+function Get-OldValue($Object, [string]$Key, [string]$Default = "") {
+    if ($null -eq $Object) {
+        return $Default
+    }
+
+    $prop = $Object.PSObject.Properties[$Key]
+    if ($null -eq $prop) {
+        return $Default
+    }
+
+    if ($prop.Value -is [string]) {
+        return [string]$prop.Value
+    }
+
+    return $Default
+}
+
+function Synchronize-Localization {
+    $files = @(Get-GmlFiles)
+
+    if ($files.Count -eq 0) {
+        Write-Host "[LOCALIZACION] No encontre archivos .gml en: $Root" -ForegroundColor Red
+        return
+    }
+
+    $allKeys = New-Object System.Collections.Generic.List[string]
+    $seen = @{}
+    $sources = @{}
+
+    foreach ($file in $files) {
+        $text = Get-Content -LiteralPath $file.FullName -Raw -Encoding UTF8
+        $matches = $LocRegex.Matches($text)
+
+        foreach ($match in $matches) {
+            $literal = $match.Groups[1].Value
+            $key = Decode-GmlLiteral $literal
+
+            if (-not ($key -is [string])) { continue }
+            if ($key.Length -eq 0) { continue }
+
+            if (-not $seen.ContainsKey($key)) {
+                $seen[$key] = $true
+                [void]$allKeys.Add($key)
+            }
+
+            if (-not $sources.ContainsKey($key)) {
+                $sources[$key] = New-Object System.Collections.Generic.List[string]
+            }
+
+            $before = $text.Substring(0, $match.Index)
+            $line = ([regex]::Matches($before, "`n")).Count + 1
+            $relative = $file.FullName.Substring($Root.Length).TrimStart([char[]]"\/")
+            [void]$sources[$key].Add("$relative`:$line")
+        }
+    }
+
+    $dataDir = Join-Path $Root "datafiles"
+    $stateDir = Join-Path $Root ".localizacion"
+    $esPath = Join-Path $dataDir "idioma_es.json"
+    $enPath = Join-Path $dataDir "idioma_en.json"
+    $archivePath = Join-Path $stateDir "idioma_en_obsoletos.json"
+    $manifestPath = Join-Path $stateDir "manifest.json"
+    $reportPath = Join-Path $stateDir "reporte.txt"
+
+    if (-not (Test-Path -LiteralPath $dataDir)) {
+        New-Item -ItemType Directory -Path $dataDir -Force | Out-Null
+    }
+    if (-not (Test-Path -LiteralPath $stateDir)) {
+        New-Item -ItemType Directory -Path $stateDir -Force | Out-Null
+    }
+
+    $oldEn = Read-JsonObject $enPath
+    $oldArchive = Read-JsonObject $archivePath
+
+    $es = [ordered]@{}
+    $en = [ordered]@{}
+
+    foreach ($key in $allKeys) {
+        $es[$key] = $key
+        $en[$key] = Get-OldValue $oldEn $key ""
+    }
+
+    # Archivar traducciones inglesas que ya no estan presentes.
+    $archive = [ordered]@{}
+    if ($null -ne $oldArchive) {
+        foreach ($p in $oldArchive.PSObject.Properties) {
+            $archive[$p.Name] = $p.Value
+        }
+    }
+
+    $removedCount = 0
+    if ($null -ne $oldEn) {
+        foreach ($p in $oldEn.PSObject.Properties) {
+            if (-not $seen.ContainsKey($p.Name)) {
+                $archive[$p.Name] = $p.Value
+                $removedCount++
+            }
+        }
+    }
+
+    $sourceOut = [ordered]@{}
+    foreach ($key in $allKeys) {
+        $sourceOut[$key] = @($sources[$key])
+    }
+
+    $manifest = [ordered]@{
+        total = $allKeys.Count
+        fuentes = $sourceOut
+    }
+
+    Write-Json $esPath $es
+    Write-Json $enPath $en
+    Write-Json $archivePath $archive
+    Write-Json $manifestPath $manifest
+
+    $pending = 0
+    foreach ($key in $allKeys) {
+        if ([string]::IsNullOrEmpty([string]$en[$key])) {
+            $pending++
+        }
+    }
+
+    $report = @(
+        "REPORTE DE LOCALIZACION",
+        "=======================",
+        "Textos detectados: $($allKeys.Count)",
+        "Traducciones inglesas pendientes: $pending",
+        "Entradas inglesas obsoletas archivadas: $removedCount",
+        "",
+        "Proyecto: $Root",
+        "ES: $esPath",
+        "EN: $enPath"
+    )
+    Set-Content -LiteralPath $reportPath -Value $report -Encoding UTF8
+
+    Write-Host "[LOCALIZACION] OK | $($allKeys.Count) textos | $pending pendientes EN" -ForegroundColor Green
+
+    if ($seen.ContainsKey("COFRE")) {
+        Write-Host '[LOCALIZACION] Detectado: "COFRE"' -ForegroundColor Cyan
+    }
+    elseif ($seen.ContainsKey("Cofre")) {
+        Write-Host '[LOCALIZACION] Detectado: "Cofre"' -ForegroundColor Cyan
+    }
+    else {
+        Write-Host '[LOCALIZACION] AVISO: no encontre una clave "COFRE" ni "Cofre" dentro de scr_loc*().' -ForegroundColor Yellow
+    }
+
+    Write-Host "[LOCALIZACION] idioma_es.json: $esPath"
+    Write-Host "[LOCALIZACION] idioma_en.json: $enPath"
+}
+
+function Get-Snapshot {
+    $items = @(Get-GmlFiles)
+    $parts = foreach ($item in $items) {
+        "$($item.FullName)|$($item.Length)|$($item.LastWriteTimeUtc.Ticks)"
+    }
+    return ($parts -join "`n")
+}
+
+Write-Host "[LOCALIZACION] Proyecto: $Root" -ForegroundColor Cyan
+Synchronize-Localization
+
+if (-not $Watch) {
+    exit 0
+}
+
+Write-Host ""
+Write-Host "[LOCALIZACION] Vigilando .gml. Deja esta ventana abierta." -ForegroundColor Cyan
+$last = Get-Snapshot
+
+while ($true) {
+    Start-Sleep -Seconds 1
+    $now = Get-Snapshot
+
+    if ($now -ne $last) {
+        Start-Sleep -Milliseconds 250
+        try {
+            Synchronize-Localization
+        }
+        catch {
+            Write-Host "[LOCALIZACION] ERROR: $($_.Exception.Message)" -ForegroundColor Red
+        }
+        $last = Get-Snapshot
+    }
+}

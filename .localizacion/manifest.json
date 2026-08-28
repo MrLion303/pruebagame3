@@ -1,0 +1,523 @@
+﻿{
+    "total":  159,
+    "fuentes":  {
+                    "Jugador X: ":  [
+                                        "objects\\game\\Draw_64.gml:36"
+                                    ],
+                    "Jugador Y: ":  [
+                                        "objects\\game\\Draw_64.gml:48"
+                                    ],
+                    "Room: ":  [
+                                   "objects\\game\\Draw_64.gml:64"
+                               ],
+                    "FPS: ":  [
+                                  "objects\\game\\Draw_64.gml:80"
+                              ],
+                    "Idioma: ":  [
+                                     "objects\\game\\Draw_64.gml:114"
+                                 ],
+                    "Ninguna":  [
+                                    "objects\\game\\Draw_64.gml:128",
+                                    "objects\\obj_menu_manager\\Draw_64.gml:95",
+                                    "objects\\obj_menu_manager\\Draw_64.gml:102"
+                                ],
+                    "Musica: ":  [
+                                     "objects\\game\\Draw_64.gml:161"
+                                 ],
+                    "Inventario":  [
+                                       "objects\\game\\Draw_64.gml:356"
+                                   ],
+                    "Cofre":  [
+                                  "objects\\game\\Draw_64.gml:365"
+                              ],
+                    "Elige un espacio":  [
+                                             "objects\\game\\Draw_64.gml:371"
+                                         ],
+                    "Inventario vacío":  [
+                                             "objects\\game\\Draw_64.gml:475"
+                                         ],
+                    "Intercambiar":  [
+                                         "objects\\game\\Draw_64.gml:921"
+                                     ],
+                    "↑ ↓ Elegir espacio   Z Guardar / Intercambiar   X Cancelar":  [
+                                                                                       "objects\\game\\Draw_64.gml:1044"
+                                                                                   ],
+                    "↑ ↓ Elegir objeto   Z Seleccionar   → Cofre   X Cerrar":  [
+                                                                                   "objects\\game\\Draw_64.gml:1057"
+                                                                               ],
+                    "↑ ↓ Elegir espacio   Z Sacar   ← Inventario   X Cerrar":  [
+                                                                                   "objects\\game\\Draw_64.gml:1070"
+                                                                               ],
+                    "* {enemy} está aturdido y no puede atacar!":  [
+                                                                       "objects\\obj_batalla_controller\\Step_0.gml:108"
+                                                                   ],
+                    "* {enemy} ataca y te causa {damage} de daño!":  [
+                                                                         "objects\\obj_batalla_controller\\Step_0.gml:128"
+                                                                     ],
+                    "* ¡Has ganado la batalla!":  [
+                                                      "objects\\obj_batalla_controller\\Step_0.gml:242"
+                                                  ],
+                    "¡Un combate comienza!":  [
+                                                  "objects\\obj_batalla_ui\\Create_0.gml:123"
+                                              ],
+                    "* Elige a quien usar el toy!":  [
+                                                         "objects\\obj_batalla_ui\\Draw_64.gml:213"
+                                                     ],
+                    "* Elige a quien atacar!":  [
+                                                    "objects\\obj_batalla_ui\\Draw_64.gml:213"
+                                                ],
+                    "¡Elige el enemigo!":  [
+                                               "objects\\obj_batalla_ui\\Draw_64.gml:218"
+                                           ],
+                    "* Atacar":  [
+                                     "objects\\obj_batalla_ui\\Draw_64.gml:230",
+                                     "objects\\obj_batalla_ui\\Draw_64.gml:250"
+                                 ],
+                    "* Info":  [
+                                   "objects\\obj_batalla_ui\\Draw_64.gml:230"
+                               ],
+                    "Noelle":  [
+                                   "objects\\obj_batalla_ui\\Draw_64.gml:603"
+                               ],
+                    "HP":  [
+                               "objects\\obj_batalla_ui\\Draw_64.gml:616"
+                           ],
+                    "¡Subiste de nivel!":  [
+                                               "objects\\obj_batalla_ui\\Step_0.gml:118"
+                                           ],
+                    "* Consumiste {item}! Te curaste {hp} de vida!":  [
+                                                                          "objects\\obj_batalla_ui\\Step_0.gml:302"
+                                                                      ],
+                    "* Consumiste {item}, pero ya tienes la vida llena!":  [
+                                                                               "objects\\obj_batalla_ui\\Step_0.gml:304"
+                                                                           ],
+                    "* Consumiste {item}!":  [
+                                                 "objects\\obj_batalla_ui\\Step_0.gml:306"
+                                             ],
+                    "* ¡Has ganado la batalla! Ganaste {xp} XP.":  [
+                                                                       "objects\\obj_batalla_ui\\Step_0.gml:372"
+                                                                   ],
+                    "* Intentaste huir, ¡pero no pudiste escapar!":  [
+                                                                         "objects\\obj_batalla_ui\\Step_0.gml:493"
+                                                                     ],
+                    "* Usaste {toy} en {enemy}!":  [
+                                                       "objects\\obj_batalla_ui\\Step_0.gml:515"
+                                                   ],
+                    "* Venciste a {enemy}!":  [
+                                                  "objects\\obj_batalla_ui\\Step_0.gml:596"
+                                              ],
+                    "* Hiciste {damage} de daño a {enemy}!":  [
+                                                                  "objects\\obj_batalla_ui\\Step_0.gml:620"
+                                                              ],
+                    "Cerrando...":  [
+                                        "objects\\obj_game_cerrar\\Step_0.gml:21"
+                                    ],
+                    "Cerrando..":  [
+                                       "objects\\obj_game_cerrar\\Step_0.gml:23"
+                                   ],
+                    "Cerrando.":  [
+                                      "objects\\obj_game_cerrar\\Step_0.gml:25"
+                                  ],
+                    "Cerrando":  [
+                                     "objects\\obj_game_cerrar\\Step_0.gml:27"
+                                 ],
+                    "INV":  [
+                                "objects\\obj_menu_manager\\Create_0.gml:1"
+                            ],
+                    "TOYS":  [
+                                 "objects\\obj_menu_manager\\Create_0.gml:1"
+                             ],
+                    "EQUIP":  [
+                                  "objects\\obj_menu_manager\\Create_0.gml:1",
+                                  "objects\\obj_menu_manager\\Create_0.gml:217"
+                              ],
+                    "STAD":  [
+                                 "objects\\obj_menu_manager\\Create_0.gml:1"
+                             ],
+                    "CONFIG":  [
+                                   "objects\\obj_menu_manager\\Create_0.gml:1"
+                               ],
+                    "CERRAR":  [
+                                   "objects\\obj_menu_manager\\Create_0.gml:1"
+                               ],
+                    "Usar":  [
+                                 "objects\\obj_menu_manager\\Create_0.gml:210",
+                                 "objects\\obj_menu_manager\\Draw_64.gml:302"
+                             ],
+                    "Tirar":  [
+                                  "objects\\obj_menu_manager\\Create_0.gml:210",
+                                  "objects\\obj_menu_manager\\Create_0.gml:217",
+                                  "objects\\obj_menu_manager\\Draw_64.gml:302"
+                              ],
+                    "Info":  [
+                                 "objects\\obj_menu_manager\\Create_0.gml:210",
+                                 "objects\\obj_menu_manager\\Create_0.gml:217",
+                                 "objects\\obj_menu_manager\\Draw_64.gml:302"
+                             ],
+                    "Estas seguro?":  [
+                                          "objects\\obj_menu_manager\\Draw_64.gml:42",
+                                          "objects\\obj_menu_manager\\Draw_64.gml:191",
+                                          "objects\\obj_menu_manager\\Draw_64.gml:322",
+                                          "objects\\obj_menu_manager\\Draw_64.gml:423"
+                                      ],
+                    "Si":  [
+                               "objects\\obj_menu_manager\\Draw_64.gml:44",
+                               "objects\\obj_menu_manager\\Draw_64.gml:193",
+                               "objects\\obj_menu_manager\\Draw_64.gml:324",
+                               "objects\\obj_menu_manager\\Draw_64.gml:425",
+                               "objects\\obj_menu_manager\\Draw_64.gml:480",
+                               "objects\\obj_menu_manager\\Draw_64.gml:481",
+                               "scripts\\scr_game_text\\scr_game_text.gml:78"
+                           ],
+                    "No":  [
+                               "objects\\obj_menu_manager\\Draw_64.gml:44",
+                               "objects\\obj_menu_manager\\Draw_64.gml:193",
+                               "objects\\obj_menu_manager\\Draw_64.gml:324",
+                               "objects\\obj_menu_manager\\Draw_64.gml:425",
+                               "objects\\obj_menu_manager\\Draw_64.gml:480",
+                               "objects\\obj_menu_manager\\Draw_64.gml:481",
+                               "scripts\\scr_game_text\\scr_game_text.gml:79"
+                           ],
+                    "LV ":  [
+                                "objects\\obj_menu_manager\\Draw_64.gml:71"
+                            ],
+                    "HP ":  [
+                                "objects\\obj_menu_manager\\Draw_64.gml:72"
+                            ],
+                    "AT  ":  [
+                                 "objects\\obj_menu_manager\\Draw_64.gml:82"
+                             ],
+                    "EXP: ":  [
+                                  "objects\\obj_menu_manager\\Draw_64.gml:83"
+                              ],
+                    "DF  ":  [
+                                 "objects\\obj_menu_manager\\Draw_64.gml:92"
+                             ],
+                    "LVL SUB: ":  [
+                                      "objects\\obj_menu_manager\\Draw_64.gml:93"
+                                  ],
+                    "Arma: ":  [
+                                   "objects\\obj_menu_manager\\Draw_64.gml:100"
+                               ],
+                    "Armadura: ":  [
+                                       "objects\\obj_menu_manager\\Draw_64.gml:107"
+                                   ],
+                    "Z: Selecc | X: Volver":  [
+                                                  "objects\\obj_menu_manager\\Draw_64.gml:174",
+                                                  "objects\\obj_menu_manager\\Draw_64.gml:309",
+                                                  "objects\\obj_menu_manager\\Draw_64.gml:408"
+                                              ],
+                    "Espacio vacio.":  [
+                                           "objects\\obj_menu_manager\\Draw_64.gml:214",
+                                           "objects\\obj_menu_manager\\Draw_64.gml:339",
+                                           "objects\\obj_menu_manager\\Draw_64.gml:445"
+                                       ],
+                    "General":  [
+                                    "objects\\obj_menu_manager\\Draw_64.gml:467"
+                                ],
+                    "Controles":  [
+                                      "objects\\obj_menu_manager\\Draw_64.gml:472"
+                                  ],
+                    "Volumen General":  [
+                                            "objects\\obj_menu_manager\\Draw_64.gml:479"
+                                        ],
+                    "Pantalla Comp":  [
+                                          "objects\\obj_menu_manager\\Draw_64.gml:480"
+                                      ],
+                    "Auto-correr":  [
+                                        "objects\\obj_menu_manager\\Draw_64.gml:481"
+                                    ],
+                    "Volver":  [
+                                   "objects\\obj_menu_manager\\Draw_64.gml:482"
+                               ],
+                    "Configuracion de controles":  [
+                                                       "objects\\obj_menu_manager\\Draw_64.gml:498"
+                                                   ],
+                    "Proximamente...":  [
+                                            "objects\\obj_menu_manager\\Draw_64.gml:499"
+                                        ],
+                    "objeto":  [
+                                   "objects\\obj_menu_manager\\Step_0.gml:248",
+                                   "scripts\\scr_cofre\\scr_cofre.gml:228"
+                               ],
+                    "Has tirado {item}.":  [
+                                               "objects\\obj_menu_manager\\Step_0.gml:254",
+                                               "objects\\obj_menu_manager\\Step_0.gml:402",
+                                               "objects\\obj_menu_manager\\Step_0.gml:555"
+                                           ],
+                    "Los toys se usan durante una batalla.":  [
+                                                                  "objects\\obj_menu_manager\\Step_0.gml:347"
+                                                              ],
+                    "toy":  [
+                                "objects\\obj_menu_manager\\Step_0.gml:395",
+                                "scripts\\scr_cofre\\scr_cofre.gml:231"
+                            ],
+                    "Se equipo {item}.":  [
+                                              "objects\\obj_menu_manager\\Step_0.gml:514"
+                                          ],
+                    "equipamiento":  [
+                                         "objects\\obj_menu_manager\\Step_0.gml:548"
+                                     ],
+                    "Salvar":  [
+                                   "objects\\obj_save_menu\\Create_0.gml:11"
+                               ],
+                    "Cargar":  [
+                                   "objects\\obj_save_menu\\Create_0.gml:12"
+                               ],
+                    "Borrar":  [
+                                   "objects\\obj_save_menu\\Create_0.gml:13"
+                               ],
+                    "Test":  [
+                                 "objects\\obj_save_menu\\Create_0.gml:78"
+                             ],
+                    "Pasillo School":  [
+                                           "objects\\obj_save_menu\\Create_0.gml:79"
+                                       ],
+                    "Salón de Toriel":  [
+                                            "objects\\obj_save_menu\\Create_0.gml:80"
+                                        ],
+                    "El Huevo":  [
+                                     "objects\\obj_save_menu\\Create_0.gml:81"
+                                 ],
+                    "Desconocido":  [
+                                        "objects\\obj_save_menu\\Create_0.gml:83",
+                                        "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:245"
+                                    ],
+                    "Archivo {n}":  [
+                                        "objects\\obj_save_menu\\Create_0.gml:115",
+                                        "objects\\obj_save_menu\\Create_0.gml:135"
+                                    ],
+                    "Datos vacios":  [
+                                         "objects\\obj_save_menu\\Create_0.gml:144",
+                                         "objects\\obj_save_menu\\Step_0.gml:655"
+                                     ],
+                    "Partida Salvada":  [
+                                            "objects\\obj_save_menu\\Draw_64.gml:211"
+                                        ],
+                    "* El enemigo se detiene de repente...":  [
+                                                                  "scripts\\scr_bosses_cinematica_bbs\\scr_bosses_cinematica_bbs.gml:19"
+                                                              ],
+                    "* Una energía extraña comienza a rodearlo.":  [
+                                                                       "scripts\\scr_bosses_cinematica_bbs\\scr_bosses_cinematica_bbs.gml:25"
+                                                                   ],
+                    "¿De verdad creíste que esto sería tan fácil?":  [
+                                                                         "scripts\\scr_bosses_cinematica_bbs\\scr_bosses_cinematica_bbs.gml:31"
+                                                                     ],
+                    "* El boss parece prepararse para continuar la batalla.":  [
+                                                                                   "scripts\\scr_bosses_cinematica_bbs\\scr_bosses_cinematica_bbs.gml:37"
+                                                                               ],
+                    "Equipo":  [
+                                   "scripts\\scr_cofre\\scr_cofre.gml:234"
+                               ],
+                    "El... keke? Oh! Claro que me gusta!":  [
+                                                                "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:37",
+                                                                "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:56",
+                                                                "scripts\\scr_game_text\\scr_game_text.gml:26"
+                                                            ],
+                    "* El viento sopla con fuerza en este lugar.":  [
+                                                                        "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:38"
+                                                                    ],
+                    "* El enemigo te mira fijamente y sonríe.":  [
+                                                                     "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:39"
+                                                                 ],
+                    "* Toby acomoda su postura de combate.":  [
+                                                                  "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:57"
+                                                              ],
+                    "* Toby bosteza aburrido.":  [
+                                                     "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:58"
+                                                 ],
+                    "Toby":  [
+                                 "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:62"
+                             ],
+                    "Hola, esta es mi descripcion":  [
+                                                         "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:69"
+                                                     ],
+                    "* Un Toby salvaje aparece de su escondite!":  [
+                                                                       "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:70"
+                                                                   ],
+                    "* Acabaste con Toby.":  [
+                                                 "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:71"
+                                             ],
+                    "¡Cuidado con este viscoso amigo!":  [
+                                                             "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:88"
+                                                         ],
+                    "* El Slime gotea líquido viscoso.":  [
+                                                              "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:89"
+                                                          ],
+                    "* Burbujas de aire estallan en el cuerpo del Slime.":  [
+                                                                                "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:90"
+                                                                            ],
+                    "Slime Verdoso":  [
+                                          "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:94",
+                                          "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:208"
+                                      ],
+                    "Un pequeño monstruo gelatinoso.":  [
+                                                            "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:101",
+                                                            "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:215"
+                                                        ],
+                    "Un Slime gelatinoso bloquea el paso!":  [
+                                                                 "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:102"
+                                                             ],
+                    "* Derrotaste al Slime Verdoso.":  [
+                                                           "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:103",
+                                                           "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:216"
+                                                       ],
+                    "¡Cuidado! Este enemigo no parece estar jugando.":  [
+                                                                            "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:157"
+                                                                        ],
+                    "* Jevil se mueve de forma impredecible.":  [
+                                                                    "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:158"
+                                                                ],
+                    "* Una sonrisa extraña aparece en su rostro.":  [
+                                                                        "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:159"
+                                                                    ],
+                    "Jevil":  [
+                                  "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:163"
+                              ],
+                    "Un enemigo impredecible que parece disfrutar el combate.":  [
+                                                                                     "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:170"
+                                                                                 ],
+                    "* Jevil aparece frente a ti!":  [
+                                                         "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:171"
+                                                     ],
+                    "* Derrotaste a Jevil.":  [
+                                                  "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:172"
+                                              ],
+                    "¿Estás seguro de que podemos con todos?":  [
+                                                                    "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:189"
+                                                                ],
+                    "* Los enemigos se coordinan para rodearte.":  [
+                                                                       "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:190"
+                                                                   ],
+                    "¡Mira cómo se mueven!":  [
+                                                  "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:191"
+                                              ],
+                    "Toby A":  [
+                                   "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:195"
+                               ],
+                    "El primer Toby de la banda.":  [
+                                                        "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:202"
+                                                    ],
+                    "Una pandilla de monstruos salvajes aparece!":  [
+                                                                        "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:203"
+                                                                    ],
+                    "* Acabaste con Toby A.":  [
+                                                   "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:204"
+                                               ],
+                    "Toby B":  [
+                                   "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:220"
+                               ],
+                    "El segundo Toby de refuerzo.":  [
+                                                         "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:227"
+                                                     ],
+                    "* Acabaste con Toby B.":  [
+                                                   "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:228"
+                                               ],
+                    "Un error en la matrix.":  [
+                                                   "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:252"
+                                               ],
+                    "Algo extraño emerge de la oscuridad...":  [
+                                                                   "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:253"
+                                                               ],
+                    "* El enemigo desconocido se desvanece.":  [
+                                                                   "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:254"
+                                                               ],
+                    "Espada palo":  [
+                                        "scripts\\scr_equips_data\\scr_equips_data.gml:4"
+                                    ],
+                    "Una espada de madera inofensiva.":  [
+                                                             "scripts\\scr_equips_data\\scr_equips_data.gml:8"
+                                                         ],
+                    "Ropa vieja":  [
+                                       "scripts\\scr_equips_data\\scr_equips_data.gml:11"
+                                   ],
+                    "Te protege un poco del frio.":  [
+                                                         "scripts\\scr_equips_data\\scr_equips_data.gml:15"
+                                                     ],
+                    "Hola como tai yo bien y usted? jejejej12344":  [
+                                                                        "scripts\\scr_game_text\\scr_game_text.gml:18",
+                                                                        "scripts\\scr_game_text\\scr_game_text.gml:66"
+                                                                    ],
+                    "EL PITITO TE LO COMES HOLA SOY GERMAN Wiwiwiwi":  [
+                                                                           "scripts\\scr_game_text\\scr_game_text.gml:19"
+                                                                       ],
+                    "Bueno... te gusta el keke?":  [
+                                                       "scripts\\scr_game_text\\scr_game_text.gml:20"
+                                                   ],
+                    "Yeah ME ENCANTA":  [
+                                            "scripts\\scr_game_text\\scr_game_text.gml:21"
+                                        ],
+                    "Ni de pedoooo":  [
+                                          "scripts\\scr_game_text\\scr_game_text.gml:22"
+                                      ],
+                    "VIVAAAAAAAAAAA!!!":  [
+                                              "scripts\\scr_game_text\\scr_game_text.gml:28"
+                                          ],
+                    "que tontorron":  [
+                                          "scripts\\scr_game_text\\scr_game_text.gml:33"
+                                      ],
+                    "Hola, soy Noelle y este es mi dialogo con retrato.":  [
+                                                                               "scripts\\scr_game_text\\scr_game_text.gml:42"
+                                                                           ],
+                    "Este segundo renglon tambien se acomoda solito respetando la cabeza.":  [
+                                                                                                 "scripts\\scr_game_text\\scr_game_text.gml:43"
+                                                                                             ],
+                    "Y este mensaje vuelve a ser normal sin cabeza.":  [
+                                                                           "scripts\\scr_game_text\\scr_game_text.gml:46"
+                                                                       ],
+                    "Soy el original":  [
+                                            "scripts\\scr_game_text\\scr_game_text.gml:55"
+                                        ],
+                    "Ayudame a encontrar, por favor, a mi madre":  [
+                                                                       "scripts\\scr_game_text\\scr_game_text.gml:56"
+                                                                   ],
+                    "Por cierto, soy el original":  [
+                                                        "scripts\\scr_game_text\\scr_game_text.gml:57"
+                                                    ],
+                    "Star                 Walker":  [
+                                                        "scripts\\scr_game_text\\scr_game_text.gml:58"
+                                                    ],
+                    "Nah... yo si":  [
+                                         "scripts\\scr_game_text\\scr_game_text.gml:67"
+                                     ],
+                    "Vaya... hay un hombre aqui.":  [
+                                                        "scripts\\scr_game_text\\scr_game_text.gml:75"
+                                                    ],
+                    "Te esta ofreciendo algo.":  [
+                                                     "scripts\\scr_game_text\\scr_game_text.gml:76"
+                                                 ],
+                    "Lo tomas?":  [
+                                      "scripts\\scr_game_text\\scr_game_text.gml:77"
+                                  ],
+                    "Recibiste un huevo.":  [
+                                                "scripts\\scr_game_text\\scr_game_text.gml:83"
+                                            ],
+                    "Aqui no hay nadie.":  [
+                                               "scripts\\scr_game_text\\scr_game_text.gml:87"
+                                           ],
+                    "Vaso de Agua":  [
+                                         "scripts\\scr_items_data\\scr_items_data.gml:4"
+                                     ],
+                    "Ayuda a hidratarte":  [
+                                               "scripts\\scr_items_data\\scr_items_data.gml:5"
+                                           ],
+                    "Manzana":  [
+                                    "scripts\\scr_items_data\\scr_items_data.gml:17"
+                                ],
+                    "Rica y crujiente":  [
+                                             "scripts\\scr_items_data\\scr_items_data.gml:18"
+                                         ],
+                    "Brillitos":  [
+                                      "scripts\\scr_toys_data\\scr_toys_data.gml:13"
+                                  ],
+                    "Un puñado de brillitos. Aturde al enemigo y reduce su ataque y defensa.":  [
+                                                                                                    "scripts\\scr_toys_data\\scr_toys_data.gml:15"
+                                                                                                ],
+                    "Pegamento":  [
+                                      "scripts\\scr_toys_data\\scr_toys_data.gml:70"
+                                  ],
+                    "Deja pegado al enemigo al suelo y le hace perder su turno.":  [
+                                                                                       "scripts\\scr_toys_data\\scr_toys_data.gml:72"
+                                                                                   ]
+                }
+}
