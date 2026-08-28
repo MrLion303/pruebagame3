@@ -16,25 +16,25 @@ function scr_bosses_cinematica_bbs(_id_cinematica) {
 
             _dialogos = [
                 {
-                    texto: "* El enemigo se detiene de repente...",
+                    texto: scr_loc_src("* El enemigo se detiene de repente..."),
                     head: noone,
                     snd: snd_text,
                     music: snd_nosound // <-- ESTO DETIENE LA MÚSICA ACTUAL
                 },
                 {
-                    texto: "* Una energía extraña comienza a rodearlo.",
+                    texto: scr_loc_src("* Una energía extraña comienza a rodearlo."),
                     head: noone,
                     snd: snd_text
                     // Al no poner "music", la música se queda como estaba (silencio en este caso)
                 },
                 {
-                    texto: "¿De verdad creíste que esto sería tan fácil?",
+                    texto: scr_loc_src("¿De verdad creíste que esto sería tan fácil?"),
                     head: spr_bbs_prota_head,
                     snd: snd_noelle,
                     music: mus_battle_1 // <-- ESTO REPRODUCE LA NUEVA MÚSICA
                 },
                 {
-                    texto: "* El boss parece prepararse para continuar la batalla.",
+                    texto: scr_loc_src("* El boss parece prepararse para continuar la batalla."),
                     head: noone,
                     snd: snd_text
                 }

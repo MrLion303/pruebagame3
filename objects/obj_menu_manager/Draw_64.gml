@@ -25,7 +25,7 @@ draw_set_halign(fa_left);
 for (var i = 0; i < array_length(main_options); i++) {
     var col = (state == MENU_STATE.MAIN && main_index == i) ? c_yellow : c_orange;
     draw_set_color(col);
-    draw_text(m_x + 16, m_y + 12 + (i * 46), main_options[i]);
+    draw_text(m_x + 16, m_y + 12 + (i * 46), scr_loc(main_options[i]));
 }
 
 // CASO A: Confirmar cierre de juego
@@ -39,9 +39,9 @@ if (state == MENU_STATE.GAME_CLOSE_CONFIRM) {
     
     draw_set_halign(fa_center);
     draw_set_color(c_yellow);
-    draw_text(close_box_x + (close_box_w / 2), close_box_y + 20, "Estas seguro?");
+    draw_text(close_box_x + (close_box_w / 2), close_box_y + 20, scr_loc("Estas seguro?"));
     
-    var options_close = ["Si", "No"];
+    var options_close = [scr_loc_src("Si"), scr_loc_src("No")];
     var total_options = array_length(options_close);
     var spacing = 90;
     
@@ -49,7 +49,7 @@ if (state == MENU_STATE.GAME_CLOSE_CONFIRM) {
         var col_c = (close_confirm_index == c) ? c_yellow : c_white;
         draw_set_color(col_c);
         var btn_x = close_box_x + (close_box_w / 2) + ((c - 0.5) * spacing);
-        draw_text(btn_x, close_box_y + 65, options_close[c]);
+        draw_text(btn_x, close_box_y + 65, scr_loc(options_close[c]));
     }
     draw_set_halign(fa_left);
 }
@@ -68,8 +68,8 @@ else if (state == MENU_STATE.INFO_MENU) {
     var _p = obj_player; 
     
     draw_set_color(c_orange);
-    draw_text(sx, sy, "LV " + string(_p.nivel));
-    draw_text(sx + 150, sy, "HP " + string(_p.hp) + "/" + string(_p.hp_max));
+    draw_text(sx, sy, scr_loc("LV ") + string(_p.nivel));
+    draw_text(sx + 150, sy, scr_loc("HP ") + string(_p.hp) + "/" + string(_p.hp_max));
     
     var _atk_visual = _p.ataque_base;
     if (_p.equipo_arma != -1 && variable_global_exists("equip_db")) {
@@ -79,8 +79,8 @@ else if (state == MENU_STATE.INFO_MENU) {
         }
     }
     
-    draw_text(sx, sy + 50, "AT  " + string(_atk_visual));
-    draw_text(sx + 150, sy + 50, "EXP: " + string(_p.exp_actual));
+    draw_text(sx, sy + 50, scr_loc("AT  ") + string(_atk_visual));
+    draw_text(sx + 150, sy + 50, scr_loc("EXP: ") + string(_p.exp_actual));
     
     var _def_total = _p.defensa_base;
     if (_p.equipo_armadura != -1 && variable_global_exists("equip_db")) {
@@ -89,22 +89,22 @@ else if (state == MENU_STATE.INFO_MENU) {
             _def_total += _armadura_data.defensa;
         }
     }
-    draw_text(sx, sy + 100, "DF  " + string(_def_total));
-    draw_text(sx + 150, sy + 100, "LVL SUB: " + string(_p.exp_siguiente));
+    draw_text(sx, sy + 100, scr_loc("DF  ") + string(_def_total));
+    draw_text(sx + 150, sy + 100, scr_loc("LVL SUB: ") + string(_p.exp_siguiente));
     
-    var _nombre_arma = "Ninguna";
+    var _nombre_arma = scr_loc_src("Ninguna");
     if (_p.equipo_arma != -1 && variable_global_exists("equip_db")) {
         var _arma_info = global.equip_db[$ _p.equipo_arma];
         if (_arma_info != undefined) _nombre_arma = _arma_info.nombre;
     }
-    draw_text(sx, sy + 160, "Arma: " + _nombre_arma);
+    draw_text(sx, sy + 160, scr_loc("Arma: ") + scr_loc(_nombre_arma));
     
-    var _nombre_armadura = "Ninguna";
+    var _nombre_armadura = scr_loc_src("Ninguna");
     if (_p.equipo_armadura != -1 && variable_global_exists("equip_db")) {
         var _armadura_info = global.equip_db[$ _p.equipo_armadura];
         if (_armadura_info != undefined) _nombre_armadura = _armadura_info.nombre;
     }
-    draw_text(sx, sy + 210, "Armadura: " + _nombre_armadura);
+    draw_text(sx, sy + 210, scr_loc("Armadura: ") + scr_loc(_nombre_armadura));
 }
 // CASO C: INVENTARIO DE CURACIÓN (Leyendo de obj_player.inventory)
 else if (state >= MENU_STATE.INVENTORY && state <= MENU_STATE.ITEM_DROP_CONFIRM) {
@@ -137,7 +137,7 @@ else if (state >= MENU_STATE.INVENTORY && state <= MENU_STATE.ITEM_DROP_CONFIRM)
                 if (item_key != -1) {
                     var item = global.item_db[$ item_key];
                     draw_set_color(c_orange);
-                    draw_text_ext_transformed(cx, cy, item.nombre, 23, 120, 0.66, 0.66, 0);
+                    draw_text_ext_transformed(cx, cy, scr_loc(item.nombre), 23, 120, 0.66, 0.66, 0);
                 } else {
                     draw_set_color(c_dkgray);
                     draw_text_transformed(cx, cy, "-----", 0.66, 0.66, 0);
@@ -168,10 +168,10 @@ else if (state >= MENU_STATE.INVENTORY && state <= MENU_STATE.ITEM_DROP_CONFIRM)
         for (var a = 0; a < array_length(action_options); a++) {
             var col_a = (action_index == a) ? c_yellow : c_white;
             draw_set_color(col_a);
-            draw_text(box_inf_x + 16 + (a * 95), box_inf_y + 16, action_options[a]);
+            draw_text(box_inf_x + 16 + (a * 95), box_inf_y + 16, scr_loc(action_options[a]));
         }
         draw_set_color(c_ltgray);
-        draw_text(box_inf_x + 16, box_inf_y + 65, "Z: Selecc | X: Volver");
+        draw_text(box_inf_x + 16, box_inf_y + 65, scr_loc("Z: Selecc | X: Volver"));
     } 
     else if (state == MENU_STATE.ITEM_INFO) {
         if (instance_exists(obj_player)) {
@@ -180,17 +180,17 @@ else if (state >= MENU_STATE.INVENTORY && state <= MENU_STATE.ITEM_DROP_CONFIRM)
             var item_info = global.item_db[$ selected_item_key];
             
             draw_set_color(c_yellow);
-            draw_text(box_inf_x + 16, box_inf_y + 16, item_info.nombre);
+            draw_text(box_inf_x + 16, box_inf_y + 16, scr_loc(item_info.nombre));
             draw_set_color(c_white);
-            draw_text_ext(box_inf_x + 16, box_inf_y + 45, item_info.descripcion, 25, 280);
+            draw_text_ext(box_inf_x + 16, box_inf_y + 45, scr_loc(item_info.descripcion), 25, 280);
         }
     }
     else if (state == MENU_STATE.ITEM_DROP_CONFIRM) {
         draw_set_halign(fa_center);
         draw_set_color(c_yellow);
-        draw_text(box_inf_x + (box_inf_w / 2), box_inf_y + 20, "Estas seguro?");
+        draw_text(box_inf_x + (box_inf_w / 2), box_inf_y + 20, scr_loc("Estas seguro?"));
         
-        var options_drop = ["Si", "No"];
+        var options_drop = [scr_loc_src("Si"), scr_loc_src("No")];
         var total_drop = array_length(options_drop);
         var drop_spacing = 90;
         
@@ -198,7 +198,7 @@ else if (state >= MENU_STATE.INVENTORY && state <= MENU_STATE.ITEM_DROP_CONFIRM)
             var col_d = (drop_confirm_index == d) ? c_yellow : c_white;
             draw_set_color(col_d);
             var btn_dx = box_inf_x + (box_inf_w / 2) + ((d - 0.5) * drop_spacing);
-            draw_text(btn_dx, box_inf_y + 65, options_drop[d]);
+            draw_text(btn_dx, box_inf_y + 65, scr_loc(options_drop[d]));
         }
         draw_set_halign(fa_left);
     }
@@ -209,9 +209,9 @@ else if (state >= MENU_STATE.INVENTORY && state <= MENU_STATE.ITEM_DROP_CONFIRM)
             draw_set_color(c_white);
             if (selected_item_key != -1) {
                 var item_info = global.item_db[$ selected_item_key];
-                draw_text_ext(box_inf_x + 16, box_inf_y + 20, item_info.descripcion, 25, 280);
+                draw_text_ext(box_inf_x + 16, box_inf_y + 20, scr_loc(item_info.descripcion), 25, 280);
             } else {
-                draw_text(box_inf_x + 16, box_inf_y + 25, "Espacio vacio.");
+                draw_text(box_inf_x + 16, box_inf_y + 25, scr_loc("Espacio vacio."));
             }
         }
     }
@@ -252,7 +252,7 @@ else if (state >= MENU_STATE.TOY_MENU && state <= MENU_STATE.TOY_DROP_CONFIRM) {
                 var toy_item = global.toy_db[$ toy_key];
                 if (toy_item != undefined) {
                     draw_set_color(c_orange);
-                    draw_text_ext_transformed(toy_cx, toy_cy, toy_item.nombre, 23, 120, 0.66, 0.66, 0);
+                    draw_text_ext_transformed(toy_cx, toy_cy, scr_loc(toy_item.nombre), 23, 120, 0.66, 0.66, 0);
                 } else {
                     draw_set_color(c_dkgray);
                     draw_text_transformed(toy_cx, toy_cy, "-----", 0.66, 0.66, 0);
@@ -299,44 +299,44 @@ else if (state >= MENU_STATE.TOY_MENU && state <= MENU_STATE.TOY_DROP_CONFIRM) {
         : undefined;
 
     if (state == MENU_STATE.TOY_ACTION) {
-        var toy_actions = ["Usar", "Tirar", "Info"];
+        var toy_actions = [scr_loc_src("Usar"), scr_loc_src("Tirar"), scr_loc_src("Info")];
         for (var a = 0; a < array_length(toy_actions); a++) {
             var toy_col_a = (toy_action_index == a) ? c_yellow : c_white;
             draw_set_color(toy_col_a);
-            draw_text(toy_inf_x + 12 + (a * 102), toy_inf_y + 16, toy_actions[a]);
+            draw_text(toy_inf_x + 12 + (a * 102), toy_inf_y + 16, scr_loc(toy_actions[a]));
         }
         draw_set_color(c_ltgray);
-        draw_text(toy_inf_x + 16, toy_inf_y + 65, "Z: Selecc | X: Volver");
+        draw_text(toy_inf_x + 16, toy_inf_y + 65, scr_loc("Z: Selecc | X: Volver"));
     }
     else if (state == MENU_STATE.TOY_INFO) {
         if (toy_info != undefined) {
             draw_set_color(c_yellow);
-            draw_text(toy_inf_x + 16, toy_inf_y + 16, toy_info.nombre);
+            draw_text(toy_inf_x + 16, toy_inf_y + 16, scr_loc(toy_info.nombre));
             draw_set_color(c_white);
-            draw_text_ext(toy_inf_x + 16, toy_inf_y + 45, toy_info.descripcion, 25, 280);
+            draw_text_ext(toy_inf_x + 16, toy_inf_y + 45, scr_loc(toy_info.descripcion), 25, 280);
         }
     }
     else if (state == MENU_STATE.TOY_DROP_CONFIRM) {
         draw_set_halign(fa_center);
         draw_set_color(c_yellow);
-        draw_text(toy_inf_x + (toy_inf_w / 2), toy_inf_y + 20, "Estas seguro?");
+        draw_text(toy_inf_x + (toy_inf_w / 2), toy_inf_y + 20, scr_loc("Estas seguro?"));
 
-        var toy_options_drop = ["Si", "No"];
+        var toy_options_drop = [scr_loc_src("Si"), scr_loc_src("No")];
         for (var d = 0; d < 2; d++) {
             var toy_col_d = (toy_drop_confirm_index == d) ? c_yellow : c_white;
             draw_set_color(toy_col_d);
             var toy_btn_x = toy_inf_x + (toy_inf_w / 2) + ((d - 0.5) * 90);
-            draw_text(toy_btn_x, toy_inf_y + 65, toy_options_drop[d]);
+            draw_text(toy_btn_x, toy_inf_y + 65, scr_loc(toy_options_drop[d]));
         }
         draw_set_halign(fa_left);
     }
     else {
         if (toy_info != undefined) {
             draw_set_color(c_white);
-            draw_text_ext(toy_inf_x + 16, toy_inf_y + 20, toy_info.descripcion, 25, 280);
+            draw_text_ext(toy_inf_x + 16, toy_inf_y + 20, scr_loc(toy_info.descripcion), 25, 280);
         } else {
             draw_set_color(c_white);
-            draw_text(toy_inf_x + 16, toy_inf_y + 25, "Espacio vacio.");
+            draw_text(toy_inf_x + 16, toy_inf_y + 25, scr_loc("Espacio vacio."));
         }
     }
 }
@@ -371,7 +371,7 @@ else if (state >= MENU_STATE.EQUIP_MENU && state <= MENU_STATE.EQUIP_DROP_CONFIR
                 if (eq_key != -1) {
                     var eq_item = global.equip_db[$ eq_key];
                     draw_set_color(c_orange);
-                    draw_text_ext_transformed(cx, cy, eq_item.nombre, 23, 120, 0.66, 0.66, 0);
+                    draw_text_ext_transformed(cx, cy, scr_loc(eq_item.nombre), 23, 120, 0.66, 0.66, 0);
                 } else {
                     draw_set_color(c_dkgray);
                     draw_text_transformed(cx, cy, "-----", 0.66, 0.66, 0);
@@ -402,10 +402,10 @@ else if (state >= MENU_STATE.EQUIP_MENU && state <= MENU_STATE.EQUIP_DROP_CONFIR
         for (var a = 0; a < array_length(equip_action_options); a++) {
             var col_a = (equip_action_index == a) ? c_yellow : c_white;
             draw_set_color(col_a);
-            draw_text(box_inf_x + 12 + (a * 102), box_inf_y + 16, equip_action_options[a]);
+            draw_text(box_inf_x + 12 + (a * 102), box_inf_y + 16, scr_loc(equip_action_options[a]));
         }
         draw_set_color(c_ltgray);
-        draw_text(box_inf_x + 16, box_inf_y + 65, "Z: Selecc | X: Volver");
+        draw_text(box_inf_x + 16, box_inf_y + 65, scr_loc("Z: Selecc | X: Volver"));
     } 
     else if (state == MENU_STATE.EQUIP_INFO) {
         var eq_index = min((equip_y + equip_scroll) * 3 + equip_x, array_length(equipment) - 1);
@@ -413,16 +413,16 @@ else if (state >= MENU_STATE.EQUIP_MENU && state <= MENU_STATE.EQUIP_DROP_CONFIR
         var eq_info = global.equip_db[$ selected_eq_key];
         
         draw_set_color(c_yellow);
-        draw_text(box_inf_x + 16, box_inf_y + 16, eq_info.nombre);
+        draw_text(box_inf_x + 16, box_inf_y + 16, scr_loc(eq_info.nombre));
         draw_set_color(c_white);
-        draw_text_ext(box_inf_x + 16, box_inf_y + 45, eq_info.descripcion, 25, 280);
+        draw_text_ext(box_inf_x + 16, box_inf_y + 45, scr_loc(eq_info.descripcion), 25, 280);
     }
     else if (state == MENU_STATE.EQUIP_DROP_CONFIRM) {
         draw_set_halign(fa_center);
         draw_set_color(c_yellow);
-        draw_text(box_inf_x + (box_inf_w / 2), box_inf_y + 20, "Estas seguro?");
+        draw_text(box_inf_x + (box_inf_w / 2), box_inf_y + 20, scr_loc("Estas seguro?"));
         
-        var options_drop_eq = ["Si", "No"];
+        var options_drop_eq = [scr_loc_src("Si"), scr_loc_src("No")];
         var total_drop_eq = array_length(options_drop_eq);
         var drop_eq_spacing = 90;
         
@@ -430,7 +430,7 @@ else if (state >= MENU_STATE.EQUIP_MENU && state <= MENU_STATE.EQUIP_DROP_CONFIR
             var col_d = (drop_confirm_index == d) ? c_yellow : c_white;
             draw_set_color(col_d);
             var btn_deq_x = box_inf_x + (box_inf_w / 2) + ((d - 0.5) * drop_eq_spacing);
-            draw_text(btn_deq_x, box_inf_y + 65, options_drop_eq[d]);
+            draw_text(btn_deq_x, box_inf_y + 65, scr_loc(options_drop_eq[d]));
         }
         draw_set_halign(fa_left);
     }
@@ -440,9 +440,9 @@ else if (state >= MENU_STATE.EQUIP_MENU && state <= MENU_STATE.EQUIP_DROP_CONFIR
         draw_set_color(c_white);
         if (selected_eq_key != -1) {
             var eq_info = global.equip_db[$ selected_eq_key];
-            draw_text_ext(box_inf_x + 16, box_inf_y + 20, eq_info.descripcion, 25, 280);
+            draw_text_ext(box_inf_x + 16, box_inf_y + 20, scr_loc(eq_info.descripcion), 25, 280);
         } else {
-            draw_text(box_inf_x + 16, box_inf_y + 25, "Espacio vacio.");
+            draw_text(box_inf_x + 16, box_inf_y + 25, scr_loc("Espacio vacio."));
         }
     }
 }
@@ -464,42 +464,41 @@ else if (state == MENU_STATE.CONFIG_MENU || state == MENU_STATE.CONFIG_ACTION) {
     draw_set_color(config_tab == 0 ? (is_on_tabs ? c_yellow : c_orange) : c_dkgray);
     draw_rectangle(cfg_box_x + 20, cfg_box_y + 14, cfg_box_x + 145, cfg_box_y + 50, true);
     draw_set_color(tab_gen_col);
-    draw_text(cfg_box_x + 32, cfg_box_y + 21, "General");
+    draw_text(cfg_box_x + 32, cfg_box_y + 21, scr_loc("General"));
     
     draw_set_color(config_tab == 1 ? (is_on_tabs ? c_yellow : c_orange) : c_dkgray);
     draw_rectangle(cfg_box_x + 155, cfg_box_y + 14, cfg_box_x + 310, cfg_box_y + 50, true);
     draw_set_color(tab_ctrl_col);
-    draw_text(cfg_box_x + 167, cfg_box_y + 21, "Controles");
+    draw_text(cfg_box_x + 167, cfg_box_y + 21, scr_loc("Controles"));
     
     var start_y = cfg_box_y + 72;
     var line_spacing = 38;
     
     if (config_tab == 0) {
         var options_general = [
-            { name: "Volumen General", val: string(round(master_volume * 100)) + "%" },
-            { name: "Pantalla Comp",    val: fullscreen_enabled ? "Si" : "No" },
-            { name: "Auto-correr",      val: global.autocorrer_enabled ? "Si" : "No" },
-            { name: "Volver",           val: "" }
+            { name: scr_loc_src("Volumen General"), val: string(round(master_volume * 100)) + "%" },
+            { name: scr_loc_src("Pantalla Comp"),    val: fullscreen_enabled ? scr_loc_src("Si") : scr_loc_src("No") },
+            { name: scr_loc_src("Auto-correr"),      val: global.autocorrer_enabled ? scr_loc_src("Si") : scr_loc_src("No") },
+            { name: scr_loc_src("Volver"),           val: "" }
         ];
         
         for (var i = 0; i < array_length(options_general); i++) {
             var col_item = (!is_on_tabs && config_index == i) ? c_yellow : c_orange;
             draw_set_color(col_item);
             
-            draw_text(cfg_box_x + 24, start_y + (i * line_spacing), options_general[i].name);
+            draw_text(cfg_box_x + 24, start_y + (i * line_spacing), scr_loc(options_general[i].name));
             
             if (options_general[i].val != "") {
-                draw_text(cfg_box_x + 240, start_y + (i * line_spacing), options_general[i].val);
+                draw_text(cfg_box_x + 240, start_y + (i * line_spacing), scr_loc(options_general[i].val));
             }
         }
     } 
     else {
         draw_set_color(c_ltgray);
-        draw_text(cfg_box_x + 24, start_y, "Configuracion de controles");
-        draw_text(cfg_box_x + 24, start_y + 40, "Proximamente...");
+        draw_text(cfg_box_x + 24, start_y, scr_loc("Configuracion de controles"));
+        draw_text(cfg_box_x + 24, start_y + 40, scr_loc("Proximamente..."));
     }
 }
 
 draw_set_halign(fa_left);
 draw_set_color(c_white);
-

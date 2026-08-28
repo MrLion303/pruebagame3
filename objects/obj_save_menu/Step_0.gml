@@ -66,7 +66,7 @@ else if (state == 1) {
                 // REPRODUCIR SONIDO AL CARGAR EXITOSAMENTE
                 audio_play_sound(snd_shineselect, 10, false);
                 
-                ini_open("prueba.ini");
+                ini_open("save.ini");
                 var _rm = ini_read_real(_seccion_actual, "room", global.rm1);
                 var _px = ini_read_real(_seccion_actual, "x", 668);
                 var _py = ini_read_real(_seccion_actual, "y", 194);
@@ -87,11 +87,11 @@ else if (state == 1) {
         }
         else if (_accion == "Borrar") {
             audio_play_sound(snd_trashsave, 10, false);
-            ini_open("prueba.ini");
+            ini_open("save.ini");
             ini_section_delete(_seccion_actual);
             ini_close();
             
-            slots_data[slot_index].lugar = "Datos vacios";
+            slots_data[slot_index].lugar = scr_loc_src("Datos vacios");
             slots_data[slot_index].tiempo = "--:--:--";
         }
     }

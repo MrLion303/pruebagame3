@@ -245,13 +245,13 @@ switch (state) {
             if (instance_exists(obj_player) && slot_index < array_length(obj_player.inventory)) {
                 var current_item_key = obj_player.inventory[slot_index];
                 var item_data = global.item_db[$ current_item_key];
-                var item_name = (item_data != undefined) ? item_data.nombre : "objeto";
+                var item_name = (item_data != undefined) ? item_data.nombre : scr_loc_src("objeto");
                 
                 if (drop_confirm_index == 0) {
                     obj_player.inventory[slot_index] = -1;
                     state = MENU_STATE.CLOSED;
                     var _textbox = instance_create_layer(x, y, layer, obj_textbox);
-                    _textbox.text = ["Has tirado " + item_name + "."];
+                    _textbox.text = [scr_locf("Has tirado {item}.", { item: scr_loc(item_name) })];
                     _textbox.page_number = array_length(_textbox.text);
                 } else {
                     state = MENU_STATE.INVENTORY;
@@ -344,7 +344,7 @@ switch (state) {
                 if (_toy_data != undefined) {
                     if (toy_action_index == 0) {
                         var _textbox_toy = instance_create_layer(x, y, layer, obj_textbox);
-                        _textbox_toy.text = ["Los toys se usan durante una batalla."];
+                        _textbox_toy.text = [scr_loc("Los toys se usan durante una batalla.")];
                         _textbox_toy.page_number = array_length(_textbox_toy.text);
                         state = MENU_STATE.CLOSED;
                     }
@@ -392,14 +392,14 @@ switch (state) {
                 var _toy_data = (variable_global_exists("toy_db") && _toy_key != -1 && _toy_key != undefined)
                     ? global.toy_db[$ _toy_key]
                     : undefined;
-                var _toy_name = (_toy_data != undefined) ? _toy_data.nombre : "toy";
+                var _toy_name = (_toy_data != undefined) ? _toy_data.nombre : scr_loc_src("toy");
 
                 if (toy_drop_confirm_index == 0) {
                     global.toy_inventory[_toy_slot] = -1;
                     state = MENU_STATE.CLOSED;
 
                     var _textbox = instance_create_layer(x, y, layer, obj_textbox);
-                    _textbox.text = ["Has tirado " + _toy_name + "."];
+                    _textbox.text = [scr_locf("Has tirado {item}.", { item: scr_loc(_toy_name) })];
                     _textbox.page_number = array_length(_textbox.text);
                 } else {
                     state = MENU_STATE.TOY_MENU;
@@ -511,7 +511,7 @@ switch (state) {
                         
                         state = MENU_STATE.CLOSED;
                         var _textbox = instance_create_layer(x, y, layer, obj_textbox);
-                        _textbox.text = ["Se equipo " + eq_name + "."];
+                        _textbox.text = [scr_locf("Se equipo {item}.", { item: scr_loc(eq_name) })];
                         _textbox.page_number = array_length(_textbox.text);
                     } else {
                         state = MENU_STATE.CLOSED;
@@ -545,14 +545,14 @@ switch (state) {
             var eq_slot = (equip_y + equip_scroll) * 3 + equip_x;
             var eq_key = equipment[eq_slot];
             var eq_data = global.equip_db[$ eq_key];
-            var eq_name = (eq_data != undefined) ? eq_data.nombre : "equipamiento";
+            var eq_name = (eq_data != undefined) ? eq_data.nombre : scr_loc_src("equipamiento");
             
             if (drop_confirm_index == 0) {
                 global.equipment_inventory[eq_slot] = -1;
                 equipment = global.equipment_inventory;
                 state = MENU_STATE.CLOSED;
                 var _textbox = instance_create_layer(x, y, layer, obj_textbox);
-                _textbox.text = ["Has tirado " + eq_name + "."];
+                _textbox.text = [scr_locf("Has tirado {item}.", { item: scr_loc(eq_name) })];
                 _textbox.page_number = array_length(_textbox.text);
             } else {
                 state = MENU_STATE.EQUIP_MENU;

@@ -69,7 +69,7 @@ for (var i = 0; i < _total_enemigos; i++) {
         draw_text_color(
             _en_x - (string_width(_en.nombre) * 0.5 * 0.7 * _s),
             _en_y - (45 * _s),
-            "v " + _en.nombre,
+            "v " + scr_loc(_en.nombre),
             _txt_color_sel,
             _txt_color_sel,
             _txt_color_sel,
@@ -210,12 +210,12 @@ if ((!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario)
     
     // SELECCIÓN DE ENEMIGO
     if (en_seleccion_enemigo) {
-        var _texto_seleccion = (toy_selected_key != -1) ? "* Elige a quien usar el toy!" : "* Elige a quien atacar!";
+        var _texto_seleccion = (toy_selected_key != -1) ? scr_loc("* Elige a quien usar el toy!") : scr_loc("* Elige a quien atacar!");
 
         draw_text_color(
             (14 + 16) * _s,
             (125 + 10) * _s,
-            "¡Elige el enemigo!",
+            scr_loc("¡Elige el enemigo!"),
             c_white,
             c_white,
             c_white,
@@ -227,7 +227,7 @@ if ((!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario)
     } else if (en_menu_fight && !en_modo_info) {
         var _tx = (14 + 16) * _s;
         var _ty = (125 + 10) * _s;
-        var _op = ["* Atacar", "* Info"];
+        var _op = [scr_loc_src("* Atacar"), scr_loc_src("* Info")];
         
         for (var i = 0; i < 2; i++) {
             var _col = (opcion_fight_seleccionada == i) ? c_yellow : c_white;
@@ -235,7 +235,7 @@ if ((!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario)
             draw_text_color(
                 _tx + (i * 120 * _s),
                 _ty,
-                _op[i],
+                scr_loc(_op[i]),
                 _col,
                 _col,
                 _col,
@@ -247,7 +247,7 @@ if ((!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario)
         var _en_activo = enemigos[enemigo_seleccionado_idx];
         var _bar_en_x = _tx;
         var _bar_en_y = _ty + (20 * _s);
-        var _bar_en_w = (string_width("* Atacar") * _s) * 0.75;
+        var _bar_en_w = (string_width(scr_loc("* Atacar")) * _s) * 0.75;
         var _bar_en_h = 5 * _s;
         var _vida_act = _en_activo.vida_actual;
         var _vida_max = _en_activo.vida_max;
@@ -343,7 +343,7 @@ if ((!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario)
                         variable_global_exists("item_db") &&
                         global.item_db[$ _item_key] != undefined
                         ?
-                        global.item_db[$ _item_key].nombre
+                        scr_loc(global.item_db[$ _item_key].nombre)
                         :
                         string(_item_key)
                     )
@@ -458,7 +458,7 @@ else if (en_menu_toys) {
             if (_toy_key_draw != -1 && _toy_key_draw != undefined && variable_global_exists("toy_db")) {
                 var _toy_data_draw = global.toy_db[$ _toy_key_draw];
                 if (_toy_data_draw != undefined) {
-                    _toy_nombre = _toy_data_draw.nombre;
+                    _toy_nombre = scr_loc(_toy_data_draw.nombre);
                 }
             }
 
@@ -600,7 +600,7 @@ draw_set_halign(fa_left);
 draw_text_color(
     _info_x,
     _info_y,
-    "Noelle",
+    scr_loc("Noelle"),
     c_white,
     c_white,
     c_white,
@@ -613,7 +613,7 @@ var _hp_label_y = _info_y + 16 * _s;
 draw_text_transformed_color(
     _info_x,
     _hp_label_y,
-    "HP",
+    scr_loc("HP"),
     0.7,
     0.7,
     0,

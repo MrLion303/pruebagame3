@@ -1,4 +1,4 @@
-main_options = ["INV", "TOYS", "EQUIP", "STAD", "CONFIG", "CERRAR"];
+main_options = [scr_loc_src("INV"), scr_loc_src("TOYS"), scr_loc_src("EQUIP"), scr_loc_src("STAD"), scr_loc_src("CONFIG"), scr_loc_src("CERRAR")];
 main_index = 0;
 
 enum MENU_STATE {
@@ -207,14 +207,14 @@ toy_drop_confirm_index = 1;
 // ACCIONES DE ITEMS
 // =========================================================
 
-action_options = ["Usar", "Tirar", "Info"];
+action_options = [scr_loc_src("Usar"), scr_loc_src("Tirar"), scr_loc_src("Info")];
 action_index = 0;
 
 // =========================================================
 // ACCIONES DE EQUIPAMIENTO
 // =========================================================
 
-equip_action_options = ["Equip", "Tirar", "Info"];
+equip_action_options = [scr_loc_src("Equip"), scr_loc_src("Tirar"), scr_loc_src("Info")];
 equip_action_index = 0;
 
 // =========================================================

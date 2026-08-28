@@ -115,7 +115,7 @@ if (_todos_derrotados && en_dialogo_victoria_final) {
                     victoria_sonido_nivel_reproducido = true;
                     audio_play_sound(snd_levelup, 10, false);
                 }
-                f_procesar_dialogo("¡Subiste de nivel!");
+                f_procesar_dialogo(scr_loc("¡Subiste de nivel!"));
             } else {
                 if (instance_exists(obj_batalla_controller)) {
                     obj_batalla_controller.victoria_finalizada = true;
@@ -299,11 +299,11 @@ if (draw_char < text_length) {
 
                     var _texto_item = "";
                     if (_hp_curado > 0) {
-                        _texto_item = "* Consumiste " + _item_data.nombre + "! Te curaste " + string(_hp_curado) + " de vida!";
+                        _texto_item = scr_locf("* Consumiste {item}! Te curaste {hp} de vida!", { item: scr_loc(_item_data.nombre), hp: string(_hp_curado) });
                     } else if (instance_exists(obj_player) && _hp_antes >= obj_player.hp_max) {
-                        _texto_item = "* Consumiste " + _item_data.nombre + ", pero ya tienes la vida llena!";
+                        _texto_item = scr_locf("* Consumiste {item}, pero ya tienes la vida llena!", { item: scr_loc(_item_data.nombre) });
                     } else {
-                        _texto_item = "* Consumiste " + _item_data.nombre + "!";
+                        _texto_item = scr_locf("* Consumiste {item}!", { item: scr_loc(_item_data.nombre) });
                     }
 
                     f_procesar_dialogo(_texto_item);
@@ -369,7 +369,7 @@ if (draw_char < text_length) {
                 victoria_etapa = 0;
                 victoria_sonido_nivel_reproducido = false;
                 victoria_xp = instance_exists(obj_batalla_controller) ? obj_batalla_controller.experiencia_batalla : 0;
-                f_procesar_dialogo("* ¡Has ganado la batalla! Ganaste " + string(victoria_xp) + " XP.");
+                f_procesar_dialogo(scr_locf("* ¡Has ganado la batalla! Ganaste {xp} XP.", { xp: string(victoria_xp) }));
                 audio_play_sound(snd_menumove, 10, false);
             } else {
                 en_menu_fight = false;
@@ -490,7 +490,7 @@ if (draw_char < text_length) {
                     audio_play_sound(snd_board_escaped, 10, false);
                     if (instance_exists(obj_batalla_controller)) obj_batalla_controller.fase_actual = FASE_BATALLA.HUIR;
                 } else {
-                    f_procesar_dialogo("* Intentaste huir, ¡pero no pudiste escapar!");
+                    f_procesar_dialogo(scr_loc("* Intentaste huir, ¡pero no pudiste escapar!"));
                     en_resultado_ataque = true;
                     audio_play_sound(snd_menumove, 10, false);
                 }
@@ -512,7 +512,7 @@ if (draw_char < text_length) {
                     }
 
                     if (_toy_aplicado) {
-                        var _texto_toy = "* Usaste " + _toy_data_use.nombre + " en " + _en_sel.nombre + "!";
+                        var _texto_toy = scr_locf("* Usaste {toy} en {enemy}!", { toy: scr_loc(_toy_data_use.nombre), enemy: scr_loc(_en_sel.nombre) });
                         f_procesar_dialogo(_texto_toy);
 
                     if (variable_global_exists("toy_inventory") && toy_selected_slot >= 0 && toy_selected_slot < array_length(global.toy_inventory)) {
@@ -593,7 +593,7 @@ if (draw_char < text_length) {
 
                     _texto_ataque = variable_struct_exists(_en_actual, "texto_muerte")
                         ? string_replace_all(_en_actual.texto_muerte, "\n", " ")
-                        : "* Venciste a " + _en_actual.nombre + "!";
+                        : scr_locf("* Venciste a {enemy}!", { enemy: scr_loc(_en_actual.nombre) });
 
                     var _chequear_todos_muertos = true;
 
@@ -617,7 +617,7 @@ if (draw_char < text_length) {
                     }
 
                 } else {
-                    _texto_ataque = "* Hiciste " + string(_dano) + " de daño a " + _en_actual.nombre + "!";
+                    _texto_ataque = scr_locf("* Hiciste {damage} de daño a {enemy}!", { damage: string(_dano), enemy: scr_loc(_en_actual.nombre) });
                 }
 
                 f_procesar_dialogo(_texto_ataque);

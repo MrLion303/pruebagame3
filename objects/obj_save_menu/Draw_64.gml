@@ -40,7 +40,7 @@ for (var i = 0; i < 3; i++) {
     }
     
     draw_set_color(_col);
-    draw_text(left_x + 20, left_y + 20 + (i * 45), action_options[i]);
+    draw_text(left_x + 20, left_y + 20 + (i * 45), scr_loc(action_options[i]));
 }
 
 // --- DIBUJAR CAJAS DERECHAS (ARCHIVOS) ---
@@ -64,7 +64,7 @@ for (var j = 0; j < 3; j++) {
     
     draw_set_halign(fa_left);
     draw_set_color(_col_slot);
-    draw_text(right_x + 16, _box_y + 45, _datos.lugar);
+    draw_text(right_x + 16, _box_y + 45, scr_loc(_datos.lugar));
 }
 
 draw_set_color(c_white);

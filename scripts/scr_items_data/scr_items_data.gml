@@ -1,8 +1,8 @@
 function scr_item_db() {
     global.item_db = {
         agua: {
-            nombre: "Vaso de Agua",
-            descripcion: "Ayuda a hidratarte",
+            nombre: scr_loc_src("Vaso de Agua"),
+            descripcion: scr_loc_src("Ayuda a hidratarte"),
             tipo: "consumible",
             efecto: function() {
                 var _p = obj_player;
@@ -14,8 +14,8 @@ function scr_item_db() {
             icono: -1 
         },
         manzana: {
-            nombre: "Manzana",
-            descripcion: "Rica y crujiente",
+            nombre: scr_loc_src("Manzana"),
+            descripcion: scr_loc_src("Rica y crujiente"),
             tipo: "consumible",
             efecto: function() {
                 var _p = obj_player;

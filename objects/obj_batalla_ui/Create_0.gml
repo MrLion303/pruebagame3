@@ -59,7 +59,7 @@ f_procesar_dialogo = function(_entrada) {
 
     if (is_struct(_entrada)) {
         var _txt = variable_struct_exists(_entrada, "texto") ? _entrada.texto : "";
-        text_to_draw = is_string(_txt) ? _txt : string(_txt);
+        text_to_draw = scr_loc(is_string(_txt) ? _txt : string(_txt));
         
         if (variable_struct_exists(_entrada, "head")) {
             if (_entrada.head != noone && sprite_exists(_entrada.head)) {
@@ -72,7 +72,7 @@ f_procesar_dialogo = function(_entrada) {
             text_sound_custom = _entrada.snd;
         }
     } else {
-        text_to_draw = string(_entrada);
+        text_to_draw = scr_loc(string(_entrada));
         head_sprite = noone;
         head_visible = false;
     }
@@ -120,7 +120,7 @@ head_sprite = noone;
 head_visible = false;
 text_sound_custom = snd_text;
 
-var _raw_inicio = (array_length(enemigos) > 0 && variable_struct_exists(enemigos[0], "texto_inicio")) ? enemigos[0].texto_inicio : "¡Un combate comienza!";
+var _raw_inicio = (array_length(enemigos) > 0 && variable_struct_exists(enemigos[0], "texto_inicio")) ? enemigos[0].texto_inicio : scr_loc_src("¡Un combate comienza!");
 
 f_procesar_dialogo(_raw_inicio);
 texto_inicio_batalla = text_to_draw; 

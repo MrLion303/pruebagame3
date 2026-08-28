@@ -105,7 +105,7 @@ switch (fase_actual) {
 
             if (instance_exists(obj_batalla_ui)) {
                 obj_batalla_ui.en_resultado_ataque = true;
-                obj_batalla_ui.f_procesar_dialogo("* " + _en_actual.nombre + " está aturdido y no puede atacar!");
+                obj_batalla_ui.f_procesar_dialogo(scr_locf("* {enemy} está aturdido y no puede atacar!", { enemy: scr_loc(_en_actual.nombre) }));
             }
 
             fase_actual = FASE_BATALLA.ENEMIGO_ATACANDO;
@@ -125,7 +125,7 @@ switch (fase_actual) {
 
         if (instance_exists(obj_batalla_ui)) {
             obj_batalla_ui.en_resultado_ataque = true;
-            obj_batalla_ui.f_procesar_dialogo("* " + _en_actual.nombre + " ataca y te causa " + string(_dano_enemigo) + " de daño!");
+            obj_batalla_ui.f_procesar_dialogo(scr_locf("* {enemy} ataca y te causa {damage} de daño!", { enemy: scr_loc(_en_actual.nombre), damage: string(_dano_enemigo) }));
         }
 
         fase_actual = FASE_BATALLA.ENEMIGO_ATACANDO;
@@ -239,7 +239,7 @@ switch (fase_actual) {
                             if (instance_exists(obj_batalla_ui)) {
                                 obj_batalla_ui.en_dialogo_victoria_final = true;
                                 obj_batalla_ui.victoria_etapa = 0;
-                                obj_batalla_ui.f_procesar_dialogo("* ¡Has ganado la batalla!");
+                                obj_batalla_ui.f_procesar_dialogo(scr_loc("* ¡Has ganado la batalla!"));
                             }
                             fase_actual = FASE_BATALLA.VICTORIA;
                         } else {

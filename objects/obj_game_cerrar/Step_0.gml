@@ -18,11 +18,11 @@ close_alpha = hold_timer / hold_time_max;
 var _current_seconds = hold_timer / game_get_speed(gamespeed_fps);
 
 if (_current_seconds >= 4) {
-    close_text = "Cerrando...";
+    close_text = scr_loc_src("Cerrando...");
 } else if (_current_seconds >= 3) {
-    close_text = "Cerrando..";
+    close_text = scr_loc_src("Cerrando..");
 } else if (_current_seconds >= 2) {
-    close_text = "Cerrando.";
+    close_text = scr_loc_src("Cerrando.");
 } else {
-    close_text = "Cerrando";
+    close_text = scr_loc_src("Cerrando");
 }

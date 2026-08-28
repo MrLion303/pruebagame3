@@ -35,7 +35,7 @@ function scr_guardar_juego(_seccion) {
     var _json_string = json_stringify(_save_data);
     var _base64_string = base64_encode(_json_string);
 
-    ini_open("prueba.ini");
+    ini_open("save.ini");
     ini_write_real(_seccion, "room", _proom);
     ini_write_real(_seccion, "x", _px);
     ini_write_real(_seccion, "y", _py);
@@ -52,9 +52,9 @@ function scr_guardar_juego(_seccion) {
 
 /// @function scr_cargar_juego(_seccion)
 function scr_cargar_juego(_seccion) {
-    if (!file_exists("prueba.ini")) return false;
+    if (!file_exists("save.ini")) return false;
 
-    ini_open("prueba.ini");
+    ini_open("save.ini");
     var _extra = ini_read_string(_seccion, "extra_data", "");
     var _facing = ini_read_real(_seccion, "facing", 2);
     

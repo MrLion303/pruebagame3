@@ -10,9 +10,9 @@ function scr_toys_data() {
         // =========================================================
         brillitos: {
 
-            nombre: "Brillitos",
+            nombre: scr_loc_src("Brillitos"),
             tipo: "toy",
-            descripcion: "Un puñado de brillitos. Aturde al enemigo y reduce su ataque y defensa.",
+            descripcion: scr_loc_src("Un puñado de brillitos. Aturde al enemigo y reduce su ataque y defensa."),
 
             stun_turnos: 1,
             reduccion_ataque: 1,
@@ -67,9 +67,9 @@ function scr_toys_data() {
         // =========================================================
         pegamento: {
 
-            nombre: "Pegamento",
+            nombre: scr_loc_src("Pegamento"),
             tipo: "toy",
-            descripcion: "Deja pegado al enemigo al suelo y le hace perder su turno.",
+            descripcion: scr_loc_src("Deja pegado al enemigo al suelo y le hace perder su turno."),
 
             stun_turnos: 1,
             reduccion_ataque: 0,
