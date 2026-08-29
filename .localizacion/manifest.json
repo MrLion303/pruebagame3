@@ -1,5 +1,5 @@
 {
-    "total":  171,
+    "total":  172,
     "fuentes":  {
                     "Jugador X: ":  [
                                         "objects\\game\\Draw_64.gml:36"
@@ -310,41 +310,44 @@
                                    "scripts\\scr_cofre\\scr_cofre.gml:234"
                                ],
                     "* Escuchaste algo extraño.":  [
-                                                       "scripts\\scr_cutscene_data\\scr_cutscene_data.gml:37"
+                                                       "scripts\\scr_cutscene_data\\scr_cutscene_data.gml:93"
                                                    ],
                     "* No parece haber nadie.":  [
-                                                     "scripts\\scr_cutscene_data\\scr_cutscene_data.gml:80"
+                                                     "scripts\\scr_cutscene_data\\scr_cutscene_data.gml:132"
                                                  ],
                     "* Ambos se detuvieron.":  [
-                                                   "scripts\\scr_cutscene_data\\scr_cutscene_data.gml:137"
+                                                   "scripts\\scr_cutscene_data\\scr_cutscene_data.gml:223"
                                                ],
                     "* Algo se acerca...":  [
-                                                "scripts\\scr_cutscene_data\\scr_cutscene_data.gml:157"
+                                                "scripts\\scr_cutscene_data\\scr_cutscene_data.gml:254"
                                             ],
                     "* Esta es una prueba de diálogo.":  [
-                                                             "scripts\\scr_cutscene_data\\scr_cutscene_data.gml:188"
+                                                             "scripts\\scr_cutscene_data\\scr_cutscene_data.gml:296"
                                                          ],
                     "* La música está a punto de cambiar.":  [
-                                                                 "scripts\\scr_cutscene_data\\scr_cutscene_data.gml:199"
+                                                                 "scripts\\scr_cutscene_data\\scr_cutscene_data.gml:309"
                                                              ],
                     "* Ahora está sonando una música diferente.":  [
-                                                                       "scripts\\scr_cutscene_data\\scr_cutscene_data.gml:234"
+                                                                       "scripts\\scr_cutscene_data\\scr_cutscene_data.gml:345"
                                                                    ],
                     "* La cinemática terminará, pero la música continuará.":  [
-                                                                                  "scripts\\scr_cutscene_data\\scr_cutscene_data.gml:250"
+                                                                                  "scripts\\scr_cutscene_data\\scr_cutscene_data.gml:363"
                                                                               ],
                     "* Hay algo de malas vibras por aquí...":  [
-                                                                   "scripts\\scr_cutscene_data\\scr_cutscene_data.gml:289"
+                                                                   "scripts\\scr_cutscene_data\\scr_cutscene_data.gml:412"
                                                                ],
                     "* VAYA, VAYA... ¿QUÉ TENEMOS AQUÍ?":  [
-                                                               "scripts\\scr_cutscene_data\\scr_cutscene_data.gml:311"
+                                                               "scripts\\scr_cutscene_data\\scr_cutscene_data.gml:436"
                                                            ],
                     "* PARECE QUE LOS JUEGOS ESTÁN A PUNTO DE COMENZAR":  [
-                                                                              "scripts\\scr_cutscene_data\\scr_cutscene_data.gml:318"
+                                                                              "scripts\\scr_cutscene_data\\scr_cutscene_data.gml:445"
                                                                           ],
                     "* Esto se va a poner muy feo...":  [
-                                                            "scripts\\scr_cutscene_data\\scr_cutscene_data.gml:343"
+                                                            "scripts\\scr_cutscene_data\\scr_cutscene_data.gml:473"
                                                         ],
+                    "* Bueno... sí estuvo feo. Fahaha.":  [
+                                                              "scripts\\scr_cutscene_data\\scr_cutscene_data.gml:502"
+                                                          ],
                     "El... keke? Oh! Claro que me gusta!":  [
                                                                 "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:37",
                                                                 "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:56",
