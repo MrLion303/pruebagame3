@@ -29,8 +29,8 @@ if not exist "%~dp0localizacion_sync_fallback.ps1" (
     exit /b 1
 )
 
-echo Usando sincronizador PowerShell integrado.
-echo No necesita Python.
+echo Usando sincronizador PowerShell sin Python.
+echo Los JSON se escribiran en UTF-8 SIN BOM.
 echo.
 
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0localizacion_sync_fallback.ps1" -Watch

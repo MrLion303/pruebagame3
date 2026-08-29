@@ -1,3 +1,19 @@
+// =========================================================
+// BLOQUEAR MENÚ DURANTE CINEMÁTICAS
+// =========================================================
+
+if (
+    variable_global_exists("cutscene_active")
+    &&
+    global.cutscene_active
+)
+{
+    state =
+        MENU_STATE.CLOSED;
+
+    exit;
+}
+
 // --- BLOQUEO TOTAL DE APERTURA E INTERACCIÓN EN ROOMS ESPECÍFICAS ---
 var _room_actual = room_get_name(room);
 if (_room_actual == "bbs" || _room_actual == "rm_title") {

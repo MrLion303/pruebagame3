@@ -105,9 +105,18 @@ if (_todos_derrotados && en_dialogo_victoria_final) {
             victoria_xp = instance_exists(obj_batalla_controller) ? obj_batalla_controller.experiencia_batalla : 0;
             victoria_nivel_antes = instance_exists(obj_player) && variable_instance_exists(obj_player, "nivel") ? obj_player.nivel : 1;
 
-            if (victoria_xp > 0) scr_level_ganar_experiencia(victoria_xp);
+            // IMPORTANTE:
+            // scr_level_ganar_experiencia() devuelve cuántos niveles subió.
+            // Usamos ese resultado directamente en vez de deducirlo comparando
+            // niveles antes/después. Así la victoria funciona igual aunque la
+            // batalla haya sido iniciada desde una cinemática.
+            var _subidas_nivel = 0;
 
-            var _subio = instance_exists(obj_player) && variable_instance_exists(obj_player, "nivel") && obj_player.nivel > victoria_nivel_antes;
+            if (victoria_xp > 0) {
+                _subidas_nivel = scr_level_ganar_experiencia(victoria_xp);
+            }
+
+            var _subio = (_subidas_nivel > 0);
             victoria_etapa = _subio ? 1 : 2;
 
             if (_subio) {
@@ -115,6 +124,12 @@ if (_todos_derrotados && en_dialogo_victoria_final) {
                     victoria_sonido_nivel_reproducido = true;
                     audio_play_sound(snd_levelup, 10, false);
                 }
+
+                // Evita que la misma pulsación que confirmó la victoria
+                // pueda arrastrarse al nuevo texto.
+                keyboard_clear(ord("Z"));
+                keyboard_clear(vk_enter);
+
                 f_procesar_dialogo(scr_loc("¡Subiste de nivel!"));
             } else {
                 if (instance_exists(obj_batalla_controller)) {

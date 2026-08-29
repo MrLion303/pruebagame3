@@ -1,1 +1,11 @@
-draw_sprite_tiled(sprite_index, image_index, 0, 0);
+/// =========================================================
+/// OBJ_TRANSICION_BBS
+/// DRAW
+/// =========================================================
+
+draw_sprite_tiled(
+    sprite_index,
+    image_index,
+    0,
+    0
+);

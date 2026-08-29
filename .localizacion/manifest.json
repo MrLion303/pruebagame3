@@ -1,5 +1,5 @@
-﻿{
-    "total":  159,
+{
+    "total":  171,
     "fuentes":  {
                     "Jugador X: ":  [
                                         "objects\\game\\Draw_64.gml:36"
@@ -83,31 +83,31 @@
                                "objects\\obj_batalla_ui\\Draw_64.gml:616"
                            ],
                     "¡Subiste de nivel!":  [
-                                               "objects\\obj_batalla_ui\\Step_0.gml:118"
+                                               "objects\\obj_batalla_ui\\Step_0.gml:133"
                                            ],
                     "* Consumiste {item}! Te curaste {hp} de vida!":  [
-                                                                          "objects\\obj_batalla_ui\\Step_0.gml:302"
+                                                                          "objects\\obj_batalla_ui\\Step_0.gml:317"
                                                                       ],
                     "* Consumiste {item}, pero ya tienes la vida llena!":  [
-                                                                               "objects\\obj_batalla_ui\\Step_0.gml:304"
+                                                                               "objects\\obj_batalla_ui\\Step_0.gml:319"
                                                                            ],
                     "* Consumiste {item}!":  [
-                                                 "objects\\obj_batalla_ui\\Step_0.gml:306"
+                                                 "objects\\obj_batalla_ui\\Step_0.gml:321"
                                              ],
                     "* ¡Has ganado la batalla! Ganaste {xp} XP.":  [
-                                                                       "objects\\obj_batalla_ui\\Step_0.gml:372"
+                                                                       "objects\\obj_batalla_ui\\Step_0.gml:387"
                                                                    ],
                     "* Intentaste huir, ¡pero no pudiste escapar!":  [
-                                                                         "objects\\obj_batalla_ui\\Step_0.gml:493"
+                                                                         "objects\\obj_batalla_ui\\Step_0.gml:508"
                                                                      ],
                     "* Usaste {toy} en {enemy}!":  [
-                                                       "objects\\obj_batalla_ui\\Step_0.gml:515"
+                                                       "objects\\obj_batalla_ui\\Step_0.gml:530"
                                                    ],
                     "* Venciste a {enemy}!":  [
-                                                  "objects\\obj_batalla_ui\\Step_0.gml:596"
+                                                  "objects\\obj_batalla_ui\\Step_0.gml:611"
                                               ],
                     "* Hiciste {damage} de daño a {enemy}!":  [
-                                                                  "objects\\obj_batalla_ui\\Step_0.gml:620"
+                                                                  "objects\\obj_batalla_ui\\Step_0.gml:635"
                                                               ],
                     "Cerrando...":  [
                                         "objects\\obj_game_cerrar\\Step_0.gml:21"
@@ -237,26 +237,26 @@
                                             "objects\\obj_menu_manager\\Draw_64.gml:499"
                                         ],
                     "objeto":  [
-                                   "objects\\obj_menu_manager\\Step_0.gml:248",
+                                   "objects\\obj_menu_manager\\Step_0.gml:264",
                                    "scripts\\scr_cofre\\scr_cofre.gml:228"
                                ],
                     "Has tirado {item}.":  [
-                                               "objects\\obj_menu_manager\\Step_0.gml:254",
-                                               "objects\\obj_menu_manager\\Step_0.gml:402",
-                                               "objects\\obj_menu_manager\\Step_0.gml:555"
+                                               "objects\\obj_menu_manager\\Step_0.gml:270",
+                                               "objects\\obj_menu_manager\\Step_0.gml:418",
+                                               "objects\\obj_menu_manager\\Step_0.gml:571"
                                            ],
                     "Los toys se usan durante una batalla.":  [
-                                                                  "objects\\obj_menu_manager\\Step_0.gml:347"
+                                                                  "objects\\obj_menu_manager\\Step_0.gml:363"
                                                               ],
                     "toy":  [
-                                "objects\\obj_menu_manager\\Step_0.gml:395",
+                                "objects\\obj_menu_manager\\Step_0.gml:411",
                                 "scripts\\scr_cofre\\scr_cofre.gml:231"
                             ],
                     "Se equipo {item}.":  [
-                                              "objects\\obj_menu_manager\\Step_0.gml:514"
+                                              "objects\\obj_menu_manager\\Step_0.gml:530"
                                           ],
                     "equipamiento":  [
-                                         "objects\\obj_menu_manager\\Step_0.gml:548"
+                                         "objects\\obj_menu_manager\\Step_0.gml:564"
                                      ],
                     "Salvar":  [
                                    "objects\\obj_save_menu\\Create_0.gml:11"
@@ -309,6 +309,42 @@
                     "Equipo":  [
                                    "scripts\\scr_cofre\\scr_cofre.gml:234"
                                ],
+                    "* Escuchaste algo extraño.":  [
+                                                       "scripts\\scr_cutscene_data\\scr_cutscene_data.gml:37"
+                                                   ],
+                    "* No parece haber nadie.":  [
+                                                     "scripts\\scr_cutscene_data\\scr_cutscene_data.gml:80"
+                                                 ],
+                    "* Ambos se detuvieron.":  [
+                                                   "scripts\\scr_cutscene_data\\scr_cutscene_data.gml:137"
+                                               ],
+                    "* Algo se acerca...":  [
+                                                "scripts\\scr_cutscene_data\\scr_cutscene_data.gml:157"
+                                            ],
+                    "* Esta es una prueba de diálogo.":  [
+                                                             "scripts\\scr_cutscene_data\\scr_cutscene_data.gml:188"
+                                                         ],
+                    "* La música está a punto de cambiar.":  [
+                                                                 "scripts\\scr_cutscene_data\\scr_cutscene_data.gml:199"
+                                                             ],
+                    "* Ahora está sonando una música diferente.":  [
+                                                                       "scripts\\scr_cutscene_data\\scr_cutscene_data.gml:234"
+                                                                   ],
+                    "* La cinemática terminará, pero la música continuará.":  [
+                                                                                  "scripts\\scr_cutscene_data\\scr_cutscene_data.gml:250"
+                                                                              ],
+                    "* Hay algo de malas vibras por aquí...":  [
+                                                                   "scripts\\scr_cutscene_data\\scr_cutscene_data.gml:289"
+                                                               ],
+                    "* VAYA, VAYA... ¿QUÉ TENEMOS AQUÍ?":  [
+                                                               "scripts\\scr_cutscene_data\\scr_cutscene_data.gml:311"
+                                                           ],
+                    "* PARECE QUE LOS JUEGOS ESTÁN A PUNTO DE COMENZAR":  [
+                                                                              "scripts\\scr_cutscene_data\\scr_cutscene_data.gml:318"
+                                                                          ],
+                    "* Esto se va a poner muy feo...":  [
+                                                            "scripts\\scr_cutscene_data\\scr_cutscene_data.gml:343"
+                                                        ],
                     "El... keke? Oh! Claro que me gusta!":  [
                                                                 "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:37",
                                                                 "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:56",
@@ -438,7 +474,7 @@
                                                                         "scripts\\scr_game_text\\scr_game_text.gml:18",
                                                                         "scripts\\scr_game_text\\scr_game_text.gml:66"
                                                                     ],
-                    "EL PITITO TE LO COMES HOLA SOY GERMAN Wiwiwiwi":  [
+                    "EL PITITO TE LO COMES HOLA SOY GERMAN Wiwiwiwo":  [
                                                                            "scripts\\scr_game_text\\scr_game_text.gml:19"
                                                                        ],
                     "Bueno... te gusta el keke?":  [

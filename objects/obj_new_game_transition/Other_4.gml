@@ -1,14 +1,15 @@
-// =========================================================
-// OBJ_NEW_GAME_TRANSITION
-// ROOM START
-// =========================================================
+/// =========================================================
+/// OBJ_NEW_GAME_TRANSITION
+/// ROOM START
+/// =========================================================
 
 
-// Solo al llegar a la nueva room.
+// Solo actuar cuando acabamos de cambiar
+// hacia la habitación de Nueva Partida.
 if (fase == 1)
 {
     // =====================================================
-    // CREAR JUGADOR
+    // CREAR PLAYER
     // =====================================================
 
     if (!instance_exists(obj_player))
@@ -23,7 +24,7 @@ if (fase == 1)
 
 
     // =====================================================
-    // FORZAR POSICIÓN INICIAL
+    // COLOCAR PLAYER
     // =====================================================
 
     if (instance_exists(obj_player))
@@ -31,11 +32,13 @@ if (fase == 1)
         obj_player.x =
             destino_x;
 
+
         obj_player.y =
             destino_y;
 
 
-        // Bloquearlo mientras desaparece el fade.
+        // Bloqueado mientras se retira
+        // la pantalla negra.
         if (
             variable_instance_exists(
                 obj_player,
@@ -46,8 +49,27 @@ if (fase == 1)
             obj_player.puede_moverse =
                 false;
         }
+
+
+        if (
+            variable_instance_exists(
+                obj_player,
+                "can_move"
+            )
+        )
+        {
+            obj_player.can_move =
+                false;
+        }
     }
 
 
-    progreso = 1;
+    // La pantalla sigue totalmente cubierta.
+    transicion_progreso =
+        1;
+
+
+    // Ahora comenzar a descubrir.
+    fase =
+        2;
 }

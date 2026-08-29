@@ -5,10 +5,186 @@
 
 
 // =========================================================
+// OBTENER MÚSICA ACTUAL
+// =========================================================
+//
+// Solamente considera recursos cuyo nombre comience
+// exactamente por:
+//
+// mus_
+//
+// Devuelve, por ejemplo:
+//
+// "mus_jevil"
+//
+// Si no hay música:
+//
+// ""
+//
+// =========================================================
+
+function scr_save_get_current_music()
+{
+    var _sounds =
+        asset_get_ids(asset_sound);
+
+
+    for (
+        var i = 0;
+        i < array_length(_sounds);
+        i++
+    )
+    {
+        var _sound =
+            _sounds[i];
+
+
+        if (!audio_exists(_sound))
+        {
+            continue;
+        }
+
+
+        var _name =
+            audio_get_name(_sound);
+
+
+        if (
+            string_starts_with(
+                _name,
+                "mus_"
+            )
+        )
+        {
+            if (
+                audio_is_playing(_sound)
+                ||
+                audio_is_paused(_sound)
+            )
+            {
+                return _name;
+            }
+        }
+    }
+
+
+    return "";
+}
+
+
+
+// =========================================================
+// DETENER TODAS LAS MÚSICAS mus_
+// =========================================================
+
+function scr_save_stop_all_music()
+{
+    var _sounds =
+        asset_get_ids(asset_sound);
+
+
+    for (
+        var i = 0;
+        i < array_length(_sounds);
+        i++
+    )
+    {
+        var _sound =
+            _sounds[i];
+
+
+        if (!audio_exists(_sound))
+        {
+            continue;
+        }
+
+
+        var _name =
+            audio_get_name(_sound);
+
+
+        if (
+            string_starts_with(
+                _name,
+                "mus_"
+            )
+        )
+        {
+            if (
+                audio_is_playing(_sound)
+                ||
+                audio_is_paused(_sound)
+            )
+            {
+                audio_stop_sound(
+                    _sound
+                );
+            }
+        }
+    }
+}
+
+
+
+// =========================================================
+// RESTAURAR MÚSICA DE UN SAVE
+// =========================================================
+
+function scr_save_restore_music(_music_name)
+{
+    // Solamente controlamos música mus_.
+    scr_save_stop_all_music();
+
+
+    // Guardado realizado mientras había silencio.
+    if (
+        !is_string(_music_name)
+        ||
+        _music_name == ""
+    )
+    {
+        return;
+    }
+
+
+    // Seguridad: nunca reproducir algo que no sea mus_.
+    if (
+        !string_starts_with(
+            _music_name,
+            "mus_"
+        )
+    )
+    {
+        return;
+    }
+
+
+    var _music =
+        asset_get_index(
+            _music_name
+        );
+
+
+    if (
+        _music != -1
+        &&
+        audio_exists(_music)
+    )
+    {
+        audio_play_sound(
+            _music,
+            10,
+            true
+        );
+    }
+}
+
+
+
+// =========================================================
 // GUARDAR
 // =========================================================
 
-/// @function scr_guardar_juego(_seccion)
 function scr_guardar_juego(_seccion)
 {
     // =====================================================
@@ -23,9 +199,11 @@ function scr_guardar_juego(_seccion)
 
     scr_cofre_init();
 
+    scr_cutscene_flags_init();
+
 
     // =====================================================
-    // SINCRONIZAR DATOS ACTUALES
+    // SINCRONIZAR
     // =====================================================
 
     scr_config_sync();
@@ -34,28 +212,60 @@ function scr_guardar_juego(_seccion)
 
 
     // =====================================================
-    // POSICIÓN
+    // DATOS GENERALES
     // =====================================================
 
     var _px =
         0;
 
+
     var _py =
         0;
 
+
     var _proom =
         room;
+
 
     var _facing =
         2;
 
 
     // =====================================================
-    // DATOS DEL JUGADOR
+    // PLAYER
     // =====================================================
 
     if (instance_exists(obj_player))
     {
+        // =================================================
+        // CURAR AL MÁXIMO AL GUARDAR
+        // =================================================
+
+        if (
+            variable_instance_exists(
+                obj_player,
+                "hp"
+            )
+            &&
+            variable_instance_exists(
+                obj_player,
+                "hp_max"
+            )
+        )
+        {
+            obj_player.hp =
+                obj_player.hp_max;
+
+
+            global.player_hp_current =
+                obj_player.hp;
+        }
+
+
+        // =================================================
+        // POSICIÓN
+        // =================================================
+
         _px =
             obj_player.x;
 
@@ -68,8 +278,16 @@ function scr_guardar_juego(_seccion)
             room;
 
 
-        _facing =
-            obj_player.face;
+        if (
+            variable_instance_exists(
+                obj_player,
+                "face"
+            )
+        )
+        {
+            _facing =
+                obj_player.face;
+        }
 
 
         // =================================================
@@ -118,46 +336,41 @@ function scr_guardar_juego(_seccion)
 
 
     // =====================================================
-    // DATOS COMPLETOS DEL SAVE
+    // MÚSICA
+    // =====================================================
+
+    var _music =
+        scr_save_get_current_music();
+
+
+    // =====================================================
+    // DATOS EXTRA DEL SLOT
     // =====================================================
 
     var _save_data =
     {
-        // -------------------------------------------------
-        // CONFIGURACIÓN
-        // -------------------------------------------------
-
         config:
             global.config_data,
-
-
-        // -------------------------------------------------
-        // INVENTARIOS
-        // -------------------------------------------------
 
         inventarios:
             global.inventory_data,
 
-
-        // -------------------------------------------------
-        // NIVEL
-        // -------------------------------------------------
-
         nivel:
             global.level_data,
 
-
-        // -------------------------------------------------
-        // COFRE
-        // -------------------------------------------------
-
         cofre:
-            global.chest_data
+            global.chest_data,
+
+        cutscene_flags:
+            global.cutscene_flags,
+
+        music:
+            _music
     };
 
 
     // =====================================================
-    // JSON
+    // SERIALIZAR
     // =====================================================
 
     var _json_string =
@@ -166,10 +379,6 @@ function scr_guardar_juego(_seccion)
         );
 
 
-    // =====================================================
-    // BASE64
-    // =====================================================
-
     var _base64_string =
         base64_encode(
             _json_string
@@ -177,7 +386,7 @@ function scr_guardar_juego(_seccion)
 
 
     // =====================================================
-    // GUARDAR EN SAVE.INI
+    // ESCRIBIR SAVE
     // =====================================================
 
     ini_open(
@@ -213,9 +422,16 @@ function scr_guardar_juego(_seccion)
     );
 
 
-    // =====================================================
-    // TIEMPO
-    // =====================================================
+    if (
+        !variable_global_exists(
+            "playtime_frames"
+        )
+    )
+    {
+        global.playtime_frames =
+            0;
+    }
+
 
     ini_write_real(
         _seccion,
@@ -223,10 +439,6 @@ function scr_guardar_juego(_seccion)
         global.playtime_frames
     );
 
-
-    // =====================================================
-    // DATOS COMPLETOS
-    // =====================================================
 
     ini_write_string(
         _seccion,
@@ -253,11 +465,10 @@ function scr_guardar_juego(_seccion)
 // CARGAR
 // =========================================================
 
-/// @function scr_cargar_juego(_seccion)
 function scr_cargar_juego(_seccion)
 {
     // =====================================================
-    // ARCHIVO NO EXISTE
+    // COMPROBAR SAVE
     // =====================================================
 
     if (!file_exists("save.ini"))
@@ -267,7 +478,7 @@ function scr_cargar_juego(_seccion)
 
 
     // =====================================================
-    // LEER SAVE
+    // LEER INI
     // =====================================================
 
     ini_open(
@@ -302,10 +513,6 @@ function scr_cargar_juego(_seccion)
     ini_close();
 
 
-    // =====================================================
-    // SLOT VACÍO
-    // =====================================================
-
     if (_extra == "")
     {
         return false;
@@ -335,7 +542,7 @@ function scr_cargar_juego(_seccion)
 
 
     // =====================================================
-    // ASEGURAR VALORES BASE
+    // ASEGURAR SISTEMAS
     // =====================================================
 
     scr_config_data();
@@ -346,9 +553,11 @@ function scr_cargar_juego(_seccion)
 
     scr_cofre_init();
 
+    scr_cutscene_flags_init();
+
 
     // =====================================================
-    // CONFIGURACIÓN
+    // CONFIG
     // =====================================================
 
     if (
@@ -357,7 +566,9 @@ function scr_cargar_juego(_seccion)
             "config"
         )
         &&
-        is_struct(_save_data.config)
+        is_struct(
+            _save_data.config
+        )
     )
     {
         global.config_data =
@@ -365,12 +576,12 @@ function scr_cargar_juego(_seccion)
     }
 
 
-    // Añadir campos faltantes de saves antiguos.
+    // Añade campos faltantes de saves antiguos.
     scr_config_data();
 
 
     // =====================================================
-    // INVENTARIOS
+    // INVENTARIO
     // =====================================================
 
     if (
@@ -379,7 +590,9 @@ function scr_cargar_juego(_seccion)
             "inventarios"
         )
         &&
-        is_struct(_save_data.inventarios)
+        is_struct(
+            _save_data.inventarios
+        )
     )
     {
         global.inventory_data =
@@ -397,7 +610,9 @@ function scr_cargar_juego(_seccion)
             "nivel"
         )
         &&
-        is_struct(_save_data.nivel)
+        is_struct(
+            _save_data.nivel
+        )
     )
     {
         global.level_data =
@@ -407,17 +622,6 @@ function scr_cargar_juego(_seccion)
 
     // =====================================================
     // COFRE
-    // =====================================================
-    //
-    // Siempre reconstruimos un cofre nuevo de 50 slots.
-    //
-    // Después copiamos lo que exista dentro del save.
-    //
-    // Así:
-    //
-    // - saves viejos de 20 slots funcionan
-    // - saves actuales de 50 funcionan
-    // - nunca quedan slots basura
     // =====================================================
 
     global.chest_data =
@@ -433,14 +637,16 @@ function scr_cargar_juego(_seccion)
             "cofre"
         )
         &&
-        is_array(_save_data.cofre)
+        is_array(
+            _save_data.cofre
+        )
     )
     {
         var _cofre_guardado =
             _save_data.cofre;
 
 
-        var _cantidad_copiar =
+        var _copiar =
             min(
                 50,
                 array_length(
@@ -451,7 +657,7 @@ function scr_cargar_juego(_seccion)
 
         for (
             var i = 0;
-            i < _cantidad_copiar;
+            i < _copiar;
             i++
         )
         {
@@ -462,49 +668,87 @@ function scr_cargar_juego(_seccion)
 
 
     // =====================================================
-    // RESTAURAR INVENTARIOS DERIVADOS
+    // CINEMÁTICAS VISTAS
     // =====================================================
 
+    global.cutscene_flags =
+        {};
+
+
     if (
-        variable_global_exists(
-            "inventory_data"
+        variable_struct_exists(
+            _save_data,
+            "cutscene_flags"
+        )
+        &&
+        is_struct(
+            _save_data.cutscene_flags
         )
     )
     {
-        if (
-            variable_struct_exists(
-                global.inventory_data,
-                "toys"
-            )
-        )
-        {
-            global.toy_inventory =
-                global.inventory_data.toys;
-        }
-
-
-        if (
-            variable_struct_exists(
-                global.inventory_data,
-                "equipamiento"
-            )
-        )
-        {
-            global.equipment_inventory =
-                global.inventory_data.equipamiento;
-        }
+        global.cutscene_flags =
+            _save_data.cutscene_flags;
     }
 
 
     // =====================================================
-    // APLICAR CONFIGURACIÓN CARGADA
+    // RESTAURAR ALIAS DE INVENTARIOS
     // =====================================================
-    //
-    // Aquí es donde realmente cambia:
-    //
-    // volumen
-    // fullscreen
-    // auto-correr
+
+    if (
+        variable_struct_exists(
+            global.inventory_data,
+            "toys"
+        )
+    )
+    {
+        global.toy_inventory =
+            global.inventory_data.toys;
+    }
+
+
+    if (
+        variable_struct_exists(
+            global.inventory_data,
+            "equipamiento"
+        )
+    )
+    {
+        global.equipment_inventory =
+            global.inventory_data.equipamiento;
+    }
+
+
+    // =====================================================
+    // EQUIPAMIENTO ACTUAL
+    // =====================================================
+
+    if (
+        variable_struct_exists(
+            global.inventory_data,
+            "equipado_arma"
+        )
+    )
+    {
+        global.equipped_arma =
+            global.inventory_data.equipado_arma;
+    }
+
+
+    if (
+        variable_struct_exists(
+            global.inventory_data,
+            "equipado_armadura"
+        )
+    )
+    {
+        global.equipped_armadura =
+            global.inventory_data.equipado_armadura;
+    }
+
+
+    // =====================================================
+    // APLICAR CONFIG
     // =====================================================
 
     scr_config_apply();
@@ -518,16 +762,39 @@ function scr_cargar_juego(_seccion)
         _facing;
 
 
+    // =====================================================
+    // MÚSICA
+    // =====================================================
+    //
+    // Saves viejos que no tengan "music" simplemente
+    // mantienen el comportamiento anterior.
+    // =====================================================
+
+    if (
+        variable_struct_exists(
+            _save_data,
+            "music"
+        )
+    )
+    {
+        if (is_string(_save_data.music))
+        {
+            scr_save_restore_music(
+                _save_data.music
+            );
+        }
+    }
+
+
     return true;
 }
 
 
 
 // =========================================================
-// APLICAR DATOS CARGADOS AL JUGADOR
+// APLICAR DATOS CARGADOS AL PLAYER
 // =========================================================
 
-/// @function scr_aplicar_datos_cargados(_jugador)
 function scr_aplicar_datos_cargados(_jugador)
 {
     // =====================================================
@@ -558,8 +825,14 @@ function scr_aplicar_datos_cargados(_jugador)
         global.level_data.hp_max;
 
 
+    // Como guardar cura por completo,
+    // cargar comienza con HP completo.
     _jugador.hp =
-        global.level_data.hp_max;
+        _jugador.hp_max;
+
+
+    global.player_hp_current =
+        _jugador.hp;
 
 
     // =====================================================
@@ -578,6 +851,14 @@ function scr_aplicar_datos_cargados(_jugador)
         global.inventory_data.equipado_armadura;
 
 
+    global.equipped_arma =
+        _jugador.equipo_arma;
+
+
+    global.equipped_armadura =
+        _jugador.equipo_armadura;
+
+
     // =====================================================
     // DIRECCIÓN
     // =====================================================
@@ -594,14 +875,12 @@ function scr_aplicar_datos_cargados(_jugador)
 
         switch (global.load_facing)
         {
-            // =================================================
             // DERECHA
-            // =================================================
-
             case 0:
 
                 _jugador.face =
                     RIGHT;
+
 
                 _jugador.direccion =
                     "derecha";
@@ -609,14 +888,12 @@ function scr_aplicar_datos_cargados(_jugador)
                 break;
 
 
-            // =================================================
             // IZQUIERDA
-            // =================================================
-
             case 1:
 
                 _jugador.face =
                     LEFT;
+
 
                 _jugador.direccion =
                     "izquierda";
@@ -624,14 +901,12 @@ function scr_aplicar_datos_cargados(_jugador)
                 break;
 
 
-            // =================================================
             // ABAJO
-            // =================================================
-
             case 2:
 
                 _jugador.face =
                     DOWN;
+
 
                 _jugador.direccion =
                     "abajo";
@@ -639,14 +914,12 @@ function scr_aplicar_datos_cargados(_jugador)
                 break;
 
 
-            // =================================================
             // ARRIBA
-            // =================================================
-
             case 3:
 
                 _jugador.face =
                     UP;
+
 
                 _jugador.direccion =
                     "arriba";

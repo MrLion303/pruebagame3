@@ -1,16 +1,67 @@
-// Control de desbloqueo al volver a la room original
-if (room != bbs) {
-    if (instance_exists(obj_player)) {
-        // Si el jugador estaba bloqueado, revisamos si ya soltó todas las teclas de movimiento
-        if (!obj_player.puede_moverse) {
-            if (!keyboard_check(vk_right) && !keyboard_check(vk_left) && !keyboard_check(vk_up) && !keyboard_check(vk_down)) {
-                obj_player.puede_moverse = true; // Ahora sí, recupera el control limpio
-            }
+/// =========================================================
+/// OBJ_TRANSICION_BBS
+/// STEP
+/// =========================================================
+
+var _ultimo_frame =
+    sprite_get_number(sprite_index) - 1;
+
+
+// =========================================================
+// SEGURIDAD
+// =========================================================
+//
+// Mientras todavía estamos en el mapa y la transición
+// se está cerrando, el jugador permanece bloqueado.
+//
+// Antes este objeto podía volver a habilitar el movimiento,
+// cosa que no queremos durante una cinemática.
+// =========================================================
+
+if (
+    room != bbs
+    &&
+    image_speed > 0
+)
+{
+    if (instance_exists(obj_player))
+    {
+        if (
+            variable_instance_exists(
+                obj_player,
+                "puede_moverse"
+            )
+        )
+        {
+            obj_player.puede_moverse = false;
+        }
+
+
+        if (
+            variable_instance_exists(
+                obj_player,
+                "can_move"
+            )
+        )
+        {
+            obj_player.can_move = false;
         }
     }
 }
 
-// Si ya estamos en la room de batalla y la animacion esta retrocediendo
-if (room == bbs && image_index < 1) {
+
+// =========================================================
+// SEGURIDAD AL ABRIRSE DENTRO DE BBS
+// =========================================================
+
+if (
+    room == bbs
+    &&
+    image_speed < 0
+    &&
+    image_index <= 0
+)
+{
+    persistent = false;
     instance_destroy();
 }

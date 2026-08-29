@@ -1,56 +1,40 @@
-// =========================================================
-// OBJ_NEW_GAME_TRANSITION
-// STEP
-// =========================================================
+/// =========================================================
+/// OBJ_NEW_GAME_TRANSITION
+/// STEP
+/// =========================================================
 
 
 // =========================================================
 // FASE 0
-// CUBRIR EL TÍTULO
+// CUBRIR PANTALLA
 // =========================================================
 
 if (fase == 0)
 {
-    progreso += velocidad;
+    transicion_progreso += transicion_velocidad;
 
 
-    if (progreso >= 1)
+    if (transicion_progreso >= 1)
     {
-        progreso = 1;
+        transicion_progreso = 1;
 
 
         // =================================================
         // NUEVA PARTIDA
         // =================================================
-        //
-        // IMPORTANTE:
-        //
-        // NO SE TOCA save.ini.
-        // NO SE BORRA Save1, Save2 ni Save3.
-        // =================================================
 
-
-        // Tiempo desde cero.
         scr_init_playtime();
 
-
-        // Nueva partida.
         global.new_game = true;
 
 
-        // Destino inicial.
-        global.start_room =
-            destino_room;
-
-        global.start_x =
-            destino_x;
-
-        global.start_y =
-            destino_y;
+        global.start_room = destino_room;
+        global.start_x = destino_x;
+        global.start_y = destino_y;
 
 
         // =================================================
-        // REINICIAR NIVEL
+        // NIVEL
         // =================================================
 
         global.level_data =
@@ -70,7 +54,7 @@ if (fase == 0)
 
 
         // =================================================
-        // REINICIAR INVENTARIOS GLOBALES
+        // INVENTARIO
         // =================================================
 
         global.inventory_data =
@@ -79,6 +63,7 @@ if (fase == 0)
             [
                 "agua",
                 "manzana",
+
                 -1,
                 -1,
                 -1,
@@ -111,7 +96,6 @@ if (fase == 0)
         };
 
 
-        // Toys iniciales.
         global.inventory_data.toys[0] =
             "brillitos";
 
@@ -119,7 +103,6 @@ if (fase == 0)
             "pegamento";
 
 
-        // Equipo inicial.
         global.inventory_data.equipamiento[0] =
             "espada_basica";
 
@@ -136,7 +119,7 @@ if (fase == 0)
 
 
         // =================================================
-        // COFRE VACÍO
+        // COFRE
         // =================================================
 
         global.chest_data =
@@ -147,7 +130,20 @@ if (fase == 0)
 
 
         // =================================================
-        // CAMBIAR ROOM
+        // CINEMÁTICAS VISTAS
+        // =================================================
+
+        global.cutscene_flags =
+            {};
+
+
+        // =================================================
+        // CAMBIO DE ROOM
+        // =================================================
+        //
+        // IMPORTANTE:
+        // el cambio ocurre SOLO cuando la pantalla
+        // ya está completamente cubierta.
         // =================================================
 
         fase = 1;
@@ -165,20 +161,37 @@ if (fase == 0)
 
 // =========================================================
 // FASE 1
-// RETIRAR TRANSICIÓN
+// ESPERAR ROOM START
 // =========================================================
 
 else if (fase == 1)
 {
-    progreso -= velocidad;
+    // No hacemos nada.
+    //
+    // El evento Room Start cambiará a fase 2.
+}
 
 
-    if (progreso <= 0)
+// =========================================================
+// FASE 2
+// DESCUBRIR PANTALLA
+// =========================================================
+
+else if (fase == 2)
+{
+    transicion_progreso -=
+        transicion_velocidad;
+
+
+    if (transicion_progreso <= 0)
     {
-        progreso = 0;
+        transicion_progreso = 0;
 
 
-        // Desbloquear jugador.
+        // =================================================
+        // DEVOLVER CONTROL
+        // =================================================
+
         if (instance_exists(obj_player))
         {
             if (
@@ -191,11 +204,22 @@ else if (fase == 1)
                 obj_player.puede_moverse =
                     true;
             }
+
+
+            if (
+                variable_instance_exists(
+                    obj_player,
+                    "can_move"
+                )
+            )
+            {
+                obj_player.can_move =
+                    true;
+            }
         }
 
 
-        persistent =
-            false;
+        persistent = false;
 
 
         instance_destroy();

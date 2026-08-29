@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"scr_cutscene_data",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"scr_cutscene_data",
+  "parent":{
+    "name":"00CINEMATICAS",
+    "path":"folders/00CINEMATICAS.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

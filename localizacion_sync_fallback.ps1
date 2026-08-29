@@ -4,17 +4,18 @@
 
 $ErrorActionPreference = "Stop"
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
+$Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 
 $SkipDirs = @(
     ".git", ".svn", ".hg", ".localizacion", "datafiles",
     "build", "cache", "Temp", "temp", "output", "bin", "obj", "node_modules"
 )
 
-# Detecta exactamente:
-# scr_loc("...")
-# scr_loc_src("...")
-# scr_locf("...", ...)
 $LocRegex = [regex]'(?ms)\b(?:scr_loc|scr_loc_src|scr_locf)\s*\(\s*(("(?:\\.|[^"\\])*"))'
+
+function Write-Utf8NoBom([string]$Path, [string]$Text) {
+    [System.IO.File]::WriteAllText($Path, $Text, $script:Utf8NoBom)
+}
 
 function Get-GmlFiles {
     Get-ChildItem -Path $Root -Recurse -File -Filter "*.gml" | Where-Object {
@@ -38,8 +39,6 @@ function Get-GmlFiles {
 
 function Decode-GmlLiteral([string]$Literal) {
     try {
-        # Para el subconjunto de strings usado por el proyecto,
-        # un literal GML con comillas dobles es compatible con JSON.
         return ($Literal | ConvertFrom-Json)
     }
     catch {
@@ -59,10 +58,17 @@ function Read-JsonObject([string]$Path) {
     }
 
     try {
-        $raw = Get-Content -LiteralPath $Path -Raw -Encoding UTF8
+        $raw = [System.IO.File]::ReadAllText($Path, [System.Text.Encoding]::UTF8)
+
+        # Eliminar BOM antiguo si existe.
+        if ($raw.Length -gt 0 -and [int]$raw[0] -eq 0xFEFF) {
+            $raw = $raw.Substring(1)
+        }
+
         if ([string]::IsNullOrWhiteSpace($raw)) {
             return $null
         }
+
         return ($raw | ConvertFrom-Json)
     }
     catch {
@@ -73,13 +79,13 @@ function Read-JsonObject([string]$Path) {
 
 function Write-Json([string]$Path, $Data) {
     $dir = Split-Path -Parent $Path
+
     if (-not (Test-Path -LiteralPath $dir)) {
         New-Item -ItemType Directory -Path $dir -Force | Out-Null
     }
 
-    $json = $Data | ConvertTo-Json -Depth 20
-    # UTF-8. PowerShell 5 puede poner BOM en JSON; GameMaker lo tolera.
-    Set-Content -LiteralPath $Path -Value $json -Encoding UTF8
+    $json = $Data | ConvertTo-Json -Depth 30
+    Write-Utf8NoBom $Path ($json + [Environment]::NewLine)
 }
 
 function Get-OldValue($Object, [string]$Key, [string]$Default = "") {
@@ -88,6 +94,7 @@ function Get-OldValue($Object, [string]$Key, [string]$Default = "") {
     }
 
     $prop = $Object.PSObject.Properties[$Key]
+
     if ($null -eq $prop) {
         return $Default
     }
@@ -112,7 +119,7 @@ function Synchronize-Localization {
     $sources = @{}
 
     foreach ($file in $files) {
-        $text = Get-Content -LiteralPath $file.FullName -Raw -Encoding UTF8
+        $text = [System.IO.File]::ReadAllText($file.FullName, [System.Text.Encoding]::UTF8)
         $matches = $LocRegex.Matches($text)
 
         foreach ($match in $matches) {
@@ -149,6 +156,7 @@ function Synchronize-Localization {
     if (-not (Test-Path -LiteralPath $dataDir)) {
         New-Item -ItemType Directory -Path $dataDir -Force | Out-Null
     }
+
     if (-not (Test-Path -LiteralPath $stateDir)) {
         New-Item -ItemType Directory -Path $stateDir -Force | Out-Null
     }
@@ -164,8 +172,8 @@ function Synchronize-Localization {
         $en[$key] = Get-OldValue $oldEn $key ""
     }
 
-    # Archivar traducciones inglesas que ya no estan presentes.
     $archive = [ordered]@{}
+
     if ($null -ne $oldArchive) {
         foreach ($p in $oldArchive.PSObject.Properties) {
             $archive[$p.Name] = $p.Value
@@ -173,6 +181,7 @@ function Synchronize-Localization {
     }
 
     $removedCount = 0
+
     if ($null -ne $oldEn) {
         foreach ($p in $oldEn.PSObject.Properties) {
             if (-not $seen.ContainsKey($p.Name)) {
@@ -183,6 +192,7 @@ function Synchronize-Localization {
     }
 
     $sourceOut = [ordered]@{}
+
     foreach ($key in $allKeys) {
         $sourceOut[$key] = @($sources[$key])
     }
@@ -198,6 +208,7 @@ function Synchronize-Localization {
     Write-Json $manifestPath $manifest
 
     $pending = 0
+
     foreach ($key in $allKeys) {
         if ([string]::IsNullOrEmpty([string]$en[$key])) {
             $pending++
@@ -211,33 +222,25 @@ function Synchronize-Localization {
         "Traducciones inglesas pendientes: $pending",
         "Entradas inglesas obsoletas archivadas: $removedCount",
         "",
+        "JSON escritos en UTF-8 SIN BOM.",
         "Proyecto: $Root",
         "ES: $esPath",
         "EN: $enPath"
     )
-    Set-Content -LiteralPath $reportPath -Value $report -Encoding UTF8
+
+    Write-Utf8NoBom $reportPath (($report -join [Environment]::NewLine) + [Environment]::NewLine)
 
     Write-Host "[LOCALIZACION] OK | $($allKeys.Count) textos | $pending pendientes EN" -ForegroundColor Green
-
-    if ($seen.ContainsKey("COFRE")) {
-        Write-Host '[LOCALIZACION] Detectado: "COFRE"' -ForegroundColor Cyan
-    }
-    elseif ($seen.ContainsKey("Cofre")) {
-        Write-Host '[LOCALIZACION] Detectado: "Cofre"' -ForegroundColor Cyan
-    }
-    else {
-        Write-Host '[LOCALIZACION] AVISO: no encontre una clave "COFRE" ni "Cofre" dentro de scr_loc*().' -ForegroundColor Yellow
-    }
-
-    Write-Host "[LOCALIZACION] idioma_es.json: $esPath"
-    Write-Host "[LOCALIZACION] idioma_en.json: $enPath"
+    Write-Host "[LOCALIZACION] JSON: UTF-8 SIN BOM" -ForegroundColor Cyan
 }
 
 function Get-Snapshot {
     $items = @(Get-GmlFiles)
+
     $parts = foreach ($item in $items) {
         "$($item.FullName)|$($item.Length)|$($item.LastWriteTimeUtc.Ticks)"
     }
+
     return ($parts -join "`n")
 }
 
@@ -250,6 +253,7 @@ if (-not $Watch) {
 
 Write-Host ""
 Write-Host "[LOCALIZACION] Vigilando .gml. Deja esta ventana abierta." -ForegroundColor Cyan
+
 $last = Get-Snapshot
 
 while ($true) {
@@ -258,12 +262,14 @@ while ($true) {
 
     if ($now -ne $last) {
         Start-Sleep -Milliseconds 250
+
         try {
             Synchronize-Localization
         }
         catch {
             Write-Host "[LOCALIZACION] ERROR: $($_.Exception.Message)" -ForegroundColor Red
         }
+
         $last = Get-Snapshot
     }
 }

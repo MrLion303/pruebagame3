@@ -166,32 +166,132 @@ else
     movimiento = false;
 }
 
-// Aplicar dirección del warp
-switch(face)
+// =========================================================
+// ESTADO CINEMÁTICO
+// =========================================================
+
+var _cs_sprite_override =
+    variable_instance_exists(
+        id,
+        "cutscene_sprite_override_active"
+    )
+    &&
+    cutscene_sprite_override_active;
+
+
+var _cs_motion =
+    variable_instance_exists(
+        id,
+        "cutscene_motion_active"
+    )
+    &&
+    cutscene_motion_active;
+
+
+// =========================================================
+// APLICAR DIRECCIÓN
+// =========================================================
+
+switch (face)
 {
-    case RIGHT: direccion = "derecha"; break;
-    case LEFT:  direccion = "izquierda"; break;
-    case UP:    direccion = "arriba"; break;
-    case DOWN:  direccion = "abajo"; break;
+    case RIGHT:
+        direccion = "derecha";
+        break;
+
+    case LEFT:
+        direccion = "izquierda";
+        break;
+
+    case UP:
+        direccion = "arriba";
+        break;
+
+    case DOWN:
+        direccion = "abajo";
+        break;
 }
 
-// Cambiar sprite
-switch (direccion)
+
+// =========================================================
+// SPRITE
+// =========================================================
+
+if (_cs_sprite_override)
 {
-    case "derecha":   sprite_index = pendejo_derecha; break;
-    case "izquierda": sprite_index = pendejo_izquierda; break;
-    case "arriba":    sprite_index = pendejo_arriba; break;
-    case "abajo":     sprite_index = pendejo_abajo; break;
+    sprite_index =
+        cutscene_sprite_override;
+}
+else
+{
+    switch (direccion)
+    {
+        case "derecha":
+            sprite_index =
+                pendejo_derecha;
+            break;
+
+        case "izquierda":
+            sprite_index =
+                pendejo_izquierda;
+            break;
+
+        case "arriba":
+            sprite_index =
+                pendejo_arriba;
+            break;
+
+        case "abajo":
+            sprite_index =
+                pendejo_abajo;
+            break;
+    }
 }
 
-// Quieto
-if (!movimiento)
+
+// =========================================================
+// QUIETO
+// =========================================================
+//
+// No reseteamos image_index mientras una cinemática
+// está controlando la animación.
+// =========================================================
+
+if (
+    !movimiento
+    &&
+    !_cs_motion
+    &&
+    !_cs_sprite_override
+)
 {
-    image_index = 0;
+    image_index =
+        0;
 }
 
-// Keep track of direction facing
-if (sprite_index == pendejo_abajo) { facing_direction = 2; }
-if (sprite_index == pendejo_arriba) { facing_direction = 3; }
-if (sprite_index == pendejo_derecha) { facing_direction = 0; }
-if (sprite_index == pendejo_izquierda) { facing_direction = 1; }
+
+// =========================================================
+// FACING
+// =========================================================
+
+if (sprite_index == pendejo_abajo)
+{
+    facing_direction = 2;
+}
+
+
+if (sprite_index == pendejo_arriba)
+{
+    facing_direction = 3;
+}
+
+
+if (sprite_index == pendejo_derecha)
+{
+    facing_direction = 0;
+}
+
+
+if (sprite_index == pendejo_izquierda)
+{
+    facing_direction = 1;
+}
