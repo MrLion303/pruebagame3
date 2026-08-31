@@ -610,12 +610,14 @@ draw_text_color(
 
 var _hp_label_y = _info_y + 16 * _s;
 
+var _hp_scale = 0.7;
+
 draw_text_transformed_color(
     _info_x,
     _hp_label_y,
     scr_loc("HP"),
-    0.7,
-    0.7,
+    _hp_scale,
+    _hp_scale,
     0,
     c_white,
     c_white,
@@ -624,15 +626,66 @@ draw_text_transformed_color(
     _alpha_final
 );
 
-var _hp_texto = string(_hp_actual) + " / " + string(_hp_max);
-var _hp_texto_x = _info_x + 24 * _s;
+
+// =========================================================
+// HP CON BORDE DERECHO FIJO
+// =========================================================
+//
+// El layout de referencia es "80 / 80".
+// Ese borde derecho queda fijo.
+//
+// Si HP pasa a:
+// 100 / 100
+// 999 / 999
+// etc.
+//
+// los números crecen HACIA LA IZQUIERDA y la barra se
+// acorta desde su lado izquierdo.
+// =========================================================
+
+var _hp_texto =
+    string(_hp_actual)
+    +
+    " / "
+    +
+    string(_hp_max);
+
+var _hp_texto_referencia =
+    "80 / 80";
+
+var _hp_texto_x_base =
+    _info_x
+    +
+    24 * _s;
+
+var _hp_ancho_ref =
+    string_width(_hp_texto_referencia)
+    *
+    _hp_scale;
+
+var _hp_ancho_actual =
+    string_width(_hp_texto)
+    *
+    _hp_scale;
+
+// Este es el borde derecho que NO se moverá.
+var _hp_right =
+    _hp_texto_x_base
+    +
+    _hp_ancho_ref;
+
+// Texto alineado a la derecha.
+var _hp_texto_x =
+    _hp_right
+    -
+    _hp_ancho_actual;
 
 draw_text_transformed_color(
     _hp_texto_x,
     _hp_label_y,
     _hp_texto,
-    0.7,
-    0.7,
+    _hp_scale,
+    _hp_scale,
     0,
     c_white,
     c_white,
@@ -641,14 +694,44 @@ draw_text_transformed_color(
     _alpha_final
 );
 
-var _ancho_total_texto =
-    (_hp_texto_x + (string_width(_hp_texto) * 0.7)) - _info_x;
+// =========================================================
+// BARRA AL MARGEN DEL TEXTO
+// =========================================================
+//
+// El texto de HP puede crecer hacia la izquierda,
+// pero la barra NO se extiende exageradamente.
+//
+// La barra empieza justo en el margen donde comienza "HP"
+// y termina justo en el mismo borde derecho de los números.
+//
+// Resultado:
+// HP 71 / 100
+// └──────────┘
+//
+// Así queda contenida visualmente dentro del texto.
+// =========================================================
+
+var _bar_left =
+    _info_x;
+
+var _bar_right =
+    _hp_right;
+
+var _bar_y1 =
+    _hp_label_y
+    +
+    10 * _s;
+
+var _bar_y2 =
+    _bar_y1
+    +
+    6 * _s;
 
 draw_rectangle_color(
-    _info_x,
-    _hp_label_y + 10 * _s,
-    _info_x + _ancho_total_texto,
-    _hp_label_y + 10 * _s + 6 * _s,
+    _bar_left,
+    _bar_y1,
+    _bar_right,
+    _bar_y2,
     $202020,
     $202020,
     $202020,
@@ -656,17 +739,20 @@ draw_rectangle_color(
     false
 );
 
-var _porcentaje_hp = clamp(
-    _hp_actual / _hp_max,
-    0,
-    1
-);
+var _porcentaje_hp =
+    clamp(
+        _hp_actual / _hp_max,
+        0,
+        1
+    );
 
 draw_rectangle_color(
-    _info_x,
-    _hp_label_y + 10 * _s,
-    _info_x + (_ancho_total_texto * _porcentaje_hp),
-    _hp_label_y + 10 * _s + 6 * _s,
+    _bar_left,
+    _bar_y1,
+    _bar_left
+    +
+    ((_bar_right - _bar_left) * _porcentaje_hp),
+    _bar_y2,
     c_yellow,
     c_yellow,
     c_yellow,

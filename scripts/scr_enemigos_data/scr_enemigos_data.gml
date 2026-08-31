@@ -1,8 +1,18 @@
 function scr_enemigos_data(_id_enemigo) {
     
     var _datos_batalla = {
-        musica: mus_battle_1, 
+        musica: mus_battle_1,
+
+        // noone = usa el background normal del room bbs.
+        // También puedes poner un sprite, por ejemplo spr_fondo_boss.
+        fondo: noone,
+
         experiencia: 0,
+
+        // Recompensa monetaria de la batalla.
+        // La moneda se llama Sueños y se muestra abreviada como SO.
+        suenos: 100,
+
         probabilidad_escapar: 0.5,
         
         // =========================================================
@@ -49,7 +59,9 @@ function scr_enemigos_data(_id_enemigo) {
         case "toby":
             
             _datos_batalla.musica = mus_battle_1;
+            _datos_batalla.fondo = noone;
             _datos_batalla.experiencia = 100;
+            _datos_batalla.suenos = 100; // <-- Cambia aquí los SO que entrega esta batalla
             _datos_batalla.probabilidad_escapar = 0.5;
             
             _datos_batalla.dialogos_turno = [
@@ -81,7 +93,9 @@ function scr_enemigos_data(_id_enemigo) {
         case "slime":
             
             _datos_batalla.musica = mus_battle_1;
+            _datos_batalla.fondo = noone;
             _datos_batalla.experiencia = 50;
+            _datos_batalla.suenos = 100; // <-- Cambia aquí los SO que entrega esta batalla
             _datos_batalla.probabilidad_escapar = 0.5;
             
             _datos_batalla.dialogos_turno = [
@@ -113,7 +127,9 @@ function scr_enemigos_data(_id_enemigo) {
         case "boss_1":
             
             _datos_batalla.musica = mus_jevil;
+            _datos_batalla.fondo = noone;
             _datos_batalla.experiencia = 50;
+            _datos_batalla.suenos = 100; // <-- Cambia aquí los SO que entrega esta batalla
             _datos_batalla.probabilidad_escapar = 0.7;
             
             // -----------------------------------------------------
@@ -182,7 +198,9 @@ function scr_enemigos_data(_id_enemigo) {
         case "variante 1":
             
             _datos_batalla.musica = mus_battle_1;
+            _datos_batalla.fondo = noone;
             _datos_batalla.experiencia = 150; 
+            _datos_batalla.suenos = 100; // <-- Cambia aquí los SO que entrega esta batalla
             _datos_batalla.probabilidad_escapar = 0.5;
             
             _datos_batalla.dialogos_turno = [
@@ -238,7 +256,9 @@ function scr_enemigos_data(_id_enemigo) {
         default:
             
             _datos_batalla.musica = mus_battle_1;
+            _datos_batalla.fondo = noone;
             _datos_batalla.experiencia = 0;
+            _datos_batalla.suenos = 100; // <-- Cambia aquí los SO que entrega esta batalla
             _datos_batalla.probabilidad_escapar = 0.5;
             
             array_push(_datos_batalla.enemigos, {

@@ -59,7 +59,10 @@ else if (state == MENU_STATE.INFO_MENU) {
     var info_box_x = m_x + m_w + 12;
     var info_box_y = m_y;
     var info_box_w = 346;
-    var info_box_h = m_h;
+
+    // El panel STAD es más alto que el menú izquierdo
+    // para dejar espacio a la moneda SO debajo de la armadura.
+    var info_box_h = m_h + 55;
     
     draw_sprite_stretched(spr_textbox, 0, info_box_x, info_box_y, info_box_w, info_box_h);
     
@@ -105,6 +108,52 @@ else if (state == MENU_STATE.INFO_MENU) {
         if (_armadura_info != undefined) _nombre_armadura = _armadura_info.nombre;
     }
     draw_text(sx, sy + 210, scr_loc("Armadura: ") + scr_loc(_nombre_armadura));
+
+
+    // =====================================================
+    // SUEÑOS / SO
+    // =====================================================
+    //
+    // Una sola línea:
+    // SO: 100
+    //
+    // Mismo tamaño normal del resto del panel y color morado.
+    // =====================================================
+
+    var _suenos_actuales = 0;
+
+    if (
+        variable_global_exists("level_data")
+        &&
+        is_struct(global.level_data)
+    )
+    {
+        if (
+            !variable_struct_exists(
+                global.level_data,
+                "suenos"
+            )
+        )
+        {
+            global.level_data.suenos = 0;
+        }
+
+        _suenos_actuales =
+            max(
+                0,
+                round(global.level_data.suenos)
+            );
+    }
+
+    draw_set_color(c_purple);
+
+    draw_text(
+        sx,
+        sy + 260,
+        "SO: " + string(_suenos_actuales)
+    );
+
+    draw_set_color(c_white);
 }
 // CASO C: INVENTARIO DE CURACIÓN (Leyendo de obj_player.inventory)
 else if (state >= MENU_STATE.INVENTORY && state <= MENU_STATE.ITEM_DROP_CONFIRM) {

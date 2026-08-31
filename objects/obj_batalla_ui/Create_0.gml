@@ -39,8 +39,12 @@ alpha_salida = 1.0;
 en_dialogo_victoria_final = false;
 victoria_etapa = 0;
 victoria_xp = 0;
+victoria_so = 0;
 victoria_nivel_antes = 1;
 victoria_sonido_nivel_reproducido = false;
+
+// Evita cobrar dos veces si dos caminos llegan a victoria.
+victoria_recompensa_aplicada = false;
 
 ui_x_caja_izq = 30;
 ui_y_caja_izq = 640;
@@ -90,6 +94,105 @@ f_procesar_dialogo = function(_entrada) {
     setup = false;
 };
 
+
+// =========================================================
+// INICIAR VICTORIA
+// =========================================================
+//
+// Centraliza:
+// - XP mostrada
+// - SO mostrados
+// - entrega de Sueños una sola vez
+// - texto final de victoria
+// =========================================================
+
+f_iniciar_victoria = function()
+{
+    en_dialogo_victoria_final = true;
+    victoria_etapa = 0;
+    victoria_sonido_nivel_reproducido = false;
+
+    victoria_xp = 0;
+    victoria_so = 0;
+
+    var _bc =
+        instance_find(
+            obj_batalla_controller,
+            0
+        );
+
+    if (_bc != noone)
+    {
+        if (
+            variable_instance_exists(
+                _bc,
+                "experiencia_batalla"
+            )
+        )
+        {
+            victoria_xp =
+                max(
+                    0,
+                    round(_bc.experiencia_batalla)
+                );
+        }
+
+        if (
+            variable_instance_exists(
+                _bc,
+                "suenos_batalla"
+            )
+        )
+        {
+            victoria_so =
+                max(
+                    0,
+                    round(_bc.suenos_batalla)
+                );
+        }
+    }
+
+    // Los Sueños viven dentro de level_data.
+    // Así se guardan/cargan con el sistema que ya tienes
+    // y una Nueva Partida los reinicia junto con level_data.
+    if (
+        variable_global_exists("level_data")
+        &&
+        is_struct(global.level_data)
+    )
+    {
+        if (
+            !variable_struct_exists(
+                global.level_data,
+                "suenos"
+            )
+        )
+        {
+            global.level_data.suenos = 0;
+        }
+
+        if (!victoria_recompensa_aplicada)
+        {
+            global.level_data.suenos +=
+                victoria_so;
+
+            victoria_recompensa_aplicada =
+                true;
+        }
+    }
+
+    f_procesar_dialogo(
+        scr_locf(
+            "* ¡Has ganado la batalla! Conseguiste {xp} de XP y {so} de SO",
+            {
+                xp: string(victoria_xp),
+                so: string(victoria_so)
+            }
+        )
+    );
+};
+
+
 audio_pause_all();
 
 if (!variable_global_exists("enemigo_actual_id")) {
@@ -97,8 +200,14 @@ if (!variable_global_exists("enemigo_actual_id")) {
 }
 
 var _datos_variante = scr_enemigos_data(global.enemigo_actual_id);
+
 enemigos = _datos_variante.enemigos;
 musica_batalla_actual = _datos_variante.musica;
+
+fondo_batalla =
+    variable_struct_exists(_datos_variante, "fondo")
+    ? _datos_variante.fondo
+    : noone;
 
 if (instance_exists(obj_batalla_controller) && variable_instance_exists(obj_batalla_controller, "enemigos")) {
     if (is_array(obj_batalla_controller.enemigos) && array_length(obj_batalla_controller.enemigos) > 0) {

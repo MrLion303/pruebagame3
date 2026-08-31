@@ -209,7 +209,7 @@ if (mostrar_interfaz)
                 right_x + 16,
                 _box_y + 10,
                 scr_loc(
-                    "Partida Salvada"
+                    "Partida salvada"
                 )
             );
         }

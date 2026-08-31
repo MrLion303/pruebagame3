@@ -1,0 +1,26 @@
+{
+  "$GMSound":"v2",
+  "%Name":"mus_shop_1",
+  "audioGroupId":{
+    "name":"audiogroup_default",
+    "path":"audiogroups/audiogroup_default",
+  },
+  "bitDepth":1,
+  "channelFormat":0,
+  "compression":0,
+  "compressionQuality":4,
+  "conversionMode":0,
+  "duration":75.264015,
+  "exportDir":"",
+  "name":"mus_shop_1",
+  "parent":{
+    "name":"Musica de Tiendas",
+    "path":"folders/00Shops/Musica de Tiendas.yy",
+  },
+  "preload":false,
+  "resourceType":"GMSound",
+  "resourceVersion":"2.0",
+  "sampleRate":44100,
+  "soundFile":"mus_shop_1.ogg",
+  "volume":1.0,
+}

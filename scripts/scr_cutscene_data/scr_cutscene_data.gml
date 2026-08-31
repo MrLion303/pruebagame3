@@ -4,6 +4,23 @@
 ///
 /// BASE DE DATOS DE CINEMÁTICAS.
 ///
+/// CADA CINEMÁTICA DEBE ESPECIFICAR SI EL JUGADOR
+/// PUEDE MOVERSE LIBREMENTE:
+///
+///     return cs_scene(false, [  // jugador bloqueado
+///         ...
+///         cs_end()
+///     ]);
+///
+///     return cs_scene(true, [   // jugador puede caminar
+///         ...
+///         cs_end()
+///     ]);
+///
+/// true/false NO afecta a los movimientos programados con
+/// cs_move_to(). Durante un cs_move_to del player, el control
+/// manual se bloquea temporalmente y después se restaura.
+///
 /// MOVIMIENTO RECOMENDADO:
 ///
 /// cs_move_to(
@@ -48,7 +65,7 @@ function scr_cutscene_data(_id)
 
         case "prueba_cinematica":
 
-            return [
+            return cs_scene(false, [
                 // -----------------------------------------
                 // CALLAR MÚSICA
                 // -----------------------------------------
@@ -158,7 +175,7 @@ function scr_cutscene_data(_id)
                 ),
 
                 cs_end()
-            ];
+            ]);
 
 
 
@@ -179,7 +196,7 @@ function scr_cutscene_data(_id)
 
         case "prueba_dos_personajes":
 
-            return [
+            return cs_scene(false, [
                 // -----------------------------------------
                 // PLAYER
                 // -----------------------------------------
@@ -228,7 +245,7 @@ function scr_cutscene_data(_id)
                 ),
 
                 cs_end()
-            ];
+            ]);
 
 
 
@@ -238,7 +255,7 @@ function scr_cutscene_data(_id)
 
         case "prueba_batalla":
 
-            return [
+            return cs_scene(false, [
                 // -----------------------------------------
                 // CALLAR MÚSICA DEL MAPA
                 // -----------------------------------------
@@ -277,7 +294,7 @@ function scr_cutscene_data(_id)
                 ),
 
                 cs_end()
-            ];
+            ]);
 
 
 
@@ -287,7 +304,7 @@ function scr_cutscene_data(_id)
 
         case "prueba_dialogos_musica":
 
-            return [
+            return cs_scene(false, [
                 // -----------------------------------------
                 // DIÁLOGO 1
                 // -----------------------------------------
@@ -368,12 +385,39 @@ function scr_cutscene_data(_id)
                 ),
 
                 cs_end()
-            ];
+            ]);
 
+
+
+        // =================================================
+        // ENCUENTRO JOKER
+        // =================================================
+        //
+        // Secuencia:
+        //
+        // música se calla
+        // ↓
+        // jugador camina
+        // ↓
+        // diálogo
+        // ↓
+        // mus_prejoker
+        // ↓
+        // diálogos
+        // ↓
+        // risa
+        // ↓
+        // diálogo
+        // ↓
+        // shine
+        // ↓
+        // boss_1
+        //
+        // =================================================
 
         case "encuentro_joker":
 
-            return [
+            return cs_scene(false, [
                 // -----------------------------------------
                 // CALLAR MÚSICA ACTUAL
                 // -----------------------------------------
@@ -513,9 +557,304 @@ function scr_cutscene_data(_id)
                 ),
 
                 cs_end()
-            ];
+            ]);
+
+// =========================================================
+// ENCUENTRO JOKER 2
+// =========================================================
+
+case "encuentro_joker_2":
+
+    return cs_scene(false, [
+
+        // =================================================
+        // INICIO - IGUAL A ENCUENTRO_JOKER
+        // =================================================
+
+        cs_music_stop(),
 
 
+        // Player va a la misma posición del encuentro 1
+        cs_move_to(
+            "player",
+            248,
+            438
+        ),
+
+
+        cs_dialog(
+            scr_loc_src(
+                "* Hay algo de malas vibras por aquí..."
+            ),
+            spr_noelle_normal,
+            snd_noelle
+        ),
+
+
+        cs_music_play(
+            mus_prejoker,
+            true,
+            true
+        ),
+
+
+        cs_dialog(
+            scr_loc_src(
+                "* VAYA, VAYA... ¿QUÉ TENEMOS AQUÍ?"
+            ),
+            noone,
+            snd_text
+        ),
+
+
+        cs_dialog(
+            scr_loc_src(
+                "* PARECE QUE LOS JUEGOS ESTÁN A PUNTO DE COMENZAR"
+            ),
+            noone,
+            snd_text
+        ),
+
+
+        cs_sound(
+            snd_joker_risa,
+            true
+        ),
+
+
+        cs_dialog(
+            scr_loc_src(
+                "* Esto se va a poner muy feo..."
+            ),
+            spr_noelle_normal,
+            snd_noelle
+        ),
+
+
+        cs_sound(
+            snd_shine,
+            true
+        ),
+
+
+        // =================================================
+        // BATALLA
+        // =================================================
+
+        cs_battle(
+            "boss_1"
+        ),
+
+
+        // =================================================
+        // REGRESO DE LA BATALLA
+        // =================================================
+
+        cs_music_stop(),
+
+
+        cs_dialog(
+            scr_loc_src(
+                "* Bueno... sí estuvo feo. Fahaha."
+            ),
+            spr_noelle_normal,
+            snd_noelle
+        ),
+
+
+        // =================================================
+        // CÁMARA 100 PX A LA DERECHA
+        //
+        // X = +100 -> derecha
+        // Y = 0    -> no cambia verticalmente
+        // =================================================
+
+        cs_camera_move(
+            100,
+            0
+        ),
+
+
+        cs_dialog(
+            scr_loc_src(
+                "* BUENO, ESO NO FUE COMO LO PENSÉ"
+            ),
+            noone,
+            snd_text
+        ),
+
+
+        cs_dialog(
+            scr_loc_src(
+                "* YA NO FUE TAN DIVERTIDO"
+            ),
+            noone,
+            snd_text
+        ),
+
+
+        // Cámara vuelve exactamente a donde estaba
+        cs_camera_reset(),
+
+
+        // =================================================
+        // APARECER OBJ_NPC_4
+        // =================================================
+        //
+        // Player está en:
+        //
+        // X = 248
+        // Y = 438
+        //
+        // 20 píxeles a su derecha:
+        //
+        // X = 268
+        // Y = 438
+        //
+        // =================================================
+
+        cs_npc_appear(
+            "joker_2",
+            obj_npc_4,
+            268,
+            438
+        ),
+
+
+        cs_dialog(
+            scr_loc_src(
+                "* BUENO, ESO FUE TODO AMIGOS, PERO ANTES..."
+            ),
+            noone,
+            snd_text
+        ),
+
+
+        // =================================================
+        // MOSTRAR IMAGEN
+        // =================================================
+
+        cs_image_show(
+            spr_imagen_cinematica_1
+        ),
+
+
+        // La imagen permanece en pantalla mientras
+        // ocurren estos diálogos.
+
+        cs_dialog(
+            scr_loc_src(
+                "* ¿Eso qué es?..."
+            ),
+            spr_noelle_normal,
+            snd_noelle
+        ),
+
+
+        // =================================================
+        // DIÁLOGO + SND_JOKER_RISA
+        // =================================================
+        //
+        // snd_text:
+        // sonido normal por letras
+        //
+        // snd_joker_risa:
+        // sonido largo que empieza junto al textbox
+        //
+        // false:
+        // NO cortar la risa aunque el diálogo termine
+        // antes que el audio.
+        // =================================================
+
+        cs_dialog(
+            scr_loc_src(
+                "* NI SIQUIERA YO LO SÉ, SOLO ME PARECIÓ INTERESANTE"
+            ),
+            noone,
+            snd_text,
+            c_white,
+            snd_joker_risa,
+            false
+        ),
+
+
+        cs_dialog(
+            scr_loc_src(
+                "* Ya..."
+            ),
+            spr_noelle_normal,
+            snd_noelle
+        ),
+
+
+        // =================================================
+        // QUITAR IMAGEN
+        // =================================================
+
+        cs_image_hide(),
+
+
+        // =================================================
+        // MUS_MAN
+        // =================================================
+
+        cs_music_play(
+            mus_man,
+            true,
+            true
+        ),
+
+
+        cs_dialog(
+            scr_loc_src(
+                "* BUENO BAI HEHE"
+            ),
+            noone,
+            snd_text
+        ),
+
+
+        // =================================================
+        // DESAPARECER JOKER + SHINE
+        // =================================================
+        //
+        // false hace que no esperemos a que snd_shine
+        // termine.
+        //
+        // Por eso el sonido comienza y acto seguido
+        // desaparece el NPC mientras el sonido sigue.
+        // =================================================
+
+        cs_sound(
+            snd_shine,
+            false
+        ),
+
+
+        cs_npc_disappear(
+            "joker_2"
+        ),
+
+
+        // =================================================
+        // NOELLE
+        // =================================================
+
+        cs_dialog(
+            scr_loc_src(
+                "* Ok?..."
+            ),
+            spr_noelle_normal,
+            snd_noelle
+        ),
+
+
+        // =================================================
+        // FIN REAL
+        // =================================================
+
+        cs_end()
+    ]);
 
         // =================================================
         // DEFAULT

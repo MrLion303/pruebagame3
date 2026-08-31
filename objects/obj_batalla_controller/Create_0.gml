@@ -20,11 +20,36 @@ if (!variable_global_exists("enemigo_actual_id")) {
 }
  
 var _datos_variante = scr_enemigos_data(global.enemigo_actual_id);
+
 enemigos = _datos_variante.enemigos;
+
+// Música base definida por la batalla.
+// musica_batalla_actual puede convertirse después en un ID de instancia
+// si una cinemática interna cambia la canción.
+musica_batalla_asset_base = _datos_variante.musica;
 musica_batalla_actual = _datos_variante.musica;
+
 dialogos_turno_actual = _datos_variante.dialogos_turno;
-experiencia_batalla = variable_struct_exists(_datos_variante, "experiencia") ? _datos_variante.experiencia : 0;
-cinematicas = variable_struct_exists(_datos_variante, "cinematicas") ? _datos_variante.cinematicas : [];
+
+experiencia_batalla =
+    variable_struct_exists(_datos_variante, "experiencia")
+    ? max(0, round(_datos_variante.experiencia))
+    : 0;
+
+suenos_batalla =
+    variable_struct_exists(_datos_variante, "suenos")
+    ? max(0, round(_datos_variante.suenos))
+    : 0;
+
+fondo_batalla =
+    variable_struct_exists(_datos_variante, "fondo")
+    ? _datos_variante.fondo
+    : noone;
+
+cinematicas =
+    variable_struct_exists(_datos_variante, "cinematicas")
+    ? _datos_variante.cinematicas
+    : [];
  
 show_debug_message("[CINEMATICAS] enemigo_actual_id=" + string(global.enemigo_actual_id) + " -> cinematicas cargadas: " + string(array_length(cinematicas)));
  
@@ -105,3 +130,30 @@ f_verificar_cinematicas = function() {
     }
     return false;
 };
+
+// =========================================================
+// DUCKING DE MÚSICA CUANDO SUENA CUALQUIER snd_
+// =========================================================
+//
+// 0.86 = la música baja un poco mientras suena un SFX.
+// Puedes acercarlo a 1.0 si lo quieres todavía más sutil.
+// =========================================================
+
+duck_music_gain = 0.86;
+duck_snd_assets = [];
+
+var _audio_assets = asset_get_ids(asset_sound);
+
+for (var _a = 0; _a < array_length(_audio_assets); _a++)
+{
+    var _asset_audio = _audio_assets[_a];
+    var _audio_name = audio_get_name(_asset_audio);
+
+    if (string_copy(_audio_name, 1, 4) == "snd_")
+    {
+        array_push(
+            duck_snd_assets,
+            _asset_audio
+        );
+    }
+}

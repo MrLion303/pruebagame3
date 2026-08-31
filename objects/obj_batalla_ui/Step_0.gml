@@ -380,12 +380,13 @@ if (draw_char < text_length) {
             }
 
             if (_chequear_todos) {
-                en_dialogo_victoria_final = true;
-                victoria_etapa = 0;
-                victoria_sonido_nivel_reproducido = false;
-                victoria_xp = instance_exists(obj_batalla_controller) ? obj_batalla_controller.experiencia_batalla : 0;
-                f_procesar_dialogo(scr_locf("* ¡Has ganado la batalla! Ganaste {xp} XP.", { xp: string(victoria_xp) }));
-                audio_play_sound(snd_menumove, 10, false);
+                f_iniciar_victoria();
+
+                audio_play_sound(
+                    snd_menumove,
+                    10,
+                    false
+                );
             } else {
                 en_menu_fight = false;
                 en_seleccion_enemigo = false;
@@ -624,10 +625,44 @@ if (draw_char < text_length) {
                             audio_stop_sound(snd_bbs_start);
                         }
 
-                        if (variable_instance_exists(id, "musica_batalla_actual") && audio_exists(musica_batalla_actual)) {
-                            if (audio_is_playing(musica_batalla_actual)) {
-                                audio_stop_sound(musica_batalla_actual);
+                        // Música real del controller.
+                        // Es importante cuando una cinemática interna
+                        // cambió la canción de la batalla.
+                        if (
+                            instance_exists(obj_batalla_controller)
+                            &&
+                            variable_instance_exists(
+                                obj_batalla_controller,
+                                "musica_batalla_actual"
+                            )
+                        )
+                        {
+                            var _musica_real =
+                                obj_batalla_controller.musica_batalla_actual;
+
+                            if (
+                                _musica_real != noone
+                                &&
+                                audio_is_playing(_musica_real)
+                            )
+                            {
+                                audio_stop_sound(_musica_real);
                             }
+                        }
+
+                        // Fallback de la UI para batallas sin cambio musical.
+                        if (
+                            variable_instance_exists(
+                                id,
+                                "musica_batalla_actual"
+                            )
+                            &&
+                            musica_batalla_actual != noone
+                            &&
+                            audio_is_playing(musica_batalla_actual)
+                        )
+                        {
+                            audio_stop_sound(musica_batalla_actual);
                         }
                     }
 

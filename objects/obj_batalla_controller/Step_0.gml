@@ -1,6 +1,40 @@
 // =========================================================
 // EVENTO: STEP  (obj_batalla_controller)
 // =========================================================
+// =========================================================
+// DUCKING DE MÚSICA DE BATALLA
+// =========================================================
+
+var _hay_snd_sonando = false;
+
+for (var _duck_i = 0; _duck_i < array_length(duck_snd_assets); _duck_i++)
+{
+    if (audio_is_playing(duck_snd_assets[_duck_i]))
+    {
+        _hay_snd_sonando = true;
+        break;
+    }
+}
+
+var _ganancia_musica =
+    _hay_snd_sonando
+    ? duck_music_gain
+    : 1.0;
+
+if (
+    musica_batalla_actual != noone
+    &&
+    audio_is_playing(musica_batalla_actual)
+)
+{
+    audio_sound_gain(
+        musica_batalla_actual,
+        _ganancia_musica,
+        0
+    );
+}
+
+
 var _accept_key = keyboard_check_pressed(ord("Z")) || keyboard_check_pressed(vk_enter);
 
 // VERIFICAR CINEMÁTICAS (EXCEPTO SI YA ESTAMOS EN UNA O HUYENDO/VICTORIA)
@@ -237,10 +271,9 @@ switch (fase_actual) {
                             }
 
                             if (instance_exists(obj_batalla_ui)) {
-                                obj_batalla_ui.en_dialogo_victoria_final = true;
-                                obj_batalla_ui.victoria_etapa = 0;
-                                obj_batalla_ui.f_procesar_dialogo(scr_loc("* ¡Has ganado la batalla!"));
+                                obj_batalla_ui.f_iniciar_victoria();
                             }
+
                             fase_actual = FASE_BATALLA.VICTORIA;
                         } else {
                             fase_actual = FASE_BATALLA.JUGADOR_MENU;

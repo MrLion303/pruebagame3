@@ -1,29 +1,62 @@
 /// =========================================================
 /// SCR_CUTSCENE_CORE
+/// CINEMÁTICAS V2
+/// =========================================================
+///
+/// Funciones nuevas principales:
+///
+/// cs_scene(player_can_move, actions)
+/// cs_camera_move(dx, dy, speed, wait)
+/// cs_camera_reset(speed, wait)
+/// cs_dialog(..., extra_sound, stop_extra_with_dialog, extra_gain)
+/// cs_npc_appear(name, object, x, y, layer)
+/// cs_npc_disappear_at(object, x, y, tolerance)
+/// cs_image_show(sprite, fade_frames)
+/// cs_image_hide(fade_frames)
+/// cs_end()
+///
+/// VIDEO: reservado para una implementación posterior.
 /// =========================================================
 
 enum CS_ACTION
 {
     WAIT,
     DIALOG,
+
     MOVE,
     MOVE_REL,
     WAIT_MOVES,
+
+    CAMERA_MOVE,
+    CAMERA_RESET,
+
     FACE,
     TELEPORT,
+
     SPRITE,
     SPRITE_AUTO,
+
     MUSIC,
     MUSIC_STOP,
+
     SOUND,
     SOUND_STOP,
+
     SPAWN,
     DESTROY,
+    DESTROY_AT,
+
     VISIBLE,
     ALPHA,
+
+    IMAGE_SHOW,
+    IMAGE_HIDE,
+
     CALL,
     WAIT_UNTIL,
+
     BATTLE,
+
     END,
     QUIT
 }
@@ -73,6 +106,60 @@ function scr_cutscene_mark_played(_id)
 
 
 // =========================================================
+// CONFIGURACIÓN DE UNA CINEMÁTICA
+// =========================================================
+
+function cs_scene(_player_can_move, _actions)
+{
+    return {
+        player_can_move: _player_can_move,
+        actions: _actions
+    };
+}
+
+function scr_cutscene_unpack(_raw)
+{
+    // Compatibilidad con cinemáticas antiguas que devuelvan
+    // directamente un array.
+    if (is_array(_raw))
+    {
+        return {
+            player_can_move: false,
+            actions: _raw
+        };
+    }
+
+    if (is_struct(_raw))
+    {
+        var _can_move = false;
+        var _actions = [];
+
+        if (variable_struct_exists(_raw, "player_can_move"))
+            _can_move = _raw.player_can_move;
+
+        if (
+            variable_struct_exists(_raw, "actions")
+            &&
+            is_array(_raw.actions)
+        )
+        {
+            _actions = _raw.actions;
+        }
+
+        return {
+            player_can_move: _can_move,
+            actions: _actions
+        };
+    }
+
+    return {
+        player_can_move: false,
+        actions: []
+    };
+}
+
+
+// =========================================================
 // REANUDACIÓN DESPUÉS DE BATALLA
 // =========================================================
 
@@ -89,6 +176,9 @@ function scr_cutscene_resume_init()
 
     if (!variable_global_exists("cutscene_resume_room"))
         global.cutscene_resume_room = -1;
+
+    if (!variable_global_exists("cutscene_resume_player_can_move"))
+        global.cutscene_resume_player_can_move = false;
 }
 
 function scr_cutscene_clear_resume()
@@ -99,6 +189,7 @@ function scr_cutscene_clear_resume()
     global.cutscene_resume_id = "";
     global.cutscene_resume_action_index = 0;
     global.cutscene_resume_room = -1;
+    global.cutscene_resume_player_can_move = false;
 }
 
 
@@ -279,6 +370,27 @@ function scr_cutscene_face_actor(_actor, _dir)
 
 
 // =========================================================
+// CONTROL DEL PLAYER
+// =========================================================
+
+function scr_cutscene_set_player_control(_enabled)
+{
+    global.cutscene_player_can_move = _enabled;
+
+    if (!instance_exists(obj_player))
+        return;
+
+    var _player = instance_find(obj_player, 0);
+
+    if (variable_instance_exists(_player, "puede_moverse"))
+        _player.puede_moverse = _enabled;
+
+    if (variable_instance_exists(_player, "can_move"))
+        _player.can_move = _enabled;
+}
+
+
+// =========================================================
 // MÚSICA
 // =========================================================
 
@@ -292,10 +404,7 @@ function scr_cutscene_stop_music(_music = noone)
         return;
     }
 
-    var _sounds =
-        asset_get_ids(
-            asset_sound
-        );
+    var _sounds = asset_get_ids(asset_sound);
 
     for (var i = 0; i < array_length(_sounds); i++)
     {
@@ -304,17 +413,9 @@ function scr_cutscene_stop_music(_music = noone)
         if (!audio_exists(_sound))
             continue;
 
-        var _name =
-            audio_get_name(
-                _sound
-            );
+        var _name = audio_get_name(_sound);
 
-        if (
-            string_starts_with(
-                _name,
-                "mus_"
-            )
-        )
+        if (string_starts_with(_name, "mus_"))
         {
             if (audio_is_playing(_sound))
                 audio_stop_sound(_sound);
@@ -349,11 +450,31 @@ function cs_wait_seconds(_seconds)
     );
 }
 
+
+// ---------------------------------------------------------
+// DIÁLOGO
+// ---------------------------------------------------------
+//
+// _snd:
+//     sonido de voz/letras, como hasta ahora.
+//
+// _extra_sound:
+//     sonido largo que empieza UNA VEZ junto al cuadro.
+//
+// _stop_extra_with_dialog:
+//     true = si cierras el cuadro antes de que termine,
+//            también se detiene el sonido largo.
+//     false = el sonido sigue aunque cierres el cuadro.
+// ---------------------------------------------------------
+
 function cs_dialog(
     _text,
     _head = noone,
     _snd = snd_text,
-    _color = c_white
+    _color = c_white,
+    _extra_sound = noone,
+    _stop_extra_with_dialog = true,
+    _extra_gain = 1
 )
 {
     return {
@@ -361,9 +482,17 @@ function cs_dialog(
         text: _text,
         color: _color,
         head: _head,
-        snd: _snd
+        snd: _snd,
+        extra_sound: _extra_sound,
+        stop_extra_with_dialog: _stop_extra_with_dialog,
+        extra_gain: _extra_gain
     };
 }
+
+
+// ---------------------------------------------------------
+// MOVIMIENTO ABSOLUTO DE ACTORES
+// ---------------------------------------------------------
 
 function cs_move_to(
     _actor,
@@ -379,11 +508,7 @@ function cs_move_to(
 
     if (_vel_anim < 0)
     {
-        _vel_anim =
-            max(
-                0.20,
-                _velocidad * 0.10
-            );
+        _vel_anim = max(0.20, _velocidad * 0.10);
     }
 
     return {
@@ -430,11 +555,7 @@ function cs_move_rel(
 
     if (_vel_anim < 0)
     {
-        _vel_anim =
-            max(
-                0.20,
-                _velocidad * 0.10
-            );
+        _vel_anim = max(0.20, _velocidad * 0.10);
     }
 
     return {
@@ -454,6 +575,52 @@ function cs_wait_moves()
         type: CS_ACTION.WAIT_MOVES
     };
 }
+
+
+// ---------------------------------------------------------
+// CÁMARA RELATIVA
+// ---------------------------------------------------------
+//
+// X POSITIVO  = derecha
+// X NEGATIVO  = izquierda
+// Y POSITIVO  = abajo
+// Y NEGATIVO  = arriba
+//
+// Ejemplos:
+// cs_camera_move( 64,   0); // derecha
+// cs_camera_move(-64,   0); // izquierda
+// cs_camera_move(  0,  48); // abajo
+// cs_camera_move(  0, -48); // arriba
+// ---------------------------------------------------------
+
+function cs_camera_move(
+    _dx,
+    _dy,
+    _speed = 2,
+    _wait = true
+)
+{
+    return {
+        type: CS_ACTION.CAMERA_MOVE,
+        dx: _dx,
+        dy: _dy,
+        speed: max(0.01, _speed),
+        wait: _wait
+    };
+}
+
+function cs_camera_reset(
+    _speed = 2,
+    _wait = true
+)
+{
+    return {
+        type: CS_ACTION.CAMERA_RESET,
+        speed: max(0.01, _speed),
+        wait: _wait
+    };
+}
+
 
 function cs_face(_actor, _direction)
 {
@@ -550,6 +717,11 @@ function cs_sound_stop(_sound)
     };
 }
 
+
+// ---------------------------------------------------------
+// NPCS / OBJETOS
+// ---------------------------------------------------------
+
 function cs_spawn(
     _name,
     _object,
@@ -568,11 +740,49 @@ function cs_spawn(
     };
 }
 
+function cs_npc_appear(
+    _name,
+    _object,
+    _x,
+    _y,
+    _layer = "Instances"
+)
+{
+    return cs_spawn(
+        _name,
+        _object,
+        _x,
+        _y,
+        _layer
+    );
+}
+
 function cs_destroy(_actor)
 {
     return {
         type: CS_ACTION.DESTROY,
         actor: _actor
+    };
+}
+
+function cs_npc_disappear(_actor)
+{
+    return cs_destroy(_actor);
+}
+
+function cs_npc_disappear_at(
+    _object,
+    _x,
+    _y,
+    _tolerance = 8
+)
+{
+    return {
+        type: CS_ACTION.DESTROY_AT,
+        object: _object,
+        x: _x,
+        y: _y,
+        tolerance: max(0, _tolerance)
     };
 }
 
@@ -593,6 +803,38 @@ function cs_alpha(_actor, _alpha)
         alpha: clamp(_alpha, 0, 1)
     };
 }
+
+
+// ---------------------------------------------------------
+// IMAGEN CINEMÁTICA FULLSCREEN
+// ---------------------------------------------------------
+//
+// La imagen hace fade sobre el gameplay.
+// Cuando cs_image_show() termina, permanece en pantalla.
+// Se pueden ejecutar cs_dialog() mientras siga visible.
+// cs_image_hide() hace fade de regreso al gameplay.
+// ---------------------------------------------------------
+
+function cs_image_show(
+    _sprite,
+    _fade_frames = 20
+)
+{
+    return {
+        type: CS_ACTION.IMAGE_SHOW,
+        sprite: _sprite,
+        fade_frames: max(1, _fade_frames)
+    };
+}
+
+function cs_image_hide(_fade_frames = 20)
+{
+    return {
+        type: CS_ACTION.IMAGE_HIDE,
+        fade_frames: max(1, _fade_frames)
+    };
+}
+
 
 function cs_do(_func)
 {
@@ -640,7 +882,8 @@ function cs_quit()
 function scr_cutscene_create_controller(
     _id,
     _actions,
-    _start_index = 0
+    _start_index = 0,
+    _player_can_move = false
 )
 {
     var _controller = noone;
@@ -661,7 +904,7 @@ function scr_cutscene_create_controller(
             instance_create_depth(
                 0,
                 0,
-                -99999,
+                -90000,
                 obj_cutscene_controller
             );
     }
@@ -669,6 +912,7 @@ function scr_cutscene_create_controller(
     _controller.cutscene_id = _id;
     _controller.actions = _actions;
     _controller.action_index = _start_index;
+    _controller.player_can_move = _player_can_move;
     _controller.ready = true;
 
     return _controller;
@@ -687,10 +931,10 @@ function scr_cutscene_start(
     if (instance_exists(obj_cutscene_controller))
         return false;
 
-    var _actions =
-        scr_cutscene_data(
-            _id
-        );
+    var _raw = scr_cutscene_data(_id);
+    var _scene = scr_cutscene_unpack(_raw);
+    var _actions = _scene.actions;
+    var _player_can_move = _scene.player_can_move;
 
     if (
         !is_array(_actions)
@@ -714,20 +958,11 @@ function scr_cutscene_start(
         scr_cutscene_mark_played(_id);
 
     global.cutscene_active = true;
+    scr_cutscene_set_player_control(_player_can_move);
 
     if (instance_exists(obj_player))
     {
-        var _player =
-            instance_find(
-                obj_player,
-                0
-            );
-
-        if (variable_instance_exists(_player, "puede_moverse"))
-            _player.puede_moverse = false;
-
-        if (variable_instance_exists(_player, "can_move"))
-            _player.can_move = false;
+        var _player = instance_find(obj_player, 0);
 
         if (!variable_instance_exists(_player, "cutscene_motion_active"))
             _player.cutscene_motion_active = false;
@@ -745,7 +980,8 @@ function scr_cutscene_start(
     scr_cutscene_create_controller(
         _id,
         _actions,
-        0
+        0,
+        _player_can_move
     );
 
     return true;
@@ -775,16 +1011,13 @@ function scr_cutscene_resume_after_battle()
     if (instance_exists(obj_cutscene_controller))
         return true;
 
-    var _id =
-        global.cutscene_resume_id;
+    var _id = global.cutscene_resume_id;
+    var _index = global.cutscene_resume_action_index;
+    var _player_can_move = global.cutscene_resume_player_can_move;
 
-    var _index =
-        global.cutscene_resume_action_index;
-
-    var _actions =
-        scr_cutscene_data(
-            _id
-        );
+    var _raw = scr_cutscene_data(_id);
+    var _scene = scr_cutscene_unpack(_raw);
+    var _actions = _scene.actions;
 
     if (
         !is_array(_actions)
@@ -799,33 +1032,20 @@ function scr_cutscene_resume_after_battle()
         );
 
         scr_cutscene_clear_resume();
-
         return false;
     }
 
+    // Guardamos localmente antes de limpiar.
     scr_cutscene_clear_resume();
 
     global.cutscene_active = true;
-
-    if (instance_exists(obj_player))
-    {
-        var _player =
-            instance_find(
-                obj_player,
-                0
-            );
-
-        if (variable_instance_exists(_player, "puede_moverse"))
-            _player.puede_moverse = false;
-
-        if (variable_instance_exists(_player, "can_move"))
-            _player.can_move = false;
-    }
+    scr_cutscene_set_player_control(_player_can_move);
 
     scr_cutscene_create_controller(
         _id,
         _actions,
-        _index
+        _index,
+        _player_can_move
     );
 
     return true;
