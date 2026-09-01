@@ -150,7 +150,7 @@ else if (state == MENU_STATE.INFO_MENU) {
     draw_text(
         sx,
         sy + 260,
-        "SO: " + string(_suenos_actuales)
+        "SO: $" + string(_suenos_actuales)
     );
 
     draw_set_color(c_white);

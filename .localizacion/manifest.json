@@ -1,5 +1,5 @@
 {
-    "total":  180,
+    "total":  208,
     "fuentes":  {
                     "Jugador X: ":  [
                                         "objects\\game\\Draw_64.gml:36"
@@ -291,6 +291,45 @@
                     "Partida salvada":  [
                                             "objects\\obj_save_menu\\Draw_64.gml:211"
                                         ],
+                    "COMPRAR":  [
+                                    "objects\\obj_shop_controller\\Create_0.gml:72"
+                                ],
+                    "VENDER":  [
+                                   "objects\\obj_shop_controller\\Create_0.gml:73"
+                               ],
+                    "HABLAR":  [
+                                   "objects\\obj_shop_controller\\Create_0.gml:74"
+                               ],
+                    "SALIR":  [
+                                  "objects\\obj_shop_controller\\Create_0.gml:75"
+                              ],
+                    "VENDEDOR\nSIN SPRITE":  [
+                                                 "objects\\obj_shop_controller\\Draw_64.gml:394"
+                                             ],
+                    "Espacio":  [
+                                    "objects\\obj_shop_controller\\Draw_64.gml:640"
+                                ],
+                    "Salir de la tienda.":  [
+                                                "objects\\obj_shop_controller\\Draw_64.gml:924"
+                                            ],
+                    "No hay objetos a la venta.":  [
+                                                       "objects\\obj_shop_controller\\Draw_64.gml:966"
+                                                   ],
+                    "No tienes nada que vender.":  [
+                                                       "objects\\obj_shop_controller\\Draw_64.gml:1156"
+                                                   ],
+                    "* No tienes suficientes Sueños.":  [
+                                                            "objects\\obj_shop_controller\\Step_0.gml:590"
+                                                        ],
+                    "* No tienes espacio en el inventario.":  [
+                                                                  "objects\\obj_shop_controller\\Step_0.gml:629"
+                                                              ],
+                    "* Compraste {item}.":  [
+                                                "objects\\obj_shop_controller\\Step_0.gml:659"
+                                            ],
+                    "* Vendiste {item}.":  [
+                                               "objects\\obj_shop_controller\\Step_0.gml:841"
+                                           ],
                     "* El enemigo se detiene de repente...":  [
                                                                   "scripts\\scr_bosses_cinematica_bbs\\scr_bosses_cinematica_bbs.gml:19",
                                                                   "scripts\\scr_bosses_cinematica_bbs\\scr_bosses_cinematica_bbs.gml:49"
@@ -494,16 +533,16 @@
                                                                    "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:274"
                                                                ],
                     "Espada palo":  [
-                                        "scripts\\scr_equips_data\\scr_equips_data.gml:4"
+                                        "scripts\\scr_equips_data\\scr_equips_data.gml:28"
                                     ],
                     "Una espada de madera inofensiva.":  [
-                                                             "scripts\\scr_equips_data\\scr_equips_data.gml:8"
+                                                             "scripts\\scr_equips_data\\scr_equips_data.gml:42"
                                                          ],
                     "Ropa vieja":  [
-                                       "scripts\\scr_equips_data\\scr_equips_data.gml:11"
+                                       "scripts\\scr_equips_data\\scr_equips_data.gml:71"
                                    ],
                     "Te protege un poco del frio.":  [
-                                                         "scripts\\scr_equips_data\\scr_equips_data.gml:15"
+                                                         "scripts\\scr_equips_data\\scr_equips_data.gml:85"
                                                      ],
                     "Hola como tai yo bien y usted? jejejej12344":  [
                                                                         "scripts\\scr_game_text\\scr_game_text.gml:18",
@@ -567,17 +606,62 @@
                                                "scripts\\scr_game_text\\scr_game_text.gml:87"
                                            ],
                     "Vaso de Agua":  [
-                                         "scripts\\scr_items_data\\scr_items_data.gml:4"
+                                         "scripts\\scr_items_data\\scr_items_data.gml:34"
                                      ],
                     "Ayuda a hidratarte":  [
-                                               "scripts\\scr_items_data\\scr_items_data.gml:5"
+                                               "scripts\\scr_items_data\\scr_items_data.gml:39"
                                            ],
                     "Manzana":  [
-                                    "scripts\\scr_items_data\\scr_items_data.gml:17"
+                                    "scripts\\scr_items_data\\scr_items_data.gml:107"
                                 ],
                     "Rica y crujiente":  [
-                                             "scripts\\scr_items_data\\scr_items_data.gml:18"
+                                             "scripts\\scr_items_data\\scr_items_data.gml:112"
                                          ],
+                    "Tienda 1":  [
+                                     "scripts\\scr_shop_data\\scr_shop_data.gml:121"
+                                 ],
+                    "* Bienvenido. ¿Qué puedo hacer por ti?":  [
+                                                                   "scripts\\scr_shop_data\\scr_shop_data.gml:168"
+                                                               ],
+                    "Saludos":  [
+                                    "scripts\\scr_shop_data\\scr_shop_data.gml:212"
+                                ],
+                    "* ¡Hola! Bienvenido a la tienda.":  [
+                                                             "scripts\\scr_shop_data\\scr_shop_data.gml:218"
+                                                         ],
+                    "* Mira todo lo que quieras.":  [
+                                                        "scripts\\scr_shop_data\\scr_shop_data.gml:224"
+                                                    ],
+                    "Sobre esta tienda":  [
+                                              "scripts\\scr_shop_data\\scr_shop_data.gml:237"
+                                          ],
+                    "* Aquí vendo algunas cosas que podrían serte útiles.":  [
+                                                                                 "scripts\\scr_shop_data\\scr_shop_data.gml:243"
+                                                                             ],
+                    "* También puedo comprarte objetos que ya no necesites.":  [
+                                                                                   "scripts\\scr_shop_data\\scr_shop_data.gml:249"
+                                                                               ],
+                    "¿Qué son los Sueños?":  [
+                                                 "scripts\\scr_shop_data\\scr_shop_data.gml:262"
+                                             ],
+                    "* Los Sueños son la moneda que usamos por aquí.":  [
+                                                                            "scripts\\scr_shop_data\\scr_shop_data.gml:268"
+                                                                        ],
+                    "* Puedes conseguirlos en tus aventuras y gastarlos en tiendas.":  [
+                                                                                           "scripts\\scr_shop_data\\scr_shop_data.gml:277"
+                                                                                       ],
+                    "* Gracias por venir. Vuelve pronto.":  [
+                                                                "scripts\\scr_shop_data\\scr_shop_data.gml:300"
+                                                            ],
+                    "Tienda sin configurar":  [
+                                                  "scripts\\scr_shop_data\\scr_shop_data.gml:345"
+                                              ],
+                    "* Esta tienda todavía no está configurada.":  [
+                                                                       "scripts\\scr_shop_data\\scr_shop_data.gml:365"
+                                                                   ],
+                    "* Hasta luego.":  [
+                                           "scripts\\scr_shop_data\\scr_shop_data.gml:378"
+                                       ],
                     "Brillitos":  [
                                       "scripts\\scr_toys_data\\scr_toys_data.gml:13"
                                   ],

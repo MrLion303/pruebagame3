@@ -1,8 +1,8 @@
 REPORTE DE LOCALIZACION
 =======================
-Textos detectados: 180
-Traducciones inglesas pendientes: 177
-Entradas inglesas obsoletas archivadas: 2
+Textos detectados: 208
+Traducciones inglesas pendientes: 205
+Entradas inglesas obsoletas archivadas: 0
 
 JSON escritos en UTF-8 SIN BOM.
 Proyecto: C:\Users\rodri\Documents\GitHub\pruebagame\pruebagame
