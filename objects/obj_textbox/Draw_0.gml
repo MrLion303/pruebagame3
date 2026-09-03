@@ -1,3 +1,4 @@
+
 /// =========================================================
 /// OBJ_TEXTBOX
 /// DRAW COMPLETO
@@ -843,6 +844,179 @@ if (
 
 
 // =========================================================
+// SONIDO EXTRA POR PÁGINA
+// =========================================================
+//
+// Las cinemáticas pueden agrupar varios cs_dialog dentro de
+// esta misma caja. Cada página puede tener su propio sonido
+// largo opcional.
+//
+// stop = true:
+//     se corta al cambiar de página / cerrar la caja.
+//
+// stop = false:
+//     continúa aunque el diálogo avance.
+// =========================================================
+
+if (
+    !variable_instance_exists(
+        id,
+        "page_extra_sound"
+    )
+)
+{
+    page_extra_sound =
+        [];
+}
+
+
+if (
+    !variable_instance_exists(
+        id,
+        "page_extra_stop"
+    )
+)
+{
+    page_extra_stop =
+        [];
+}
+
+
+if (
+    !variable_instance_exists(
+        id,
+        "page_extra_gain"
+    )
+)
+{
+    page_extra_gain =
+        [];
+}
+
+
+if (
+    !variable_instance_exists(
+        id,
+        "page_extra_active_page"
+    )
+)
+{
+    page_extra_active_page =
+        -1;
+
+    page_extra_instance =
+        -1;
+
+    page_extra_stop_current =
+        true;
+}
+
+
+if (
+    page_extra_active_page
+    !=
+    page
+)
+{
+    // Cerrar sonido de la página anterior solamente
+    // cuando así fue configurado.
+    if (
+        page_extra_instance != -1
+        &&
+        page_extra_stop_current
+        &&
+        audio_is_playing(
+            page_extra_instance
+        )
+    )
+    {
+        audio_stop_sound(
+            page_extra_instance
+        );
+    }
+
+
+    page_extra_instance =
+        -1;
+
+    page_extra_active_page =
+        page;
+
+
+    page_extra_stop_current =
+        (
+            page
+            <
+            array_length(page_extra_stop)
+            &&
+            !is_undefined(
+                page_extra_stop[page]
+            )
+        )
+        ?
+        page_extra_stop[page]
+        :
+        true;
+
+
+    var _page_extra_sound =
+        (
+            page
+            <
+            array_length(page_extra_sound)
+            &&
+            !is_undefined(
+                page_extra_sound[page]
+            )
+        )
+        ?
+        page_extra_sound[page]
+        :
+        noone;
+
+
+    var _page_extra_gain =
+        (
+            page
+            <
+            array_length(page_extra_gain)
+            &&
+            !is_undefined(
+                page_extra_gain[page]
+            )
+        )
+        ?
+        page_extra_gain[page]
+        :
+        1;
+
+
+    if (
+        _page_extra_sound != noone
+        &&
+        audio_exists(
+            _page_extra_sound
+        )
+    )
+    {
+        page_extra_instance =
+            audio_play_sound(
+                _page_extra_sound,
+                10,
+                false
+            );
+
+
+        audio_sound_gain(
+            page_extra_instance,
+            _page_extra_gain,
+            0
+        );
+    }
+}
+
+
+// =========================================================
 // TYPEWRITER
 // =========================================================
 
@@ -1034,6 +1208,34 @@ else if (
             }
 
 
+            // Si el sonido largo de la página actual
+            // debe terminar junto al diálogo, detenerlo.
+            if (
+                variable_instance_exists(
+                    id,
+                    "page_extra_instance"
+                )
+                &&
+                page_extra_instance != -1
+                &&
+                variable_instance_exists(
+                    id,
+                    "page_extra_stop_current"
+                )
+                &&
+                page_extra_stop_current
+                &&
+                audio_is_playing(
+                    page_extra_instance
+                )
+            )
+            {
+                audio_stop_sound(
+                    page_extra_instance
+                );
+            }
+
+
             instance_destroy();
 
 
@@ -1089,7 +1291,7 @@ txtb_spr_h =
 
 draw_sprite_ext(
     _current_txtb_spr,
-    txtb_img,
+    scr_ui_box_frame(_current_txtb_spr),
     _txtb_x,
     _txtb_y,
     textbox_width / txtb_spr_w,
@@ -1483,3 +1685,4 @@ for (
         );
     }
 }
+

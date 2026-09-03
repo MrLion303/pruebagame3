@@ -74,7 +74,7 @@ if (mostrar_interfaz)
 
     draw_sprite_stretched(
         spr_textbox_save_fondo,
-        0,
+        scr_ui_box_frame(spr_textbox_save_fondo),
         bg_x,
         bg_y,
         bg_w,
@@ -88,7 +88,7 @@ if (mostrar_interfaz)
 
     draw_sprite_stretched(
         spr_textbox_save,
-        0,
+        scr_ui_box_frame(spr_textbox_save),
         left_x,
         left_y,
         left_w,
@@ -153,7 +153,7 @@ if (mostrar_interfaz)
 
         draw_sprite_stretched(
             spr_textbox_save,
-            0,
+        scr_ui_box_frame(spr_textbox_save),
             right_x,
             _box_y,
             right_w,
@@ -407,3 +407,4 @@ draw_set_color(
 draw_set_alpha(
     1
 );
+

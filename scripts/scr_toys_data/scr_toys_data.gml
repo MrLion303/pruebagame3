@@ -12,7 +12,13 @@ function scr_toys_data() {
 
             nombre: scr_loc_src("Brillitos"),
             tipo: "toy",
-            descripcion: scr_loc_src("Un puñado de brillitos. Aturde al enemigo y reduce su ataque y defensa."),
+            descripcion: scr_loc_src("Aturde y debilita al enemigo."),
+
+            // Datos de tienda.
+            precio_compra: 60,
+            precio_venta: 30,
+            icono_tienda: -1,
+            color_tienda: noone,
 
             stun_turnos: 1,
             reduccion_ataque: 1,
@@ -69,7 +75,13 @@ function scr_toys_data() {
 
             nombre: scr_loc_src("Pegamento"),
             tipo: "toy",
-            descripcion: scr_loc_src("Deja pegado al enemigo al suelo y le hace perder su turno."),
+            descripcion: scr_loc_src("Hace perder un turno al enemigo."),
+
+            // Datos de tienda.
+            precio_compra: 50,
+            precio_venta: 25,
+            icono_tienda: -1,
+            color_tienda: noone,
 
             stun_turnos: 1,
             reduccion_ataque: 0,

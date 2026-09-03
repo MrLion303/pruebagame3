@@ -81,7 +81,7 @@ for (var i = 0; i < _total_enemigos; i++) {
 
 draw_sprite_ext(
     spr_bbs_textbox,
-    0,
+    scr_ui_box_frame(spr_bbs_textbox),
     14 * _s,
     125 * _s,
     5.666667 * _s,
@@ -556,7 +556,7 @@ draw_set_alpha(_alpha_final);
 
 draw_sprite_ext(
     spr_bbs_textbox,
-    0,
+    scr_ui_box_frame(spr_bbs_textbox),
     6 * _s,
     183 * _s,
     2.27451 * _s,
@@ -582,7 +582,7 @@ draw_sprite_ext(
 
 draw_sprite_ext(
     spr_bbs_textbox,
-    0,
+    scr_ui_box_frame(spr_bbs_textbox),
     126 * _s,
     183 * _s,
     3.666666 * _s,
@@ -600,7 +600,7 @@ draw_set_halign(fa_left);
 draw_text_color(
     _info_x,
     _info_y,
-    scr_loc("Noelle"),
+    scr_loc("Maya"),
     c_white,
     c_white,
     c_white,

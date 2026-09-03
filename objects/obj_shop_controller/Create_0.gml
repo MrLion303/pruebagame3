@@ -58,6 +58,10 @@ SHOP_TALK_DIALOG =
 SHOP_EXIT_DIALOG =
     5;
 
+// Selector previo de categoría para VENDER.
+SHOP_SELL_TYPE =
+    6;
+
 
 state =
     SHOP_TOP;
@@ -93,9 +97,34 @@ buy_scroll =
 // =========================================================
 // VENDER
 // =========================================================
+//
+// Antes de mostrar el inventario, se elige categoría.
+// =========================================================
+
+sell_type_options =
+[
+    scr_loc_src("* ITEM"),
+    scr_loc_src("* JUGUETE"),
+    scr_loc_src("* ARMA"),
+    scr_loc_src("* ARMADURA")
+];
+
+sell_type_keys =
+[
+    "item",
+    "toy",
+    "arma",
+    "armadura"
+];
+
+sell_type_index =
+    0;
+
+sell_category =
+    "item";
 
 sell_list =
-    scr_shop_build_sell_list();
+    [];
 
 sell_index =
     0;

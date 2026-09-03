@@ -1,3 +1,4 @@
+
 // =========================================================
 // OBJ_SAVE_MENU
 // STEP
@@ -438,6 +439,16 @@ else if (state == 1)
             //
             // Primero iniciamos el fade.
 
+
+            // La partida comienza: quitar música del título.
+            if (audio_exists(mus_menu))
+            {
+                audio_stop_sound(
+                    mus_menu
+                );
+            }
+
+
             audio_play_sound(
                 snd_shineselect,
                 10,
@@ -517,3 +528,5 @@ else if (state == 1)
         }
     }
 }
+
+

@@ -1,3 +1,4 @@
+
 // =========================================================
 // OBJ_TITLE
 // EVENTO: INICIO DEL JUEGO
@@ -11,6 +12,25 @@
 // Carga el idioma guardado en idioma_config.ini.
 // Si no existe configuración, utiliza español.
 scr_loc_init();
+
+
+// =========================================================
+// MÚSICA DEL MENÚ PRINCIPAL
+// =========================================================
+//
+// Al entrar al título, dejamos únicamente mus_menu sonando.
+// =========================================================
+
+if (audio_exists(mus_menu))
+{
+    scr_save_stop_all_music();
+
+    audio_play_sound(
+        mus_menu,
+        10,
+        true
+    );
+}
 
 // =========================================================
 // SISTEMA DE SPRITES TRADUCIBLES
@@ -208,3 +228,5 @@ if (global.start_room == 3) {
     global.start_room = huevo;
 
 }
+
+

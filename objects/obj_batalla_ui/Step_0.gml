@@ -523,23 +523,149 @@ if (draw_char < text_length) {
 
                 if (_toy_data_use != undefined) {
                     var _toy_aplicado = false;
-                    if (variable_struct_exists(_toy_data_use, "efecto")) {
-                        _toy_aplicado = _toy_data_use.efecto(_en_sel, _toy_data_use);
+
+
+                    // =================================================
+                    // APLICAR SOBRE EL ENEMIGO REAL DEL CONTROLLER
+                    // =================================================
+                    //
+                    // El turno enemigo y sus estados viven en
+                    // obj_batalla_controller.enemigos.
+                    //
+                    // Antes se aplicaba el Toy sobre la referencia
+                    // local de obj_batalla_ui; ahora modificamos
+                    // directamente la fuente que ejecuta el turno.
+                    // =================================================
+
+                    var _battle_controller =
+                        instance_find(
+                            obj_batalla_controller,
+                            0
+                        );
+
+
+                    var _target_enemy =
+                        _en_sel;
+
+
+                    if (
+                        _battle_controller != noone
+                        &&
+                        variable_instance_exists(
+                            _battle_controller,
+                            "enemigos"
+                        )
+                        &&
+                        enemigo_seleccionado_idx >= 0
+                        &&
+                        enemigo_seleccionado_idx
+                        <
+                        array_length(_battle_controller.enemigos)
+                    )
+                    {
+                        _target_enemy =
+                            _battle_controller.enemigos[
+                                enemigo_seleccionado_idx
+                            ];
                     }
+
+
+                    if (
+                        is_struct(_target_enemy)
+                        &&
+                        variable_struct_exists(
+                            _toy_data_use,
+                            "efecto"
+                        )
+                    )
+                    {
+                        _toy_aplicado =
+                            _toy_data_use.efecto(
+                                _target_enemy,
+                                _toy_data_use
+                            );
+                    }
+
 
                     if (_toy_aplicado) {
-                        var _texto_toy = scr_locf("* Usaste {toy} en {enemy}!", { toy: scr_loc(_toy_data_use.nombre), enemy: scr_loc(_en_sel.nombre) });
-                        f_procesar_dialogo(_texto_toy);
 
-                    if (variable_global_exists("toy_inventory") && toy_selected_slot >= 0 && toy_selected_slot < array_length(global.toy_inventory)) {
-                        global.toy_inventory[toy_selected_slot] = -1;
-                    }
+                        // Guardar explícitamente el estado en controller.
+                        if (
+                            _battle_controller != noone
+                            &&
+                            enemigo_seleccionado_idx >= 0
+                            &&
+                            enemigo_seleccionado_idx
+                            <
+                            array_length(_battle_controller.enemigos)
+                        )
+                        {
+                            _battle_controller.enemigos[
+                                enemigo_seleccionado_idx
+                            ] =
+                                _target_enemy;
 
-                    toy_selected_key = -1;
-                    toy_selected_slot = -1;
-                    en_seleccion_enemigo = false;
-                    en_resultado_ataque = true;
-                    audio_play_sound(snd_menumove, 10, false);
+                            enemigos =
+                                _battle_controller.enemigos;
+                        }
+
+
+                        var _texto_toy =
+                            scr_locf(
+                                "* Usaste {toy} en {enemy}!",
+                                {
+                                    toy:
+                                        scr_loc(_toy_data_use.nombre),
+
+                                    enemy:
+                                        scr_loc(_target_enemy.nombre)
+                                }
+                            );
+
+                        f_procesar_dialogo(
+                            _texto_toy
+                        );
+
+
+                        if (
+                            variable_global_exists("toy_inventory")
+                            &&
+                            toy_selected_slot >= 0
+                            &&
+                            toy_selected_slot
+                            <
+                            array_length(global.toy_inventory)
+                        )
+                        {
+                            global.toy_inventory[
+                                toy_selected_slot
+                            ] =
+                                -1;
+
+
+                            if (
+                                variable_global_exists("inventory_data")
+                                &&
+                                is_struct(global.inventory_data)
+                            )
+                            {
+                                global.inventory_data.toys =
+                                    global.toy_inventory;
+                            }
+                        }
+
+
+                        toy_selected_key = -1;
+                        toy_selected_slot = -1;
+                        en_seleccion_enemigo = false;
+                        en_resultado_ataque = true;
+
+                        audio_play_sound(
+                            snd_menumove,
+                            10,
+                            false
+                        );
+
                     } else {
                         if (audio_is_playing(snd_error)) audio_stop_sound(snd_error);
                         audio_play_sound(snd_error, 10, false);

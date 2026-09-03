@@ -19,6 +19,12 @@ scr_item_db();
 // Equipamiento
 scr_equips_data();
 
+// Toys
+scr_toys_data();
+
+// Party
+scr_party_init();
+
 // =========================================================
 // AUTO-CORRER
 // =========================================================

@@ -85,7 +85,8 @@ function scr_shop_talk_option(
 
 function scr_shop_stock(
     _tipo,
-    _id
+    _id,
+    _color_nombre = noone
 )
 {
     return {
@@ -93,7 +94,12 @@ function scr_shop_stock(
             _tipo,
 
         id:
-            _id
+            _id,
+
+        // noone = usar color_tienda del objeto o blanco.
+        // Ejemplo: scr_shop_stock("item", "manzana", c_red)
+        color_nombre:
+            _color_nombre
     };
 }
 
@@ -176,6 +182,7 @@ function scr_shop_data(_shop_id)
 
                 items_venta:
                 [
+                    // Consumibles.
                     scr_shop_stock(
                         "item",
                         "agua"
@@ -187,10 +194,51 @@ function scr_shop_data(_shop_id)
                     ),
 
                     scr_shop_stock(
+                        "item",
+                        "manzana_caramelo"
+                    ),
+
+                    scr_shop_stock(
+                        "item",
+                        "mandarina"
+                    ),
+
+                    scr_shop_stock(
+                        "item",
+                        "pastillas_curacion"
+                    ),
+
+
+                    // Toys.
+                    scr_shop_stock(
+                        "toy",
+                        "brillitos"
+                    ),
+
+                    scr_shop_stock(
+                        "toy",
+                        "pegamento"
+                    ),
+
+
+                    // Armas.
+                    scr_shop_stock(
                         "equip",
                         "espada_basica"
                     ),
 
+                    scr_shop_stock(
+                        "equip",
+                        "cuchillo"
+                    ),
+
+                    scr_shop_stock(
+                        "equip",
+                        "cutter"
+                    ),
+
+
+                    // Armadura.
                     scr_shop_stock(
                         "equip",
                         "armadura_basica"

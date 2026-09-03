@@ -1,3 +1,4 @@
+
 /// =========================================================
 /// OBJ_BUTTONS
 /// STEP
@@ -410,6 +411,15 @@ if (_confirmar)
 
     if (_seleccion == 0)
     {
+        // La partida comienza: quitar música del título.
+        if (audio_exists(mus_menu))
+        {
+            audio_stop_sound(
+                mus_menu
+            );
+        }
+
+
         audio_play_sound(
             snd_shineselect,
             10,
@@ -514,3 +524,4 @@ if (_confirmar)
         exit;
     }
 }
+

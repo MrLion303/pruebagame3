@@ -14,10 +14,10 @@
 ///
 /// icono_tienda:
 ///     Sprite que SOLO usa obj_shop_controller.
-///     No lo usa el inventario normal ni el cofre.
 ///
-/// icono:
-///     Se conserva por compatibilidad con el sistema anterior.
+/// curacion_hp:
+///     Cantidad de HP que recupera el consumible.
+///     La tienda usa este valor para mostrar "HP +N".
 /// =========================================================
 
 function scr_item_db()
@@ -25,7 +25,7 @@ function scr_item_db()
     global.item_db =
     {
         // =================================================
-        // AGUA
+        // VASO DE AGUA
         // =================================================
 
         agua:
@@ -43,29 +43,21 @@ function scr_item_db()
             tipo:
                 "consumible",
 
-
-            // ---------------------------------------------
-            // TIENDA
-            // ---------------------------------------------
-
             precio_compra:
                 20,
 
             precio_venta:
                 10,
 
-            // Pon aquí, por ejemplo:
-            //
-            // icono_tienda: spr_shop_agua
-            //
-            // -1 significa que no se dibuja icono.
             icono_tienda:
                 -1,
 
+            // noone = color normal. Ej.: c_aqua, c_red, etc.
+            color_tienda:
+                noone,
 
-            // ---------------------------------------------
-            // EFECTO
-            // ---------------------------------------------
+            curacion_hp:
+                10,
 
             efecto:
                 function()
@@ -89,9 +81,6 @@ function scr_item_db()
                     );
                 },
 
-
-            // Campo antiguo.
-            // La tienda NO utiliza este campo.
             icono:
                 -1
         },
@@ -116,25 +105,21 @@ function scr_item_db()
             tipo:
                 "consumible",
 
-
-            // ---------------------------------------------
-            // TIENDA
-            // ---------------------------------------------
-
             precio_compra:
                 40,
 
             precio_venta:
                 20,
 
-            // Pon aquí el sprite exclusivo de tienda.
             icono_tienda:
                 -1,
 
+            // noone = color normal. Ej.: c_aqua, c_red, etc.
+            color_tienda:
+                noone,
 
-            // ---------------------------------------------
-            // EFECTO
-            // ---------------------------------------------
+            curacion_hp:
+                20,
 
             efecto:
                 function()
@@ -158,6 +143,191 @@ function scr_item_db()
                     );
                 },
 
+            icono:
+                -1
+        },
+
+
+        // =================================================
+        // MANZANA CARAMELO
+        // =================================================
+
+        manzana_caramelo:
+        {
+            nombre:
+                scr_loc_src(
+                    "Manzana Caramelo"
+                ),
+
+            descripcion:
+                scr_loc_src(
+                    "Dulce por fuera y crujiente por dentro."
+                ),
+
+            tipo:
+                "consumible",
+
+            precio_compra:
+                70,
+
+            precio_venta:
+                35,
+
+            icono_tienda:
+                -1,
+
+            // noone = color normal. Ej.: c_aqua, c_red, etc.
+            color_tienda:
+                noone,
+
+            curacion_hp:
+                30,
+
+            efecto:
+                function()
+                {
+                    var _p =
+                        obj_player;
+
+                    if (instance_exists(_p))
+                    {
+                        _p.hp =
+                            min(
+                                _p.hp_max,
+                                _p.hp + 30
+                            );
+                    }
+
+                    audio_play_sound(
+                        snd_health,
+                        10,
+                        false
+                    );
+                },
+
+            icono:
+                -1
+        },
+
+
+        // =================================================
+        // MANDARINA
+        // =================================================
+
+        mandarina:
+        {
+            nombre:
+                scr_loc_src(
+                    "Mandarina"
+                ),
+
+            descripcion:
+                scr_loc_src(
+                    "Pequeña, cítrica y refrescante."
+                ),
+
+            tipo:
+                "consumible",
+
+            precio_compra:
+                30,
+
+            precio_venta:
+                15,
+
+            icono_tienda:
+                -1,
+
+            // noone = color normal. Ej.: c_aqua, c_red, etc.
+            color_tienda:
+                noone,
+
+            curacion_hp:
+                15,
+
+            efecto:
+                function()
+                {
+                    var _p =
+                        obj_player;
+
+                    if (instance_exists(_p))
+                    {
+                        _p.hp =
+                            min(
+                                _p.hp_max,
+                                _p.hp + 15
+                            );
+                    }
+
+                    audio_play_sound(
+                        snd_health,
+                        10,
+                        false
+                    );
+                },
+
+            icono:
+                -1
+        },
+
+
+        // =================================================
+        // PASTILLAS CURACIÓN
+        // =================================================
+
+        pastillas_curacion:
+        {
+            nombre:
+                scr_loc_src(
+                    "Pastillas Curación"
+                ),
+
+            descripcion:
+                scr_loc_src(
+                    "Pastillas que ayudan a recuperar energía."
+                ),
+
+            tipo:
+                "consumible",
+
+            precio_compra:
+                120,
+
+            precio_venta:
+                60,
+
+            icono_tienda:
+                -1,
+
+            // noone = color normal. Ej.: c_aqua, c_red, etc.
+            color_tienda:
+                noone,
+
+            curacion_hp:
+                50,
+
+            efecto:
+                function()
+                {
+                    var _p =
+                        obj_player;
+
+                    if (instance_exists(_p))
+                    {
+                        _p.hp =
+                            min(
+                                _p.hp_max,
+                                _p.hp + 50
+                            );
+                    }
+
+                    audio_play_sound(
+                        snd_health,
+                        10,
+                        false
+                    );
+                },
 
             icono:
                 -1

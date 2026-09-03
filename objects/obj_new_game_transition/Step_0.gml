@@ -28,6 +28,10 @@ if (fase == 0)
         global.new_game = true;
 
 
+        // Nueva partida = party vacía.
+        scr_party_reset();
+
+
         global.start_room = destino_room;
         global.start_x = destino_x;
         global.start_y = destino_y;

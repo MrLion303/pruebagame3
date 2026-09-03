@@ -3,15 +3,6 @@
 /// =========================================================
 ///
 /// Base de datos de armas y armaduras.
-///
-/// CAMPOS DE TIENDA:
-///
-/// precio_compra
-/// precio_venta
-/// icono_tienda
-///
-/// icono_tienda SOLO es leído por la tienda.
-/// No altera EQUIP, cofre ni inventario.
 /// =========================================================
 
 function scr_equips_data()
@@ -19,14 +10,18 @@ function scr_equips_data()
     global.equip_db =
     {
         // =================================================
-        // ESPADA BÁSICA
+        // PALO
+        // =================================================
+        //
+        // Se conserva el ID espada_basica para no romper
+        // guardados anteriores; solo cambia el nombre visible.
         // =================================================
 
         espada_basica:
         {
             nombre:
                 scr_loc_src(
-                    "Espada palo"
+                    "Palo"
                 ),
 
             tipo:
@@ -40,13 +35,8 @@ function scr_equips_data()
 
             descripcion:
                 scr_loc_src(
-                    "Una espada de madera inofensiva."
+                    "Un palo de madera sencillo."
                 ),
-
-
-            // ---------------------------------------------
-            // TIENDA
-            // ---------------------------------------------
 
             precio_compra:
                 100,
@@ -54,22 +44,108 @@ function scr_equips_data()
             precio_venta:
                 50,
 
-            // Ejemplo:
-            // icono_tienda: spr_shop_espada_palo
             icono_tienda:
-                -1
+                -1,
+
+            // noone = color normal. Ej.: c_aqua, c_red, etc.
+            color_tienda:
+                noone
         },
 
 
         // =================================================
-        // ARMADURA BÁSICA
+        // CUCHILLO
+        // =================================================
+
+        cuchillo:
+        {
+            nombre:
+                scr_loc_src(
+                    "Cuchillo"
+                ),
+
+            tipo:
+                "arma",
+
+            ataque:
+                5,
+
+            defensa:
+                0,
+
+            descripcion:
+                scr_loc_src(
+                    "Un cuchillo afilado."
+                ),
+
+            precio_compra:
+                160,
+
+            precio_venta:
+                80,
+
+            icono_tienda:
+                -1,
+
+            // noone = color normal. Ej.: c_aqua, c_red, etc.
+            color_tienda:
+                noone
+        },
+
+
+        // =================================================
+        // CUTTER
+        // =================================================
+
+        cutter:
+        {
+            nombre:
+                scr_loc_src(
+                    "Cutter"
+                ),
+
+            tipo:
+                "arma",
+
+            ataque:
+                7,
+
+            defensa:
+                0,
+
+            descripcion:
+                scr_loc_src(
+                    "Una herramienta con una hoja retráctil."
+                ),
+
+            precio_compra:
+                220,
+
+            precio_venta:
+                110,
+
+            icono_tienda:
+                -1,
+
+            // noone = color normal. Ej.: c_aqua, c_red, etc.
+            color_tienda:
+                noone
+        },
+
+
+        // =================================================
+        // PIJAMA
+        // =================================================
+        //
+        // Se conserva el ID armadura_basica para no romper
+        // guardados anteriores; solo cambia el nombre visible.
         // =================================================
 
         armadura_basica:
         {
             nombre:
                 scr_loc_src(
-                    "Ropa vieja"
+                    "Pijama"
                 ),
 
             tipo:
@@ -83,13 +159,8 @@ function scr_equips_data()
 
             descripcion:
                 scr_loc_src(
-                    "Te protege un poco del frio."
+                    "Un pijama cómodo."
                 ),
-
-
-            // ---------------------------------------------
-            // TIENDA
-            // ---------------------------------------------
 
             precio_compra:
                 80,
@@ -97,10 +168,12 @@ function scr_equips_data()
             precio_venta:
                 40,
 
-            // Ejemplo:
-            // icono_tienda: spr_shop_ropa_vieja
             icono_tienda:
-                -1
+                -1,
+
+            // noone = color normal. Ej.: c_aqua, c_red, etc.
+            color_tienda:
+                noone
         }
     };
 }

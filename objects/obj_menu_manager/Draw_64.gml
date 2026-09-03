@@ -1,3 +1,4 @@
+
 var _room_actual = room_get_name(room);
 if (_room_actual == "bbs" || _room_actual == "rm_title") {
     exit; 
@@ -19,7 +20,7 @@ var m_x = gui_x + 16;
 var m_y = gui_y + 16;
 var m_w = 130;
 var m_h = 308;
-draw_sprite_stretched(spr_textbox, 0, m_x, m_y, m_w, m_h);
+draw_sprite_stretched(spr_textbox, scr_ui_box_frame(spr_textbox), m_x, m_y, m_w, m_h);
 
 draw_set_halign(fa_left); 
 for (var i = 0; i < array_length(main_options); i++) {
@@ -35,7 +36,7 @@ if (state == MENU_STATE.GAME_CLOSE_CONFIRM) {
     var close_box_x = m_x + m_w + 12;
     var close_box_y = gui_y + (gui_h / 2) - (close_box_h / 2);
     
-    draw_sprite_stretched(spr_textbox, 0, close_box_x, close_box_y, close_box_w, close_box_h);
+    draw_sprite_stretched(spr_textbox, scr_ui_box_frame(spr_textbox), close_box_x, close_box_y, close_box_w, close_box_h);
     
     draw_set_halign(fa_center);
     draw_set_color(c_yellow);
@@ -64,7 +65,7 @@ else if (state == MENU_STATE.INFO_MENU) {
     // para dejar espacio a la moneda SO debajo de la armadura.
     var info_box_h = m_h + 55;
     
-    draw_sprite_stretched(spr_textbox, 0, info_box_x, info_box_y, info_box_w, info_box_h);
+    draw_sprite_stretched(spr_textbox, scr_ui_box_frame(spr_textbox), info_box_x, info_box_y, info_box_w, info_box_h);
     
     var sx = info_box_x + 24;
     var sy = info_box_y + 24;
@@ -163,7 +164,7 @@ else if (state >= MENU_STATE.INVENTORY && state <= MENU_STATE.ITEM_DROP_CONFIRM)
     var inv_box_w = 346;
     var inv_box_h = m_h;
     
-    draw_sprite_stretched(spr_textbox, 0, inv_box_x, inv_box_y, inv_box_w, inv_box_h);
+    draw_sprite_stretched(spr_textbox, scr_ui_box_frame(spr_textbox), inv_box_x, inv_box_y, inv_box_w, inv_box_h);
     
     var start_x = inv_box_x + 24;
     var start_y = inv_box_y + 20;
@@ -211,7 +212,7 @@ else if (state >= MENU_STATE.INVENTORY && state <= MENU_STATE.ITEM_DROP_CONFIRM)
     var box_inf_w = 314;
     var box_inf_h = 115;
     
-    draw_sprite_stretched(spr_textbox, 0, box_inf_x, box_inf_y, box_inf_w, box_inf_h);
+    draw_sprite_stretched(spr_textbox, scr_ui_box_frame(spr_textbox), box_inf_x, box_inf_y, box_inf_w, box_inf_h);
     
     if (state == MENU_STATE.ITEM_ACTION) {
         for (var a = 0; a < array_length(action_options); a++) {
@@ -232,6 +233,59 @@ else if (state >= MENU_STATE.INVENTORY && state <= MENU_STATE.ITEM_DROP_CONFIRM)
             draw_text(box_inf_x + 16, box_inf_y + 16, scr_loc(item_info.nombre));
             draw_set_color(c_white);
             draw_text_ext(box_inf_x + 16, box_inf_y + 45, scr_loc(item_info.descripcion), 25, 280);
+
+
+            // =================================================
+            // CAJA EXTRA DE ESTADÍSTICA DEL CONSUMIBLE
+            // =================================================
+
+            // Debajo del panel GRANDE del inventario,
+            // alineado exactamente con su borde izquierdo.
+            var _item_stat_x =
+                inv_box_x;
+
+            var _item_stat_y =
+                inv_box_y + inv_box_h + 8;
+
+            var _item_stat_w =
+                inv_box_w;
+
+            var _item_stat_h =
+                48;
+
+
+            draw_sprite_stretched(
+                spr_textbox,
+        scr_ui_box_frame(spr_textbox),
+                _item_stat_x,
+                _item_stat_y,
+                _item_stat_w,
+                _item_stat_h
+            );
+
+
+            var _item_hp =
+                (
+                    variable_struct_exists(
+                        item_info,
+                        "curacion_hp"
+                    )
+                )
+                ?
+                item_info.curacion_hp
+                :
+                0;
+
+
+            draw_set_color(
+                c_yellow
+            );
+
+            draw_text(
+                _item_stat_x + 16,
+                _item_stat_y + 14,
+                "HP +" + string(_item_hp)
+            );
         }
     }
     else if (state == MENU_STATE.ITEM_DROP_CONFIRM) {
@@ -274,7 +328,7 @@ else if (state >= MENU_STATE.TOY_MENU && state <= MENU_STATE.TOY_DROP_CONFIRM) {
     var toy_box_w = 346;
     var toy_box_h = m_h;
 
-    draw_sprite_stretched(spr_textbox, 0, toy_box_x, toy_box_y, toy_box_w, toy_box_h);
+    draw_sprite_stretched(spr_textbox, scr_ui_box_frame(spr_textbox), toy_box_x, toy_box_y, toy_box_w, toy_box_h);
 
     var toy_start_x = toy_box_x + 24;
     var toy_start_y = toy_box_y + 20;
@@ -332,7 +386,7 @@ else if (state >= MENU_STATE.TOY_MENU && state <= MENU_STATE.TOY_DROP_CONFIRM) {
     var toy_inf_w = 314;
     var toy_inf_h = 115;
 
-    draw_sprite_stretched(spr_textbox, 0, toy_inf_x, toy_inf_y, toy_inf_w, toy_inf_h);
+    draw_sprite_stretched(spr_textbox, scr_ui_box_frame(spr_textbox), toy_inf_x, toy_inf_y, toy_inf_w, toy_inf_h);
 
     var toy_info_index = (toy_y + toy_scroll) * 3 + toy_x;
     var toy_info_key = -1;
@@ -397,7 +451,7 @@ else if (state >= MENU_STATE.EQUIP_MENU && state <= MENU_STATE.EQUIP_DROP_CONFIR
     var eq_box_w = 346;
     var eq_box_h = m_h;
     
-    draw_sprite_stretched(spr_textbox, 0, eq_box_x, eq_box_y, eq_box_w, eq_box_h);
+    draw_sprite_stretched(spr_textbox, scr_ui_box_frame(spr_textbox), eq_box_x, eq_box_y, eq_box_w, eq_box_h);
     
     var start_x = eq_box_x + 24;
     var start_y = eq_box_y + 20;
@@ -445,7 +499,7 @@ else if (state >= MENU_STATE.EQUIP_MENU && state <= MENU_STATE.EQUIP_DROP_CONFIR
     var box_inf_w = 314;
     var box_inf_h = 115;
     
-    draw_sprite_stretched(spr_textbox, 0, box_inf_x, box_inf_y, box_inf_w, box_inf_h);
+    draw_sprite_stretched(spr_textbox, scr_ui_box_frame(spr_textbox), box_inf_x, box_inf_y, box_inf_w, box_inf_h);
     
     if (state == MENU_STATE.EQUIP_ACTION) {
         for (var a = 0; a < array_length(equip_action_options); a++) {
@@ -465,6 +519,106 @@ else if (state >= MENU_STATE.EQUIP_MENU && state <= MENU_STATE.EQUIP_DROP_CONFIR
         draw_text(box_inf_x + 16, box_inf_y + 16, scr_loc(eq_info.nombre));
         draw_set_color(c_white);
         draw_text_ext(box_inf_x + 16, box_inf_y + 45, scr_loc(eq_info.descripcion), 25, 280);
+
+
+        // =====================================================
+        // CAJA EXTRA DE ESTADÍSTICAS DEL EQUIPO
+        // =====================================================
+
+        // Debajo del panel GRANDE de EQUIP,
+        // alineado exactamente con su borde izquierdo.
+        var _eq_stat_x =
+            eq_box_x;
+
+        var _eq_stat_y =
+            eq_box_y + eq_box_h + 8;
+
+        var _eq_stat_w =
+            eq_box_w;
+
+        var _eq_stat_h =
+            48;
+
+
+        draw_sprite_stretched(
+            spr_textbox,
+        scr_ui_box_frame(spr_textbox),
+            _eq_stat_x,
+            _eq_stat_y,
+            _eq_stat_w,
+            _eq_stat_h
+        );
+
+
+        var _eq_at =
+            (
+                variable_struct_exists(
+                    eq_info,
+                    "ataque"
+                )
+            )
+            ?
+            eq_info.ataque
+            :
+            0;
+
+        var _eq_df =
+            (
+                variable_struct_exists(
+                    eq_info,
+                    "defensa"
+                )
+            )
+            ?
+            eq_info.defensa
+            :
+            0;
+
+
+        var _eq_stat_text =
+            "";
+
+
+        if (_eq_at > 0)
+        {
+            _eq_stat_text =
+                "AT +" + string(_eq_at);
+        }
+
+
+        if (_eq_df > 0)
+        {
+            if (_eq_stat_text != "")
+            {
+                _eq_stat_text +=
+                    "    ";
+            }
+
+            _eq_stat_text +=
+                "DEF +" + string(_eq_df);
+        }
+
+
+        if (_eq_stat_text == "")
+        {
+            _eq_stat_text =
+                scr_loc(
+                    scr_loc_src(
+                        "Sin bonificacion"
+                    )
+                );
+        }
+
+
+        draw_set_color(
+            c_yellow
+        );
+
+        draw_text(
+            _eq_stat_x + 16,
+            _eq_stat_y + 14,
+            _eq_stat_text
+        );
     }
     else if (state == MENU_STATE.EQUIP_DROP_CONFIRM) {
         draw_set_halign(fa_center);
@@ -503,7 +657,7 @@ else if (state == MENU_STATE.CONFIG_MENU || state == MENU_STATE.CONFIG_ACTION) {
     var cfg_box_w = 346;
     var cfg_box_h = m_h;
     
-    draw_sprite_stretched(spr_textbox, 0, cfg_box_x, cfg_box_y, cfg_box_w, cfg_box_h);
+    draw_sprite_stretched(spr_textbox, scr_ui_box_frame(spr_textbox), cfg_box_x, cfg_box_y, cfg_box_w, cfg_box_h);
     
     var is_on_tabs = (state == MENU_STATE.CONFIG_MENU);
     
@@ -551,3 +705,4 @@ else if (state == MENU_STATE.CONFIG_MENU || state == MENU_STATE.CONFIG_ACTION) {
 
 draw_set_halign(fa_left);
 draw_set_color(c_white);
+

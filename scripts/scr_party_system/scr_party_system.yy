@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"scr_party_system",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"scr_party_system",
+  "parent":{
+    "name":"Jugador",
+    "path":"folders/Jugador.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

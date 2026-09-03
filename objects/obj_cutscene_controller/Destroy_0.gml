@@ -132,6 +132,11 @@ if (instance_exists(obj_player))
 
 if (cutscene_finished)
 {
+    // Devolver el follow automático a cualquier miembro que
+    // haya sido movido de forma individual por esta cinemática.
+    scr_party_release_cutscene_control();
+
+
     global.cutscene_active = false;
     global.cutscene_player_can_move = false;
 }

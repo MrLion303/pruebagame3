@@ -189,34 +189,6 @@ if (state == SHOP_TOP)
     }
 
 
-    // Mientras solo estamos pasando por las pestañas,
-    // VENDER debe previsualizar el inventario ACTUAL.
-    if (top_index == 1)
-    {
-        sell_list =
-            scr_shop_build_sell_list();
-
-
-        if (array_length(sell_list) <= 0)
-        {
-            sell_index =
-                0;
-
-            sell_scroll =
-                0;
-        }
-        else
-        {
-            sell_index =
-                clamp(
-                    sell_index,
-                    0,
-                    array_length(sell_list) - 1
-                );
-        }
-    }
-
-
     if (_confirm)
     {
         switch (top_index)
@@ -251,8 +223,9 @@ if (state == SHOP_TOP)
 
             case 1:
 
-                sell_list =
-                    scr_shop_build_sell_list();
+                // Primero elegimos qué clase de objeto vender.
+                sell_type_index =
+                    0;
 
                 sell_index =
                     0;
@@ -260,8 +233,11 @@ if (state == SHOP_TOP)
                 sell_scroll =
                     0;
 
+                sell_list =
+                    [];
+
                 state =
-                    SHOP_SELL;
+                    SHOP_SELL_TYPE;
 
                 audio_play_sound(
                     snd_menumove,
@@ -396,30 +372,70 @@ if (state == SHOP_TOP)
 
 
 // =========================================================
-// BACK GENERAL DE SUBMENÚS
+// BACK / VOLVER
 // =========================================================
 //
-// No se permite cancelar la despedida una vez iniciada.
+// VENDER lista -> selector de categoría.
+// Selector de categoría -> pestañas.
+// El resto de submenús -> pestañas.
+// No se cancela un diálogo ya iniciado.
 // =========================================================
 
-if (
-    state != SHOP_TALK_DIALOG
-    &&
-    state != SHOP_EXIT_DIALOG
-    &&
-    _back
-)
+if (_back)
 {
-    state =
-        SHOP_TOP;
+    if (state == SHOP_SELL)
+    {
+        state =
+            SHOP_SELL_TYPE;
 
-    audio_play_sound(
-        snd_menumove,
-        10,
-        false
-    );
+        sell_index =
+            0;
 
-    exit;
+        sell_scroll =
+            0;
+
+        audio_play_sound(
+            snd_menumove,
+            10,
+            false
+        );
+
+        exit;
+    }
+
+
+    if (state == SHOP_SELL_TYPE)
+    {
+        state =
+            SHOP_TOP;
+
+        audio_play_sound(
+            snd_menumove,
+            10,
+            false
+        );
+
+        exit;
+    }
+
+
+    if (
+        state != SHOP_TALK_DIALOG
+        &&
+        state != SHOP_EXIT_DIALOG
+    )
+    {
+        state =
+            SHOP_TOP;
+
+        audio_play_sound(
+            snd_menumove,
+            10,
+            false
+        );
+
+        exit;
+    }
 }
 
 
@@ -665,10 +681,131 @@ if (state == SHOP_BUY)
                 }
             );
 
-        // -1 = persistente. Solo cambia al comprar otra cosa
-        // o al moverse a otra pestaña.
+        // 30 frames = 1 segundo a 30 FPS.
         shop_message_timer =
-            -1;
+            30;
+    }
+
+
+    exit;
+}
+
+
+// =========================================================
+// VENDER - ELEGIR TIPO
+// =========================================================
+
+if (state == SHOP_SELL_TYPE)
+{
+    var _count =
+        array_length(sell_type_options);
+
+
+    if (_up)
+    {
+        sell_type_index =
+            max(
+                0,
+                sell_type_index - 1
+            );
+
+        audio_play_sound(
+            snd_menumove,
+            10,
+            false
+        );
+    }
+
+
+    if (_down)
+    {
+        sell_type_index =
+            min(
+                _count - 1,
+                sell_type_index + 1
+            );
+
+        audio_play_sound(
+            snd_menumove,
+            10,
+            false
+        );
+    }
+
+
+    if (_confirm)
+    {
+        var _candidate_category =
+            sell_type_keys[
+                sell_type_index
+            ];
+
+
+        var _candidate_list =
+            scr_shop_build_sell_list(
+                _candidate_category
+            );
+
+
+        // -------------------------------------------------
+        // CATEGORÍA VACÍA
+        // -------------------------------------------------
+        //
+        // No entramos a una lista vacía.
+        // Permanecemos en el selector y suena snd_error.
+        // -------------------------------------------------
+
+        if (
+            array_length(
+                _candidate_list
+            )
+            <=
+            0
+        )
+        {
+            if (
+                audio_is_playing(
+                    snd_error
+                )
+            )
+            {
+                audio_stop_sound(
+                    snd_error
+                );
+            }
+
+
+            audio_play_sound(
+                snd_error,
+                10,
+                false
+            );
+
+
+            exit;
+        }
+
+
+        sell_category =
+            _candidate_category;
+
+        sell_list =
+            _candidate_list;
+
+        sell_index =
+            0;
+
+        sell_scroll =
+            0;
+
+        state =
+            SHOP_SELL;
+
+        audio_play_sound(
+            snd_menumove,
+            10,
+            false
+        );
     }
 
 
@@ -682,8 +819,44 @@ if (state == SHOP_BUY)
 
 if (state == SHOP_SELL)
 {
+    // =====================================================
+    // VALIDAR CATEGORÍA ACTUAL
+    // =====================================================
+
+    if (
+        sell_category != "item"
+        &&
+        sell_category != "toy"
+        &&
+        sell_category != "arma"
+        &&
+        sell_category != "armadura"
+    )
+    {
+        sell_category =
+            "item";
+
+        sell_type_index =
+            0;
+
+        sell_index =
+            0;
+
+        sell_scroll =
+            0;
+
+        state =
+            SHOP_SELL_TYPE;
+
+        exit;
+    }
+
+
+    // Reconstruimos SOLAMENTE la categoría seleccionada.
     sell_list =
-        scr_shop_build_sell_list();
+        scr_shop_build_sell_list(
+            sell_category
+        );
 
 
     var _count =
@@ -820,7 +993,8 @@ if (state == SHOP_SELL)
         if (
             scr_shop_inventory_remove(
                 _entry.tipo,
-                _entry.id
+                _entry.id,
+                _entry.slot
             )
         )
         {
@@ -854,7 +1028,9 @@ if (state == SHOP_SELL)
 
 
             sell_list =
-                scr_shop_build_sell_list();
+                scr_shop_build_sell_list(
+                    sell_category
+                );
 
 
             if (

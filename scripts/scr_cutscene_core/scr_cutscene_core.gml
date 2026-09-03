@@ -55,6 +55,9 @@ enum CS_ACTION
     CALL,
     WAIT_UNTIL,
 
+    PARTY_JOIN,
+    PARTY_LEAVE,
+
     BATTLE,
 
     END,
@@ -244,6 +247,29 @@ function scr_cutscene_actor(_name)
 
     scr_cutscene_registry_init();
 
+    // Miembro activo de la party.
+    if (
+        is_string(_name)
+        &&
+        scr_party_has(_name)
+    )
+    {
+        var _party_actor =
+            scr_party_get_instance(
+                _name
+            );
+
+        if (
+            _party_actor != noone
+            &&
+            instance_exists(_party_actor)
+        )
+        {
+            return _party_actor;
+        }
+    }
+
+
     if (
         is_string(_name)
         &&
@@ -262,6 +288,28 @@ function scr_cutscene_actor(_name)
         if (instance_exists(_actor))
             return _actor;
     }
+
+
+    // NPC colocado en el room con un party_id.
+    // Esto permite usar cs_party_join("maya")
+    // sin haberlo creado previamente con cs_spawn().
+    if (is_string(_name))
+    {
+        var _world_actor =
+            scr_party_find_world_actor(
+                _name
+            );
+
+        if (
+            _world_actor != noone
+            &&
+            instance_exists(_world_actor)
+        )
+        {
+            return _world_actor;
+        }
+    }
+
 
     return noone;
 }
@@ -851,6 +899,56 @@ function cs_wait_until(_func)
         func: _func
     };
 }
+
+// =========================================================
+// PARTY
+// =========================================================
+//
+// Unir:
+//     cs_party_join("maya")
+//
+// Sacar, pero dejar como NPC:
+//     cs_party_leave("maya")
+//
+// Sacar y destruir/desaparecer:
+//     cs_party_leave("maya", true)
+// =========================================================
+
+function cs_party_join(
+    _actor,
+    _party_id = ""
+)
+{
+    return {
+        type:
+            CS_ACTION.PARTY_JOIN,
+
+        actor:
+            _actor,
+
+        party_id:
+            _party_id
+    };
+}
+
+
+function cs_party_leave(
+    _actor,
+    _destroy_actor = false
+)
+{
+    return {
+        type:
+            CS_ACTION.PARTY_LEAVE,
+
+        actor:
+            _actor,
+
+        destroy_actor:
+            _destroy_actor
+    };
+}
+
 
 function cs_battle(_enemy_id)
 {

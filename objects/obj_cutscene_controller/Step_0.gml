@@ -432,91 +432,216 @@ switch (_action.type)
     // =====================================================
     // DIALOG
     // =====================================================
+    //
+    // Los CS_ACTION.DIALOG consecutivos se agrupan como
+    // PÁGINAS DE LA MISMA obj_textbox.
+    //
+    // Esto evita que la caja desaparezca/reaparezca entre
+    // líneas de una misma cadena de diálogo.
+    // =====================================================
 
     case CS_ACTION.DIALOG:
 
         if (instance_exists(obj_textbox))
             exit;
 
-        var _textbox = noone;
+
+        var _textbox =
+            noone;
+
 
         if (layer_get_id("Instances") != -1)
         {
-            _textbox = instance_create_layer(
-                0,
-                0,
-                "Instances",
-                obj_textbox
-            );
+            _textbox =
+                instance_create_layer(
+                    0,
+                    0,
+                    "Instances",
+                    obj_textbox
+                );
         }
         else
         {
-            _textbox = instance_create_depth(
-                0,
-                0,
-                -100000,
-                obj_textbox
-            );
+            _textbox =
+                instance_create_depth(
+                    0,
+                    0,
+                    -100000,
+                    obj_textbox
+                );
         }
 
-        // Siempre por encima de la imagen cinematográfica.
-        _textbox.depth = -100000;
 
-        var _dialog_text = scr_loc(_action.text);
-        var _dialog_color = _action.color;
-        var _dialog_head = _action.head;
-        var _dialog_sound = _action.snd;
+        // Siempre por encima de la imagen cinematográfica.
+        _textbox.depth =
+            -100000;
+
+
+        // -------------------------------------------------
+        // PREPARAR DATOS EXTRA POR PÁGINA
+        // -------------------------------------------------
 
         with (_textbox)
         {
-            scr_text(
-                _dialog_text,
-                _dialog_color,
-                _dialog_head,
-                _dialog_sound
-            );
+            page_extra_sound =
+                [];
+
+            page_extra_stop =
+                [];
+
+            page_extra_gain =
+                [];
         }
 
+
+        // -------------------------------------------------
+        // AGRUPAR TODOS LOS DIÁLOGOS CONSECUTIVOS
+        // -------------------------------------------------
+
+        var _dialog_scan =
+            action_index;
+
+
+        while (
+            _dialog_scan
+            <
+            array_length(actions)
+        )
+        {
+            var _dialog_action =
+                actions[_dialog_scan];
+
+
+            if (
+                _dialog_action.type
+                !=
+                CS_ACTION.DIALOG
+            )
+            {
+                break;
+            }
+
+
+            var _dialog_text =
+                scr_loc(
+                    _dialog_action.text
+                );
+
+            var _dialog_color =
+                _dialog_action.color;
+
+            var _dialog_head =
+                _dialog_action.head;
+
+            var _dialog_sound =
+                _dialog_action.snd;
+
+            var _dialog_extra =
+                _dialog_action.extra_sound;
+
+            var _dialog_extra_stop =
+                _dialog_action.stop_extra_with_dialog;
+
+            var _dialog_extra_gain =
+                _dialog_action.extra_gain;
+
+
+            var _page_index =
+                _textbox.page_number;
+
+
+            with (_textbox)
+            {
+                scr_text(
+                    _dialog_text,
+                    _dialog_color,
+                    _dialog_head,
+                    _dialog_sound
+                );
+
+
+                if (
+                    array_length(page_extra_sound)
+                    <=
+                    _page_index
+                )
+                {
+                    array_resize(
+                        page_extra_sound,
+                        _page_index + 1
+                    );
+
+                    array_resize(
+                        page_extra_stop,
+                        _page_index + 1
+                    );
+
+                    array_resize(
+                        page_extra_gain,
+                        _page_index + 1
+                    );
+                }
+
+
+                page_extra_sound[_page_index] =
+                    _dialog_extra;
+
+                page_extra_stop[_page_index] =
+                    _dialog_extra_stop;
+
+                page_extra_gain[_page_index] =
+                    _dialog_extra_gain;
+            }
+
+
+            _dialog_scan++;
+        }
+
+
+        // Seguridad.
         if (
-            !variable_instance_exists(_textbox, "text")
+            !variable_instance_exists(
+                _textbox,
+                "text"
+            )
             ||
             !is_array(_textbox.text)
             ||
             array_length(_textbox.text) <= 0
         )
         {
-            _textbox.text = [_dialog_text];
-            _textbox.page_number = 1;
+            _textbox.text =
+                [scr_loc(_action.text)];
+
+            _textbox.page_number =
+                1;
         }
 
-        // Sonido largo opcional, separado del sonido por letra.
-        dialog_extra_sound_instance = -1;
-        dialog_extra_sound_stop_with_dialog = _action.stop_extra_with_dialog;
 
-        if (
-            _action.extra_sound != noone
-            &&
-            audio_exists(_action.extra_sound)
-        )
-        {
-            dialog_extra_sound_instance = audio_play_sound(
-                _action.extra_sound,
-                10,
-                false
-            );
+        // Los sonidos extra ahora los maneja obj_textbox
+        // por página, no este controller.
+        dialog_extra_sound_instance =
+            -1;
 
-            audio_sound_gain(
-                dialog_extra_sound_instance,
-                _action.extra_gain,
-                0
-            );
-        }
+        dialog_extra_sound_stop_with_dialog =
+            true;
 
-        waiting_dialogue = true;
-        dialogue_seen = true;
-        dialogue_grace = 0;
 
-        action_index++;
+        waiting_dialogue =
+            true;
+
+        dialogue_seen =
+            true;
+
+        dialogue_grace =
+            0;
+
+
+        // Saltar todos los DIALOG que ya metimos dentro
+        // de la misma caja.
+        action_index =
+            _dialog_scan;
+
 
         break;
 
@@ -541,6 +666,15 @@ switch (_action.type)
             action_index++;
             break;
         }
+
+        // PARTY:
+        // si este actor pertenece al grupo, la cinemática toma
+        // control individual de él y el follow automático deja
+        // de moverlo hasta terminar la cinemática.
+        scr_party_cutscene_take_control(
+            _actor_new_move
+        );
+
 
         var _target_x;
         var _target_y;
@@ -717,6 +851,10 @@ switch (_action.type)
 
         if (_actor_face != noone)
         {
+            scr_party_cutscene_take_control(
+                _actor_face
+            );
+
             scr_cutscene_face_actor(
                 _actor_face,
                 _action.direction
@@ -738,6 +876,10 @@ switch (_action.type)
 
         if (_actor_tp != noone)
         {
+            scr_party_cutscene_take_control(
+                _actor_tp
+            );
+
             _actor_tp.x = _action.x;
             _actor_tp.y = _action.y;
         }
@@ -757,6 +899,10 @@ switch (_action.type)
 
         if (_actor_sprite != noone)
         {
+            scr_party_cutscene_take_control(
+                _actor_sprite
+            );
+
             if (_actor_sprite.object_index == obj_player)
             {
                 _actor_sprite.cutscene_sprite_override = _action.sprite;
@@ -1088,6 +1234,47 @@ switch (_action.type)
 
 
     // =====================================================
+    // PARTY JOIN
+    // =====================================================
+
+    case CS_ACTION.PARTY_JOIN:
+
+        if (
+            !scr_party_join_actor(
+                _action.actor,
+                _action.party_id
+            )
+        )
+        {
+            show_debug_message(
+                "[CUTSCENE] No se pudo unir a party: "
+                +
+                string(_action.actor)
+            );
+        }
+
+        action_index++;
+
+        break;
+
+
+    // =====================================================
+    // PARTY LEAVE
+    // =====================================================
+
+    case CS_ACTION.PARTY_LEAVE:
+
+        scr_party_leave(
+            _action.actor,
+            _action.destroy_actor
+        );
+
+        action_index++;
+
+        break;
+
+
+    // =====================================================
     // BATTLE
     // =====================================================
     //
@@ -1175,3 +1362,5 @@ switch (_action.type)
         game_end();
         exit;
 }
+
+

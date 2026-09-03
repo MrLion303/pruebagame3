@@ -38,8 +38,8 @@ function scr_game_text(_text_id){
 		
 		
 		case "npc":
-    // Diálogo con Noelle y su respectivo sprite de cabeza a la izquierda
-    scr_text(scr_loc("Hola, soy Noelle y este es mi dialogo con retrato."), c_white, spr_noelle_normal, snd_noelle);
+    // Diálogo con Maya y su respectivo sprite de cabeza a la izquierda
+    scr_text(scr_loc("Hola, soy Maya y este es mi dialogo con retrato."), c_white, spr_noelle_normal, snd_noelle);
     scr_text(scr_loc("Este segundo renglon tambien se acomoda solito respetando la cabeza."), c_white, spr_noelle_normal, snd_noelle);
     
     // Diálogo normal sin sprite por si quieres alternar en la misma caja

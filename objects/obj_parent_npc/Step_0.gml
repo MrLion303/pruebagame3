@@ -1,3 +1,41 @@
+// =========================================================
+// PARTY
+// =========================================================
+//
+// Para un NPC reclutable, en su Creation Code:
+//
+//     party_id = "maya";
+//
+// Mientras sea miembro de la party, este Step padre deja de
+// abrir el diálogo normal. El seguimiento lo hace obj_settings.
+// =========================================================
+
+if (!variable_instance_exists(id, "party_id"))
+{
+    party_id = "";
+}
+
+if (!variable_instance_exists(id, "party_member"))
+{
+    party_member = false;
+}
+
+if (!variable_instance_exists(id, "party_follow_suspended"))
+{
+    party_follow_suspended = false;
+}
+
+if (!variable_instance_exists(id, "party_rejoin"))
+{
+    party_rejoin = false;
+}
+
+if (party_member)
+{
+    exit;
+}
+
+
 // Definir la distancia de interacción con los pies (en píxeles)
 var _interaction_distance = 32; 
 

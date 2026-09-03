@@ -332,7 +332,7 @@ for (
     {
         draw_sprite_stretched_ext(
             _box_sprite,
-            0,
+            scr_ui_box_frame(_box_sprite),
             _panel.x,
             _panel.y,
             _panel.w,
@@ -456,7 +456,11 @@ for (
         _active_tab =
             0;
     }
-    else if (state == SHOP_SELL)
+    else if (
+        state == SHOP_SELL
+        ||
+        state == SHOP_SELL_TYPE
+    )
     {
         _active_tab =
             1;
@@ -568,6 +572,23 @@ if (!is_undefined(_money_space_entry))
                 _space_inv[_si] != -1
                 &&
                 !is_undefined(_space_inv[_si])
+            )
+            {
+                _space_used++;
+            }
+        }
+    }
+    else if (_money_space_entry.tipo == "toy")
+    {
+        _space_max =
+            array_length(global.toy_inventory);
+
+        for (var _si = 0; _si < _space_max; _si++)
+        {
+            if (
+                global.toy_inventory[_si] != -1
+                &&
+                !is_undefined(global.toy_inventory[_si])
             )
             {
                 _space_used++;
@@ -881,11 +902,16 @@ var _show_buy =
         _preview_buy
     );
 
+var _show_sell_type =
+    (
+        state == SHOP_SELL_TYPE
+        ||
+        _preview_sell
+    );
+
 var _show_sell =
     (
         state == SHOP_SELL
-        ||
-        _preview_sell
     );
 
 var _show_talk =
@@ -1066,6 +1092,46 @@ if (_show_buy)
             }
 
 
+            // Color opcional del nombre.
+            // Prioridad: color definido en el stock de esta tienda,
+            // después color_tienda del objeto. Al seleccionarlo,
+            // el amarillo sigue indicando el cursor.
+            var _buy_name_color =
+                _normal;
+
+            if (
+                variable_struct_exists(_data, "color_tienda")
+                &&
+                _data.color_tienda != noone
+                &&
+                !is_undefined(_data.color_tienda)
+            )
+            {
+                _buy_name_color =
+                    _data.color_tienda;
+            }
+
+            if (
+                variable_struct_exists(_entry, "color_nombre")
+                &&
+                _entry.color_nombre != noone
+                &&
+                !is_undefined(_entry.color_nombre)
+            )
+            {
+                _buy_name_color =
+                    _entry.color_nombre;
+            }
+
+            draw_set_color(
+                _is_selected
+                ?
+                _selected
+                :
+                _buy_name_color
+            );
+
+
             draw_text_transformed(
                 _right_x + 84,
                 _ry + 13,
@@ -1087,6 +1153,14 @@ if (_show_buy)
 
             draw_set_halign(
                 fa_right
+            );
+
+            draw_set_color(
+                _is_selected
+                ?
+                _selected
+                :
+                _normal
             );
 
 
@@ -1123,6 +1197,98 @@ if (_show_buy)
                 );
             }
         }
+
+
+        // =================================================
+        // BARRA DE SCROLL - MISMO ESTILO DEL INVENTARIO
+        // =================================================
+        if (_count > visible_rows)
+        {
+            var _bar_x =
+                _right_x + _right_w - 8;
+
+            var _bar_y =
+                _list_y + 18;
+
+            var _bar_h =
+                _list_h - 36;
+
+            var _max_scroll =
+                max(
+                    0,
+                    _count - visible_rows
+                );
+
+            var _scroll_ratio =
+                (_max_scroll > 0)
+                ?
+                clamp(buy_scroll / _max_scroll, 0, 1)
+                :
+                0;
+
+            var _dot_y =
+                _bar_y + (_scroll_ratio * _bar_h);
+
+            draw_set_color(c_dkgray);
+            draw_line_width(
+                _bar_x,
+                _bar_y,
+                _bar_x,
+                _bar_y + _bar_h,
+                2
+            );
+
+            draw_set_color(c_white);
+            draw_rectangle(
+                _bar_x - 3,
+                _dot_y - 3,
+                _bar_x + 3,
+                _dot_y + 3,
+                false
+            );
+        }
+    }
+}
+
+
+// =========================================================
+// VENDER - SELECTOR DE TIPO
+// =========================================================
+
+if (_show_sell_type)
+{
+    for (var _i = 0; _i < array_length(sell_type_options); _i++)
+    {
+        var _ry =
+            _list_y
+            +
+            28
+            +
+            (_i * 48);
+
+        var _selected_type =
+            (
+                state == SHOP_SELL_TYPE
+                &&
+                _i == sell_type_index
+            );
+
+        draw_set_color(
+            _selected_type
+            ?
+            _selected
+            :
+            _normal
+        );
+
+        draw_text_transformed(
+            _right_x + 22,
+            _ry,
+            scr_loc(sell_type_options[_i]),
+            0.5 * _text_mul,
+            0.5 * _text_mul,
+            0
+        );
     }
 }
 
@@ -1256,6 +1422,31 @@ if (_show_sell)
             }
 
 
+            // Color opcional del nombre en VENDER.
+            var _sell_name_color =
+                _normal;
+
+            if (
+                variable_struct_exists(_data, "color_tienda")
+                &&
+                _data.color_tienda != noone
+                &&
+                !is_undefined(_data.color_tienda)
+            )
+            {
+                _sell_name_color =
+                    _data.color_tienda;
+            }
+
+            draw_set_color(
+                _is_selected
+                ?
+                _selected
+                :
+                _sell_name_color
+            );
+
+
             draw_text_transformed(
                 _right_x + 84,
                 _ry + 13,
@@ -1277,6 +1468,14 @@ if (_show_sell)
 
             draw_set_halign(
                 fa_right
+            );
+
+            draw_set_color(
+                _is_selected
+                ?
+                _selected
+                :
+                _normal
             );
 
 
@@ -1312,6 +1511,56 @@ if (_show_sell)
                     _ry + _row_h - 2
                 );
             }
+        }
+
+
+        // =================================================
+        // BARRA DE SCROLL - MISMO ESTILO DEL INVENTARIO
+        // =================================================
+        if (_count > visible_rows)
+        {
+            var _bar_x =
+                _right_x + _right_w - 8;
+
+            var _bar_y =
+                _list_y + 18;
+
+            var _bar_h =
+                _list_h - 36;
+
+            var _max_scroll =
+                max(
+                    0,
+                    _count - visible_rows
+                );
+
+            var _scroll_ratio =
+                (_max_scroll > 0)
+                ?
+                clamp(sell_scroll / _max_scroll, 0, 1)
+                :
+                0;
+
+            var _dot_y =
+                _bar_y + (_scroll_ratio * _bar_h);
+
+            draw_set_color(c_dkgray);
+            draw_line_width(
+                _bar_x,
+                _bar_y,
+                _bar_x,
+                _bar_y + _bar_h,
+                2
+            );
+
+            draw_set_color(c_white);
+            draw_rectangle(
+                _bar_x - 3,
+                _dot_y - 3,
+                _bar_x + 3,
+                _dot_y + 3,
+                false
+            );
         }
     }
 }
@@ -1593,8 +1842,26 @@ if (!is_undefined(_info_entry))
                 _data.descripcion
             );
 
-        // Solo en la tienda, las armas/armaduras muestran
-        // cuánto AT y DF aportan.
+        // Consumibles: mostrar cuánto HP recuperan.
+        // Se añade al MISMO texto para que el wrapping
+        // automático decida si cabe en la línea actual.
+        if (
+            _info_entry.tipo == "item"
+            &&
+            variable_struct_exists(
+                _data,
+                "curacion_hp"
+            )
+        )
+        {
+            _description_text +=
+                "   HP +"
+                +
+                string(_data.curacion_hp);
+        }
+
+
+        // Armas/armaduras: mostrar cuánto AT y DF aportan.
         if (_info_entry.tipo == "equip")
         {
             var _atk =
