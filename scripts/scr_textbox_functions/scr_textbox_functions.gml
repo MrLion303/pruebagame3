@@ -168,6 +168,150 @@ function scr_option(_option, _link_id) {
     option_number++;
 }
 
+
+/// =========================================================
+/// REUTILIZAR UNA OBJ_TEXTBOX SIN DESTRUIRLA
+/// =========================================================
+///
+/// Se usa para:
+/// - elecciones de diálogos normales;
+/// - páginas consecutivas de cinemáticas.
+///
+/// IMPORTANTE:
+/// NO reinicia txtb_img. La animación visual de la caja
+/// continúa desde el mismo punto y nunca hay un frame vacío.
+/// =========================================================
+
+function scr_textbox_clear_content(_textbox)
+{
+    if (
+        _textbox == noone
+        ||
+        !instance_exists(_textbox)
+    )
+    {
+        return false;
+    }
+
+
+    with (_textbox)
+    {
+        if (
+            variable_instance_exists(id, "page_extra_instance")
+            &&
+            page_extra_instance != -1
+            &&
+            variable_instance_exists(id, "page_extra_stop_current")
+            &&
+            page_extra_stop_current
+            &&
+            audio_is_playing(page_extra_instance)
+        )
+        {
+            audio_stop_sound(page_extra_instance);
+        }
+
+
+        page = 0;
+        page_number = 0;
+
+        text = [""];
+        text_lenght = [0];
+        text_color = [c_white];
+
+        txtb_spr = [spr_textbox];
+        speaker_sprite = [noone];
+        text_sound = [snd_text];
+
+        char = [];
+        char_x = [];
+        char_y = [];
+
+        col_1 = [];
+        col_2 = [];
+        col_3 = [];
+        col_4 = [];
+
+        text_effect = [];
+
+        line_break_pos = [];
+        line_break_num = [];
+        line_break_offset = [];
+        speaker_side = [];
+        text_x_offset = [];
+
+        is_multi_color = [];
+        multi_part1 = [];
+        multi_color1 = [];
+        multi_part2 = [];
+        multi_color2 = [];
+
+        draw_char = 0;
+        setup = false;
+
+        text_sound_timer = 0;
+
+        option = [""];
+        option_link_id = [-1];
+        option_pos = 0;
+        option_number = 0;
+
+        page_extra_sound = [];
+        page_extra_stop = [];
+        page_extra_gain = [];
+
+        page_extra_active_page = -1;
+        page_extra_instance = -1;
+        page_extra_stop_current = true;
+
+        cutscene_dialog_complete = false;
+
+        textbox_reload_pending = false;
+        textbox_reload_id = "";
+
+        scr_set_defaults_for_text();
+    }
+
+
+    return true;
+}
+
+
+function scr_textbox_load_existing(_textbox, _text_id)
+{
+    if (!scr_textbox_clear_content(_textbox))
+    {
+        return false;
+    }
+
+
+    with (_textbox)
+    {
+        text_id = _text_id;
+
+        scr_game_text(
+            _text_id
+        );
+
+
+        if (page_number > 0)
+        {
+            text_lenght[0] =
+                string_length(
+                    text[0]
+                );
+        }
+
+
+        setup = false;
+        draw_char = 0;
+    }
+
+
+    return true;
+}
+
+
 function create_textbox(_text_id) {
     var _txt = instance_create_depth(0, 0, -9999, obj_textbox);
     with(_txt)

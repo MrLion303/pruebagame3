@@ -327,38 +327,98 @@ if (waiting_dialogue)
 {
     if (instance_exists(obj_textbox))
     {
-        dialogue_seen = true;
-        exit;
-    }
+        var _wait_textbox =
+            instance_find(
+                obj_textbox,
+                0
+            );
 
-    // El textbox ya desapareció.
-    if (
-        dialog_extra_sound_stop_with_dialog
-        &&
-        dialog_extra_sound_instance != -1
-        &&
-        audio_is_playing(dialog_extra_sound_instance)
-    )
+
+        var _belongs_to_this_cutscene =
+            (
+                _wait_textbox != noone
+                &&
+                variable_instance_exists(
+                    _wait_textbox,
+                    "cutscene_owner"
+                )
+                &&
+                _wait_textbox.cutscene_owner == id
+            );
+
+
+        var _dialog_finished =
+            (
+                _belongs_to_this_cutscene
+                &&
+                variable_instance_exists(
+                    _wait_textbox,
+                    "cutscene_dialog_complete"
+                )
+                &&
+                _wait_textbox.cutscene_dialog_complete
+            );
+
+
+        if (!_dialog_finished)
+        {
+            dialogue_seen =
+                true;
+
+            exit;
+        }
+
+
+        waiting_dialogue =
+            false;
+
+        dialogue_seen =
+            false;
+
+        dialogue_grace =
+            0;
+    }
+    else
     {
-        audio_stop_sound(dialog_extra_sound_instance);
+        if (
+            dialog_extra_sound_stop_with_dialog
+            &&
+            dialog_extra_sound_instance != -1
+            &&
+            audio_is_playing(dialog_extra_sound_instance)
+        )
+        {
+            audio_stop_sound(dialog_extra_sound_instance);
+        }
+
+
+        dialog_extra_sound_instance =
+            -1;
+
+        dialog_extra_sound_stop_with_dialog =
+            true;
+
+
+        if (
+            !dialogue_seen
+            &&
+            dialogue_grace > 0
+        )
+        {
+            dialogue_grace--;
+            exit;
+        }
+
+
+        waiting_dialogue =
+            false;
+
+        dialogue_seen =
+            false;
+
+        dialogue_grace =
+            0;
     }
-
-    dialog_extra_sound_instance = -1;
-    dialog_extra_sound_stop_with_dialog = true;
-
-    if (
-        !dialogue_seen
-        &&
-        dialogue_grace > 0
-    )
-    {
-        dialogue_grace--;
-        exit;
-    }
-
-    waiting_dialogue = false;
-    dialogue_seen = false;
-    dialogue_grace = 0;
 }
 
 if (waiting_sound_instance != -1)
@@ -415,6 +475,51 @@ if (action_index >= array_length(actions))
 var _action = actions[action_index];
 
 
+// =========================================================
+// CERRAR CAJA SOLO CUANDO TERMINA LA CADENA
+// =========================================================
+
+if (
+    _action.type != CS_ACTION.DIALOG
+    &&
+    instance_exists(obj_textbox)
+)
+{
+    var _held_textbox =
+        instance_find(
+            obj_textbox,
+            0
+        );
+
+
+    if (
+        _held_textbox != noone
+        &&
+        variable_instance_exists(
+            _held_textbox,
+            "cutscene_owner"
+        )
+        &&
+        _held_textbox.cutscene_owner == id
+        &&
+        variable_instance_exists(
+            _held_textbox,
+            "cutscene_dialog_complete"
+        )
+        &&
+        _held_textbox.cutscene_dialog_complete
+    )
+    {
+        _held_textbox.cutscene_keep_instance =
+            false;
+
+        instance_destroy(
+            _held_textbox
+        );
+    }
+}
+
+
 switch (_action.type)
 {
     // =====================================================
@@ -442,184 +547,142 @@ switch (_action.type)
 
     case CS_ACTION.DIALOG:
 
-        if (instance_exists(obj_textbox))
-            exit;
-
-
         var _textbox =
             noone;
 
 
-        if (layer_get_id("Instances") != -1)
+        if (instance_exists(obj_textbox))
         {
-            _textbox =
-                instance_create_layer(
-                    0,
-                    0,
-                    "Instances",
-                    obj_textbox
+            var _candidate =
+                instance_find(
+                    obj_textbox,
+                    0
                 );
-        }
-        else
-        {
-            _textbox =
-                instance_create_depth(
-                    0,
-                    0,
-                    -100000,
-                    obj_textbox
-                );
-        }
-
-
-        // Siempre por encima de la imagen cinematográfica.
-        _textbox.depth =
-            -100000;
-
-
-        // -------------------------------------------------
-        // PREPARAR DATOS EXTRA POR PÁGINA
-        // -------------------------------------------------
-
-        with (_textbox)
-        {
-            page_extra_sound =
-                [];
-
-            page_extra_stop =
-                [];
-
-            page_extra_gain =
-                [];
-        }
-
-
-        // -------------------------------------------------
-        // AGRUPAR TODOS LOS DIÁLOGOS CONSECUTIVOS
-        // -------------------------------------------------
-
-        var _dialog_scan =
-            action_index;
-
-
-        while (
-            _dialog_scan
-            <
-            array_length(actions)
-        )
-        {
-            var _dialog_action =
-                actions[_dialog_scan];
 
 
             if (
-                _dialog_action.type
-                !=
-                CS_ACTION.DIALOG
-            )
-            {
-                break;
-            }
-
-
-            var _dialog_text =
-                scr_loc(
-                    _dialog_action.text
-                );
-
-            var _dialog_color =
-                _dialog_action.color;
-
-            var _dialog_head =
-                _dialog_action.head;
-
-            var _dialog_sound =
-                _dialog_action.snd;
-
-            var _dialog_extra =
-                _dialog_action.extra_sound;
-
-            var _dialog_extra_stop =
-                _dialog_action.stop_extra_with_dialog;
-
-            var _dialog_extra_gain =
-                _dialog_action.extra_gain;
-
-
-            var _page_index =
-                _textbox.page_number;
-
-
-            with (_textbox)
-            {
-                scr_text(
-                    _dialog_text,
-                    _dialog_color,
-                    _dialog_head,
-                    _dialog_sound
-                );
-
-
-                if (
-                    array_length(page_extra_sound)
-                    <=
-                    _page_index
+                _candidate != noone
+                &&
+                variable_instance_exists(
+                    _candidate,
+                    "cutscene_owner"
                 )
-                {
-                    array_resize(
-                        page_extra_sound,
-                        _page_index + 1
+                &&
+                _candidate.cutscene_owner == id
+                &&
+                variable_instance_exists(
+                    _candidate,
+                    "cutscene_dialog_complete"
+                )
+                &&
+                _candidate.cutscene_dialog_complete
+            )
+            {
+                _textbox =
+                    _candidate;
+
+                scr_textbox_clear_content(
+                    _textbox
+                );
+            }
+            else
+            {
+                exit;
+            }
+        }
+
+
+        if (_textbox == noone)
+        {
+            if (layer_get_id("Instances") != -1)
+            {
+                _textbox =
+                    instance_create_layer(
+                        0,
+                        0,
+                        "Instances",
+                        obj_textbox
                     );
-
-                    array_resize(
-                        page_extra_stop,
-                        _page_index + 1
+            }
+            else
+            {
+                _textbox =
+                    instance_create_depth(
+                        0,
+                        0,
+                        -100000,
+                        obj_textbox
                     );
-
-                    array_resize(
-                        page_extra_gain,
-                        _page_index + 1
-                    );
-                }
-
-
-                page_extra_sound[_page_index] =
-                    _dialog_extra;
-
-                page_extra_stop[_page_index] =
-                    _dialog_extra_stop;
-
-                page_extra_gain[_page_index] =
-                    _dialog_extra_gain;
             }
 
 
-            _dialog_scan++;
+            scr_textbox_clear_content(
+                _textbox
+            );
         }
 
 
-        // Seguridad.
-        if (
-            !variable_instance_exists(
-                _textbox,
-                "text"
-            )
-            ||
-            !is_array(_textbox.text)
-            ||
-            array_length(_textbox.text) <= 0
-        )
+        _textbox.depth =
+            -100000;
+
+        _textbox.cutscene_keep_instance =
+            true;
+
+        _textbox.cutscene_owner =
+            id;
+
+        _textbox.cutscene_dialog_complete =
+            false;
+
+
+        var _dialog_text =
+            scr_loc(
+                _action.text
+            );
+
+
+        with (_textbox)
         {
-            _textbox.text =
-                [scr_loc(_action.text)];
+            scr_text(
+                _dialog_text,
+                _action.color,
+                _action.head,
+                _action.snd
+            );
 
-            _textbox.page_number =
-                1;
+
+            page_extra_sound =
+                [
+                    _action.extra_sound
+                ];
+
+            page_extra_stop =
+                [
+                    _action.stop_extra_with_dialog
+                ];
+
+            page_extra_gain =
+                [
+                    _action.extra_gain
+                ];
+
+            page_extra_active_page =
+                -1;
+
+            page_extra_instance =
+                -1;
+
+            page_extra_stop_current =
+                true;
+
+            setup =
+                false;
+
+            draw_char =
+                0;
         }
 
 
-        // Los sonidos extra ahora los maneja obj_textbox
-        // por página, no este controller.
         dialog_extra_sound_instance =
             -1;
 
@@ -637,10 +700,7 @@ switch (_action.type)
             0;
 
 
-        // Saltar todos los DIALOG que ya metimos dentro
-        // de la misma caja.
-        action_index =
-            _dialog_scan;
+        action_index++;
 
 
         break;

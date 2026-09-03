@@ -46,17 +46,17 @@ if (!instance_exists(obj_pauser) && !instance_exists(obj_textbox) && !_menu_abie
         direccion = "derecha";
         face = RIGHT;
         var _max_slope = _vel; 
-        if (!f_player_hits_wall(x + _vel, y)) {
+        if (!place_meeting(x + _vel, y, colision)) {
             x += _vel;
             movimiento = true;
         } else {
             var _sloped = false;
             for (var _i = 1; _i <= _max_slope; _i++) {
-                if (!f_player_hits_wall(x + _vel, y - _i)) { y -= _i; x += _vel; movimiento = true; _sloped = true; break; }
+                if (!place_meeting(x + _vel, y - _i, colision)) { y -= _i; x += _vel; movimiento = true; _sloped = true; break; }
             }
             if (!_sloped) {
                 for (var _i = 1; _i <= _max_slope; _i++) {
-                    if (!f_player_hits_wall(x + _vel, y + _i)) { y += _i; x += _vel; movimiento = true; _sloped = true; break; }
+                    if (!place_meeting(x + _vel, y + _i, colision)) { y += _i; x += _vel; movimiento = true; _sloped = true; break; }
                 }
             }
         }
@@ -68,17 +68,17 @@ if (!instance_exists(obj_pauser) && !instance_exists(obj_textbox) && !_menu_abie
         direccion = "izquierda";
         face = LEFT;
         var _max_slope = _vel;
-        if (!f_player_hits_wall(x - _vel, y)) {
+        if (!place_meeting(x - _vel, y, colision)) {
             x -= _vel;
             movimiento = true;
         } else {
             var _sloped = false;
             for (var _i = 1; _i <= _max_slope; _i++) {
-                if (!f_player_hits_wall(x - _vel, y - _i)) { y -= _i; x -= _vel; movimiento = true; _sloped = true; break; }
+                if (!place_meeting(x - _vel, y - _i, colision)) { y -= _i; x -= _vel; movimiento = true; _sloped = true; break; }
             }
             if (!_sloped) {
                 for (var _i = 1; _i <= _max_slope; _i++) {
-                    if (!f_player_hits_wall(x - _vel, y + _i)) { y += _i; x -= _vel; movimiento = true; _sloped = true; break; }
+                    if (!place_meeting(x - _vel, y + _i, colision)) { y += _i; x -= _vel; movimiento = true; _sloped = true; break; }
                 }
             }
         }
@@ -89,7 +89,7 @@ if (!instance_exists(obj_pauser) && !instance_exists(obj_textbox) && !_menu_abie
     {
         direccion = "arriba";
         face = UP;
-        if (!f_player_hits_wall(x, y - _vel)) {
+        if (!place_meeting(x, y - _vel, colision)) {
             y -= _vel;
             movimiento = true;
         }
@@ -100,7 +100,7 @@ if (!instance_exists(obj_pauser) && !instance_exists(obj_textbox) && !_menu_abie
     {
         direccion = "abajo";
         face = DOWN;
-        if (!f_player_hits_wall(x, y + _vel)) {
+        if (!place_meeting(x, y + _vel, colision)) {
             y += _vel;
             movimiento = true;
         }

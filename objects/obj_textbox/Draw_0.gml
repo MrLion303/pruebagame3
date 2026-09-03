@@ -1,8 +1,33 @@
 
-/// =========================================================
 /// OBJ_TEXTBOX
 /// DRAW COMPLETO
 /// =========================================================
+
+
+// =========================================================
+// RECARGA PENDIENTE SIN DESTRUIR LA CAJA
+// =========================================================
+
+if (
+    variable_instance_exists(id, "textbox_reload_pending")
+    &&
+    textbox_reload_pending
+)
+{
+    var _reload_id =
+        textbox_reload_id;
+
+    textbox_reload_pending =
+        false;
+
+    textbox_reload_id =
+        "";
+
+    scr_textbox_load_existing(
+        id,
+        _reload_id
+    );
+}
 
 
 // =========================================================
@@ -1191,6 +1216,10 @@ else if (
         }
         else
         {
+            // =================================================
+            // ELECCIÓN NORMAL
+            // =================================================
+
             if (
                 variable_instance_exists(
                     id,
@@ -1200,46 +1229,101 @@ else if (
                 option_number > 0
             )
             {
-                create_textbox(
+                textbox_reload_id =
                     option_link_id[
                         option_pos
-                    ]
-                );
+                    ];
+
+                textbox_reload_pending =
+                    true;
+
+                option_number =
+                    0;
             }
 
+            // =================================================
+            // DIÁLOGO DE CINEMÁTICA
+            // =================================================
 
-            // Si el sonido largo de la página actual
-            // debe terminar junto al diálogo, detenerlo.
-            if (
+            else if (
                 variable_instance_exists(
                     id,
-                    "page_extra_instance"
+                    "cutscene_keep_instance"
                 )
                 &&
-                page_extra_instance != -1
-                &&
-                variable_instance_exists(
-                    id,
-                    "page_extra_stop_current"
-                )
-                &&
-                page_extra_stop_current
-                &&
-                audio_is_playing(
-                    page_extra_instance
-                )
+                cutscene_keep_instance
             )
             {
-                audio_stop_sound(
-                    page_extra_instance
-                );
+                cutscene_dialog_complete =
+                    true;
+
+
+                if (
+                    variable_instance_exists(
+                        id,
+                        "page_extra_instance"
+                    )
+                    &&
+                    page_extra_instance != -1
+                    &&
+                    variable_instance_exists(
+                        id,
+                        "page_extra_stop_current"
+                    )
+                    &&
+                    page_extra_stop_current
+                    &&
+                    audio_is_playing(
+                        page_extra_instance
+                    )
+                )
+                {
+                    audio_stop_sound(
+                        page_extra_instance
+                    );
+
+                    page_extra_instance =
+                        -1;
+                }
             }
 
+            // =================================================
+            // DIÁLOGO NORMAL SIN ELECCIÓN
+            // =================================================
 
-            instance_destroy();
+            else
+            {
+                if (
+                    variable_instance_exists(
+                        id,
+                        "page_extra_instance"
+                    )
+                    &&
+                    page_extra_instance != -1
+                    &&
+                    variable_instance_exists(
+                        id,
+                        "page_extra_stop_current"
+                    )
+                    &&
+                    page_extra_stop_current
+                    &&
+                    audio_is_playing(
+                        page_extra_instance
+                    )
+                )
+                {
+                    audio_stop_sound(
+                        page_extra_instance
+                    );
+                }
 
 
-            exit;
+                instance_destroy();
+
+
+                exit;
+            }
         }
     }
 }
@@ -1685,4 +1769,3 @@ for (
         );
     }
 }
-

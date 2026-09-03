@@ -83,6 +83,12 @@ top_index =
     0;
 
 
+// Contenido que se previsualiza.
+// SALIR NO altera este índice.
+top_preview_index =
+    0;
+
+
 // =========================================================
 // COMPRAR
 // =========================================================

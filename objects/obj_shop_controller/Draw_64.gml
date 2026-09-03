@@ -870,28 +870,21 @@ var _preview_buy =
     (
         state == SHOP_TOP
         &&
-        top_index == 0
+        top_preview_index == 0
     );
 
 var _preview_sell =
     (
         state == SHOP_TOP
         &&
-        top_index == 1
+        top_preview_index == 1
     );
 
 var _preview_talk =
     (
         state == SHOP_TOP
         &&
-        top_index == 2
-    );
-
-var _preview_exit =
-    (
-        state == SHOP_TOP
-        &&
-        top_index == 3
+        top_preview_index == 2
     );
 
 
@@ -922,42 +915,7 @@ var _show_talk =
     );
 
 
-// SALIR no tiene lista propia; mostramos una indicación,
-// pero solo Z/Enter inicia realmente la despedida.
-if (_preview_exit)
-{
-    var _exit_preview_scale =
-        0.5 * _text_mul;
-
-    var _exit_preview_margin =
-        22;
-
-    var _exit_preview_width =
-        _right_w
-        -
-        (_exit_preview_margin * 2);
-
-
-    draw_set_color(
-        c_ltgray
-    );
-
-
-    draw_text_ext_transformed(
-        _right_x + _exit_preview_margin,
-        _list_y + 25,
-        scr_loc(
-            scr_loc_src(
-                "Salir de la tienda."
-            )
-        ),
-        22 / _exit_preview_scale,
-        _exit_preview_width / _exit_preview_scale,
-        _exit_preview_scale,
-        _exit_preview_scale,
-        0
-    );
-}
+// SALIR no altera el contenido visible del panel.
 
 
 // =========================================================

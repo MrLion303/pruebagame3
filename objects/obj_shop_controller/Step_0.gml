@@ -173,6 +173,15 @@ if (state == SHOP_TOP)
 
     if (_moved)
     {
+        // SALIR solo cambia el resaltado superior.
+        // No cambia el contenido que ya estaba visible.
+        if (top_index != 3)
+        {
+            top_preview_index =
+                top_index;
+        }
+
+
         // Al cambiar de pestaña se limpia el último mensaje
         // persistente de compra/venta.
         shop_message =
