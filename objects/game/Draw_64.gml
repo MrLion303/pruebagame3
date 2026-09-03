@@ -1113,3 +1113,10 @@ if (instance_exists(obj_cofre_ui))
         c_white
     );
 }
+
+// =========================================================
+// CONSOLA DE DESARROLLADOR
+// DEBE SER LO ÚLTIMO DEL DRAW GUI DEL OBJETO "game"
+// =========================================================
+
+scr_dev_console_draw();

@@ -87,15 +87,66 @@ function scr_party_init()
     if (!variable_global_exists("party_room_dirty"))
         global.party_room_dirty = true;
 
-    // 7 breadcrumbs x ~4 px = ~28 px entre personajes.
-    if (!variable_global_exists("party_spacing_steps"))
-        global.party_spacing_steps = 7;
+    // =====================================================
+    // FOLLOW THE LEADER - ARRAY DE POSICIONES ANTERIORES
+    // =====================================================
+    //
+    // Técnica estilo EarthBound / tutorial:
+    //
+    // - Maya guarda su X/Y y dirección después de moverse.
+    // - Silicio NO calcula una ruta.
+    // - Silicio usa directamente una entrada antigua del array.
+    //
+    // Esto hace que reproduzca literalmente el recorrido
+    // anterior de Maya.
+    // =====================================================
 
-    if (!variable_global_exists("party_history_min_distance"))
-        global.party_history_min_distance = 2;
+    // =====================================================
+    // DISTANCIA DEL FOLLOWER
+    // =====================================================
+    //
+    // Caminando:
+    //     5 posiciones antiguas.
+    //
+    // Corriendo:
+    //     6 posiciones antiguas.
+    //
+    // Como Maya corre a 6 px en vez de 4 px, esto deja a
+    // Silicio un poco más separado cuando corre.
+    // =====================================================
 
-    if (!variable_global_exists("party_rejoin_speed"))
-        global.party_rejoin_speed = 6;
+    if (!variable_global_exists("party_follow_delay_walk"))
+        global.party_follow_delay_walk = 5;
+
+    if (!variable_global_exists("party_follow_delay_run"))
+        global.party_follow_delay_run = 6;
+
+
+    // Delay que se está usando actualmente.
+    //
+    // Lo interpolamos para que al empezar/dejar de correr
+    // Silicio no dé un salto brusco.
+    if (!variable_global_exists("party_follow_delay_current"))
+        global.party_follow_delay_current =
+            global.party_follow_delay_walk;
+
+
+    // Compatibilidad con versiones anteriores.
+    if (!variable_global_exists("party_follow_delay"))
+        global.party_follow_delay =
+            global.party_follow_delay_walk;
+
+    // Máximo de movimientos anteriores guardados.
+    if (!variable_global_exists("party_history_max"))
+        global.party_history_max = 300;
+
+    // Última posición REAL registrada de Maya.
+    if (!variable_global_exists("party_last_player_x"))
+        global.party_last_player_x = 0;
+
+    if (!variable_global_exists("party_last_player_y"))
+        global.party_last_player_y = 0;
+
 
 
     // Migrar miembros antiguos de "noelle" a "maya".
@@ -123,8 +174,16 @@ function scr_party_init()
 
             if (_normalized != _member.id)
             {
-                _member.id =
-                    _normalized;
+                variable_struct_set(
+                    _member,
+                    "id",
+                    _normalized
+                );
+
+                // Guardar el struct actualizado de nuevo
+                // dentro del array de miembros.
+                global.party_data.members[_mi] =
+                    _member;
 
                 _party_migrated =
                     true;
@@ -344,20 +403,30 @@ function scr_party_join_actor(_actor_or_name, _party_id = "")
 
     var _actor = noone;
 
-    if (
-        is_real(_actor_or_name)
-        &&
-        instance_exists(_actor_or_name)
-    )
-    {
-        _actor = _actor_or_name;
-    }
-    else if (is_string(_actor_or_name))
+    // -----------------------------------------------------
+    // STRING -> buscar actor por ID/nombre
+    // -----------------------------------------------------
+    //
+    // IMPORTANTE:
+    // En GameMaker actual una instancia puede ser un
+    // "ref instance", no necesariamente un real.
+    // Por eso NO usamos is_real() para detectar instancias.
+    // -----------------------------------------------------
+
+    if (is_string(_actor_or_name))
     {
         _actor = scr_cutscene_actor(_actor_or_name);
 
         if (_actor == noone)
             _actor = scr_party_find_world_actor(_actor_or_name);
+    }
+    else if (
+        _actor_or_name != noone
+        &&
+        instance_exists(_actor_or_name)
+    )
+    {
+        _actor = _actor_or_name;
     }
 
     if (_actor == noone || !instance_exists(_actor))
@@ -410,18 +479,24 @@ function scr_party_join_actor(_actor_or_name, _party_id = "")
     scr_party_prepare_actor(_actor, _id);
 
     _actor.party_follow_suspended = false;
-    _actor.party_rejoin = true;
 
-    // Si ya existe historial en este room, se incorpora caminando
-    // hacia su posición de follower. Si todavía no existe, el
-    // manager lo sembrará normalmente.
+    // IMPORTANTE:
+    // No hacemos "rejoin" persiguiendo en línea recta.
+    // En el próximo update se colocará directamente en el
+    // punto correcto de la ruta detrás de Maya.
+    _actor.party_rejoin = false;
+
+    // El trigger puede resetear el historial justo después
+    // de spawnear al personaje. Si no lo hace, el manager
+    // se asegura de que exista uno válido.
     if (
         array_length(global.party_history) <= 0
         ||
         global.party_history_room != room
     )
     {
-        global.party_room_dirty = true;
+        global.party_room_dirty =
+            true;
     }
 
     show_debug_message(
@@ -443,8 +518,18 @@ function scr_party_leave(_actor_or_id, _destroy_actor = false)
     var _actor = noone;
     var _id = "";
 
-    if (
-        is_real(_actor_or_id)
+    // STRING -> buscar por party_id
+    if (is_string(_actor_or_id))
+    {
+        _id = _actor_or_id;
+        _actor = scr_party_get_instance(_id);
+
+        if (_actor == noone)
+            _actor = scr_party_find_world_actor(_id);
+    }
+    // REFERENCIA DE INSTANCIA
+    else if (
+        _actor_or_id != noone
         &&
         instance_exists(_actor_or_id)
     )
@@ -453,14 +538,6 @@ function scr_party_leave(_actor_or_id, _destroy_actor = false)
 
         if (variable_instance_exists(_actor, "party_id"))
             _id = _actor.party_id;
-    }
-    else if (is_string(_actor_or_id))
-    {
-        _id = _actor_or_id;
-        _actor = scr_party_get_instance(_id);
-
-        if (_actor == noone)
-            _actor = scr_party_find_world_actor(_id);
     }
 
     var _index = scr_party_member_index(_id);
@@ -485,6 +562,13 @@ function scr_party_leave(_actor_or_id, _destroy_actor = false)
         _actor.party_hidden_by_system = false;
         _actor.visible = true;
         _actor.persistent = false;
+
+        // Al dejar la party queda quieto en el frame 0.
+        _actor.image_speed = 0;
+        _actor.image_index = 0;
+
+        if (variable_instance_exists(_actor, "movimiento"))
+            _actor.movimiento = false;
 
         if (_destroy_actor)
             instance_destroy(_actor);
@@ -793,80 +877,356 @@ function scr_party_apply_direction(_actor, _face)
             sprite_exists(_spr)
         )
         {
-            _actor.sprite_index = _spr;
+            // No reasignar el mismo sprite cada frame.
+            //
+            // Hacerlo constantemente puede reiniciar o
+            // interferir con image_index/image_speed.
+            if (_actor.sprite_index != _spr)
+            {
+                var _old_frame =
+                    floor(_actor.image_index);
+
+                _actor.sprite_index =
+                    _spr;
+
+                var _frame_count =
+                    sprite_get_number(_spr);
+
+                if (_frame_count > 0)
+                {
+                    _actor.image_index =
+                        _old_frame mod _frame_count;
+                }
+                else
+                {
+                    _actor.image_index =
+                        0;
+                }
+            }
         }
     }
 }
 
 
 // =========================================================
-// HISTORIAL DEL PLAYER
+// ANIMACIÓN DEL FOLLOWER
 // =========================================================
+//
+// Igual que el player:
+//
+// - caminando -> reproduce los frames del sprite direccional
+// - quieto    -> frame 0
+//
+// Cada sprite de Silicio puede tener sus 4 frames normales.
+// =========================================================
+
+function scr_party_apply_walk_animation(_actor, _moving)
+{
+    if (
+        _actor == noone
+        ||
+        !instance_exists(_actor)
+    )
+    {
+        return;
+    }
+
+
+    // Siempre manual.
+    // Así ningún image_speed externo puede apagar o reiniciar
+    // la animación de Silicio.
+    _actor.image_speed =
+        0;
+
+
+    if (
+        !variable_instance_exists(
+            _actor,
+            "party_anim_accum"
+        )
+    )
+    {
+        _actor.party_anim_accum =
+            0;
+    }
+
+
+    if (!_moving)
+    {
+        _actor.party_anim_accum =
+            0;
+
+        _actor.image_index =
+            0;
+
+        return;
+    }
+
+
+    var _frame_count =
+        1;
+
+
+    if (
+        _actor.sprite_index != -1
+        &&
+        sprite_exists(
+            _actor.sprite_index
+        )
+    )
+    {
+        _frame_count =
+            sprite_get_number(
+                _actor.sprite_index
+            );
+    }
+
+
+    if (_frame_count <= 1)
+    {
+        _actor.image_index =
+            0;
+
+        return;
+    }
+
+
+    // 0.22 = alrededor de un frame nuevo cada 4-5 steps.
+    var _anim_speed =
+        0.22;
+
+
+    if (
+        variable_instance_exists(
+            _actor,
+            "party_walk_anim_speed"
+        )
+    )
+    {
+        _anim_speed =
+            max(
+                0.01,
+                _actor.party_walk_anim_speed
+            );
+    }
+
+
+    _actor.party_anim_accum +=
+        _anim_speed;
+
+
+    while (_actor.party_anim_accum >= 1)
+    {
+        _actor.party_anim_accum -=
+            1;
+
+        _actor.image_index =
+            (
+                floor(
+                    _actor.image_index
+                )
+                +
+                1
+            )
+            mod
+            _frame_count;
+    }
+}
+
+
+// =========================================================
+// ANCLA FÍSICA UNIVERSAL: CENTRO DE LOS PIES
+// =========================================================
+//
+// NO usamos x/y del sprite.
+//
+// Dos sprites pueden tener:
+// - distinto tamaño
+// - distinto Origin
+// - distinta máscara
+//
+// pero sus pies pueden alinearse exactamente.
+// =========================================================
+
+function scr_party_feet_x(_actor)
+{
+    if (
+        _actor == noone
+        ||
+        !instance_exists(_actor)
+    )
+    {
+        return 0;
+    }
+
+
+    return
+        (
+            _actor.bbox_left
+            +
+            _actor.bbox_right
+        )
+        *
+        0.5;
+}
+
+
+function scr_party_feet_y(_actor)
+{
+    if (
+        _actor == noone
+        ||
+        !instance_exists(_actor)
+    )
+    {
+        return 0;
+    }
+
+
+    return _actor.bbox_bottom;
+}
+
+
+// =========================================================
+// COLOCAR LOS PIES DE UN ACTOR EN UNA COORDENADA
+// =========================================================
+
+function scr_party_place_feet(_actor, _target_feet_x, _target_feet_y)
+{
+    if (
+        _actor == noone
+        ||
+        !instance_exists(_actor)
+    )
+    {
+        return false;
+    }
+
+
+    var _current_feet_x =
+        scr_party_feet_x(
+            _actor
+        );
+
+    var _current_feet_y =
+        scr_party_feet_y(
+            _actor
+        );
+
+
+    _actor.x +=
+        _target_feet_x
+        -
+        _current_feet_x;
+
+    _actor.y +=
+        _target_feet_y
+        -
+        _current_feet_y;
+
+
+    return true;
+}
+
 
 function scr_party_seed_history()
 {
     scr_party_init();
 
-    global.party_history = [];
+
+    global.party_history =
+        [];
+
+    global.party_history_room =
+        room;
+
+    global.party_room_dirty =
+        false;
+
 
     if (!instance_exists(obj_player))
-    {
-        global.party_history_room = room;
         return;
-    }
 
-    var _p = instance_find(obj_player, 0);
+
+    var _p =
+        instance_find(
+            obj_player,
+            0
+        );
+
 
     var _face =
-        variable_instance_exists(_p, "face")
+        variable_instance_exists(
+            _p,
+            "face"
+        )
         ?
         _p.face
         :
         DOWN;
 
-    var _bx = 0;
-    var _by = -1;
 
-    switch (_face)
-    {
-        case UP:
-            _bx = 0;
-            _by = 1;
-            break;
+    var _feet_x =
+        scr_party_feet_x(
+            _p
+        );
 
-        case LEFT:
-            _bx = 1;
-            _by = 0;
-            break;
+    var _feet_y =
+        scr_party_feet_y(
+            _p
+        );
 
-        case RIGHT:
-            _bx = -1;
-            _by = 0;
-            break;
-    }
 
-    var _steps = max(
-        14,
-        (array_length(global.party_data.members) + 2)
-        *
-        global.party_spacing_steps
-    );
+    // =====================================================
+    // BUFFER INICIAL EN LOS PIES ACTUALES DE MAYA
+    // =====================================================
 
-    // El array se guarda de "pasado" a "presente".
-    for (var s = _steps; s >= 0; s--)
+    var _seed_count =
+        max(
+            32,
+            (
+                array_length(
+                    global.party_data.members
+                )
+                +
+                2
+            )
+            *
+            global.party_follow_delay
+            +
+            8
+        );
+
+
+    for (
+        var _i = 0;
+        _i < _seed_count;
+        _i++
+    )
     {
         array_push(
             global.party_history,
             {
-                x: _p.x + (_bx * s * 4),
-                y: _p.y + (_by * s * 4),
-                face: _face
+                x:
+                    _feet_x,
+
+                y:
+                    _feet_y,
+
+                face:
+                    _face
             }
         );
     }
 
-    global.party_history_room = room;
-    global.party_room_dirty = false;
+
+    // Estas variables ahora también representan PIES,
+    // no el x/y del Origin.
+    global.party_last_player_x =
+        _feet_x;
+
+    global.party_last_player_y =
+        _feet_y;
 }
 
 
@@ -874,69 +1234,202 @@ function scr_party_record_player()
 {
     scr_party_init();
 
+
     if (!instance_exists(obj_player))
         return;
+
+
+    if (scr_party_hidden_room())
+        return;
+
 
     if (
         global.party_room_dirty
         ||
         global.party_history_room != room
         ||
-        array_length(global.party_history) <= 0
+        array_length(
+            global.party_history
+        )
+        <=
+        0
     )
     {
         scr_party_seed_history();
+    }
+
+
+    var _p =
+        instance_find(
+            obj_player,
+            0
+        );
+
+
+    var _feet_x =
+        scr_party_feet_x(
+            _p
+        );
+
+    var _feet_y =
+        scr_party_feet_y(
+            _p
+        );
+
+
+    var _dx =
+        _feet_x
+        -
+        global.party_last_player_x;
+
+    var _dy =
+        _feet_y
+        -
+        global.party_last_player_y;
+
+
+    // Maya no avanzó.
+    if (
+        abs(_dx) <= 0.001
+        &&
+        abs(_dy) <= 0.001
+    )
+    {
         return;
     }
 
-    var _p = instance_find(obj_player, 0);
 
-    var _last =
-        global.party_history[
-            array_length(global.party_history) - 1
-        ];
-
+    // Warp / teleport.
     if (
-        point_distance(
-            _last.x,
-            _last.y,
-            _p.x,
-            _p.y
-        )
-        >=
-        global.party_history_min_distance
+        abs(_dx) > 16
+        ||
+        abs(_dy) > 16
     )
     {
-        var _face =
-            variable_instance_exists(_p, "face")
-            ?
-            _p.face
-            :
-            DOWN;
+        scr_party_seed_history();
 
-        array_push(
+        return;
+    }
+
+
+    var _face =
+        variable_instance_exists(
+            _p,
+            "face"
+        )
+        ?
+        _p.face
+        :
+        DOWN;
+
+
+    // =====================================================
+    // GUARDAR LOS PIES REALES DE MAYA
+    // =====================================================
+
+    array_push(
+        global.party_history,
+        {
+            x:
+                _feet_x,
+
+            y:
+                _feet_y,
+
+            face:
+                _face
+        }
+    );
+
+
+    global.party_last_player_x =
+        _feet_x;
+
+    global.party_last_player_y =
+        _feet_y;
+
+
+    var _over =
+        array_length(
+            global.party_history
+        )
+        -
+        global.party_history_max;
+
+
+    if (_over > 0)
+    {
+        array_delete(
             global.party_history,
-            {
-                x: _p.x,
-                y: _p.y,
-                face: _face
-            }
+            0,
+            _over
         );
-
-        var _over =
-            array_length(global.party_history)
-            -
-            700;
-
-        if (_over > 0)
-            array_delete(global.party_history, 0, _over);
     }
 }
 
 
-// =========================================================
-// CONTROL INDIVIDUAL EN CINEMÁTICAS
-// =========================================================
+function scr_party_get_delayed_position(_follower_index)
+{
+    scr_party_init();
+
+
+    var _count =
+        array_length(
+            global.party_history
+        );
+
+
+    if (_count <= 0)
+    {
+        return {
+            x: 0,
+            y: 0,
+            face: DOWN
+        };
+    }
+
+
+    // =====================================================
+    // FOLLOWER 0 = 5 MOVIMIENTOS ATRÁS
+    // FOLLOWER 1 = 10 MOVIMIENTOS ATRÁS
+    // FOLLOWER 2 = 15 MOVIMIENTOS ATRÁS
+    // =====================================================
+
+    var _base_delay =
+        global.party_follow_delay_current;
+
+
+    var _delay =
+        round(
+            (
+                _follower_index + 1
+            )
+            *
+            _base_delay
+        );
+
+
+    var _index =
+        _count
+        -
+        1
+        -
+        _delay;
+
+
+    _index =
+        clamp(
+            _index,
+            0,
+            _count - 1
+        );
+
+
+    return global.party_history[
+        _index
+    ];
+}
+
 
 function scr_party_cutscene_take_control(_actor)
 {
@@ -976,7 +1469,9 @@ function scr_party_release_cutscene_control()
         if (_actor != noone && instance_exists(_actor))
         {
             _actor.party_follow_suspended = false;
-            _actor.party_rejoin = true;
+
+            // Volver directamente a la ruta normal.
+            _actor.party_rejoin = false;
         }
     }
 }
@@ -990,200 +1485,425 @@ function scr_party_on_room_start()
 {
     scr_party_init();
 
-    global.party_room_dirty = true;
-    global.party_history_room = -1;
+
+    // Cada habitación empieza con un buffer nuevo alrededor
+    // de la posición actual de Maya.
+    global.party_room_dirty =
+        true;
+
+    global.party_history_room =
+        -1;
+
+    global.party_history =
+        [];
 }
 
-
-// =========================================================
-// UPDATE
-// =========================================================
 
 function scr_party_update()
 {
     scr_party_init();
 
+
     if (!instance_exists(obj_player))
         return;
 
+
     scr_party_ensure_instances();
 
-    // -----------------------------------------------------
-    // OCULTAR EN BATALLA / SHOP
-    // -----------------------------------------------------
+
+    // =====================================================
+    // ¿MAYA ESTÁ CORRIENDO?
+    // =====================================================
+    //
+    // Misma lógica que usa obj_player:
+    //
+    // Auto-correr OFF:
+    //     X / Shift = correr.
+    //
+    // Auto-correr ON:
+    //     corre normalmente;
+    //     X / Shift = caminar.
+    // =====================================================
+
+    var _auto_run_active =
+        variable_global_exists(
+            "autocorrer_enabled"
+        )
+        &&
+        global.autocorrer_enabled;
+
+
+    var _run_modifier =
+        keyboard_check(
+            ord("X")
+        )
+        ||
+        keyboard_check(
+            vk_shift
+        );
+
+
+    var _player_running =
+        _auto_run_active
+        ?
+        !_run_modifier
+        :
+        _run_modifier;
+
+
+    var _delay_target =
+        _player_running
+        ?
+        global.party_follow_delay_run
+        :
+        global.party_follow_delay_walk;
+
+
+    // Cambio suave entre ambas distancias.
+    global.party_follow_delay_current =
+        lerp(
+            global.party_follow_delay_current,
+            _delay_target,
+            0.28
+        );
+
+
+    if (
+        abs(
+            global.party_follow_delay_current
+            -
+            _delay_target
+        )
+        <
+        0.05
+    )
+    {
+        global.party_follow_delay_current =
+            _delay_target;
+    }
+
+
+    // Mantener la variable antigua sincronizada por
+    // compatibilidad con cualquier otro código.
+    global.party_follow_delay =
+        global.party_follow_delay_current;
+
+
+    // =====================================================
+    // BATTLE / SHOP
+    // =====================================================
 
     if (scr_party_hidden_room())
     {
-        for (var i = 0; i < array_length(global.party_data.members); i++)
+        for (
+            var _i = 0;
+            _i < array_length(
+                global.party_data.members
+            );
+            _i++
+        )
         {
-            var _m = global.party_data.members[i];
+            var _m =
+                global.party_data.members[_i];
 
-            if (!is_struct(_m) || !variable_struct_exists(_m, "id"))
-                continue;
 
-            var _actor = scr_party_get_instance(_m.id);
-
-            if (_actor != noone && instance_exists(_actor))
+            if (
+                !is_struct(_m)
+                ||
+                !variable_struct_exists(
+                    _m,
+                    "id"
+                )
+            )
             {
-                _actor.visible = false;
-                _actor.party_hidden_by_system = true;
+                continue;
+            }
+
+
+            var _actor =
+                scr_party_get_instance(
+                    _m.id
+                );
+
+
+            if (
+                _actor != noone
+                &&
+                instance_exists(_actor)
+            )
+            {
+                _actor.visible =
+                    false;
+
+                _actor.party_hidden_by_system =
+                    true;
+
+
+                if (
+                    variable_instance_exists(
+                        _actor,
+                        "movimiento"
+                    )
+                )
+                {
+                    _actor.movimiento =
+                        false;
+                }
+
+
+                scr_party_apply_walk_animation(
+                    _actor,
+                    false
+                );
             }
         }
 
-        global.party_room_dirty = true;
-        global.party_history_room = room;
 
         return;
     }
 
-    // -----------------------------------------------------
-    // REAPARECER
-    // -----------------------------------------------------
 
-    for (var i = 0; i < array_length(global.party_data.members); i++)
-    {
-        var _m = global.party_data.members[i];
-
-        if (!is_struct(_m) || !variable_struct_exists(_m, "id"))
-            continue;
-
-        var _actor = scr_party_get_instance(_m.id);
-
-        if (
-            _actor != noone
-            &&
-            instance_exists(_actor)
-            &&
-            variable_instance_exists(_actor, "party_hidden_by_system")
-            &&
-            _actor.party_hidden_by_system
-        )
-        {
-            _actor.visible = true;
-            _actor.party_hidden_by_system = false;
-        }
-    }
-
+    // Guardar la posición final de los PIES de Maya.
     scr_party_record_player();
 
-    if (array_length(global.party_history) <= 0)
-        return;
 
-    // -----------------------------------------------------
-    // FOLLOW
-    // -----------------------------------------------------
-
-    for (var i = 0; i < array_length(global.party_data.members); i++)
+    if (
+        array_length(
+            global.party_history
+        )
+        <=
+        0
+    )
     {
-        var _m = global.party_data.members[i];
+        return;
+    }
 
-        if (!is_struct(_m) || !variable_struct_exists(_m, "id"))
-            continue;
 
-        var _actor = scr_party_get_instance(_m.id);
+    // =====================================================
+    // FOLLOWERS
+    // =====================================================
 
-        if (_actor == noone || !instance_exists(_actor))
-            continue;
+    for (
+        var _i = 0;
+        _i < array_length(
+            global.party_data.members
+        );
+        _i++
+    )
+    {
+        var _m =
+            global.party_data.members[_i];
+
 
         if (
-            variable_instance_exists(_actor, "party_follow_suspended")
+            !is_struct(_m)
+            ||
+            !variable_struct_exists(
+                _m,
+                "id"
+            )
+        )
+        {
+            continue;
+        }
+
+
+        var _actor =
+            scr_party_get_instance(
+                _m.id
+            );
+
+
+        if (
+            _actor == noone
+            ||
+            !instance_exists(_actor)
+        )
+        {
+            continue;
+        }
+
+
+        _actor.visible =
+            true;
+
+        _actor.party_hidden_by_system =
+            false;
+
+
+        if (
+            variable_instance_exists(
+                _actor,
+                "party_follow_suspended"
+            )
             &&
             _actor.party_follow_suspended
         )
         {
-            if (variable_instance_exists(_actor, "movimiento"))
-                _actor.movimiento = false;
-
             continue;
         }
 
-        var _target_index =
-            array_length(global.party_history)
-            -
-            1
-            -
-            ((i + 1) * global.party_spacing_steps);
 
-        _target_index = clamp(
-            _target_index,
-            0,
-            array_length(global.party_history) - 1
+        var _target =
+            scr_party_get_delayed_position(
+                _i
+            );
+
+
+        // =================================================
+        // POSICIÓN ANTERIOR DEL FOLLOWER = SUS PIES
+        // =================================================
+
+        var _old_feet_x =
+            scr_party_feet_x(
+                _actor
+            );
+
+        var _old_feet_y =
+            scr_party_feet_y(
+                _actor
+            );
+
+
+        // =================================================
+        // PRIMERO CAMBIAR DIRECCIÓN / SPRITE
+        // =================================================
+        //
+        // El bbox puede cambiar entre arriba/abajo/etc.
+        // Por eso el sprite se cambia ANTES de colocar pies.
+        // =================================================
+
+        scr_party_apply_direction(
+            _actor,
+            _target.face
         );
 
-        var _target = global.party_history[_target_index];
 
-        var _old_x = _actor.x;
-        var _old_y = _actor.y;
+        // =================================================
+        // DESPUÉS ALINEAR PIES
+        // =================================================
 
-        var _distance = point_distance(
-            _actor.x,
-            _actor.y,
+        scr_party_place_feet(
+            _actor,
             _target.x,
             _target.y
         );
 
-        var _rejoin =
-            variable_instance_exists(_actor, "party_rejoin")
-            &&
-            _actor.party_rejoin;
+
+        var _new_feet_x =
+            scr_party_feet_x(
+                _actor
+            );
+
+        var _new_feet_y =
+            scr_party_feet_y(
+                _actor
+            );
+
+
+        // =================================================
+        // ORDEN DE DIBUJO MAYA <-> FOLLOWER
+        // =================================================
+        //
+        // En un RPG top-down:
+        //
+        // quien tiene los pies más ABAJO en pantalla
+        // debe dibujarse DELANTE.
+        //
+        // GameMaker dibuja delante los depths más bajos.
+        //
+        // Por eso:
+        //
+        // Silicio debajo de Maya:
+        //     depth = player.depth - 1
+        //     -> Silicio delante.
+        //
+        // Silicio encima de Maya:
+        //     depth = player.depth + 1
+        //     -> Silicio detrás.
+        //
+        // Si están a la misma altura, dejamos a Maya delante.
+        // =================================================
+
+        var _player_instance =
+            instance_find(
+                obj_player,
+                0
+            );
+
 
         if (
-            _rejoin
+            _player_instance != noone
             &&
-            _distance > global.party_rejoin_speed
+            instance_exists(
+                _player_instance
+            )
         )
         {
-            var _dir = point_direction(
-                _actor.x,
-                _actor.y,
-                _target.x,
-                _target.y
-            );
+            var _player_feet_y =
+                scr_party_feet_y(
+                    _player_instance
+                );
 
-            _actor.x += lengthdir_x(
-                global.party_rejoin_speed,
-                _dir
-            );
 
-            _actor.y += lengthdir_y(
-                global.party_rejoin_speed,
-                _dir
-            );
+            if (
+                _new_feet_y
+                >
+                _player_feet_y + 0.5
+            )
+            {
+                // Silicio está físicamente más abajo:
+                // debe tapar a Maya.
+                _actor.depth =
+                    _player_instance.depth
+                    -
+                    1;
+            }
+            else
+            {
+                // Silicio está arriba o a la misma altura:
+                // Maya debe dibujarse por delante.
+                _actor.depth =
+                    _player_instance.depth
+                    +
+                    1;
+            }
         }
-        else
-        {
-            _actor.x = _target.x;
-            _actor.y = _target.y;
 
-            if (_rejoin)
-                _actor.party_rejoin = false;
-        }
 
         var _moved =
-            abs(_actor.x - _old_x) > 0.01
+        (
+            abs(
+                _new_feet_x - _old_feet_x
+            )
+            >
+            0.001
             ||
-            abs(_actor.y - _old_y) > 0.01;
-
-        var _face = _target.face;
-
-        // Durante la reincorporación, mirar hacia el vector real.
-        if (_rejoin && _moved)
-        {
-            var _dx = _actor.x - _old_x;
-            var _dy = _actor.y - _old_y;
-
-            if (abs(_dx) >= abs(_dy))
-                _face = (_dx >= 0) ? RIGHT : LEFT;
-            else
-                _face = (_dy >= 0) ? DOWN : UP;
-        }
-
-        scr_party_apply_direction(
-            _actor,
-            _face
+            abs(
+                _new_feet_y - _old_feet_y
+            )
+            >
+            0.001
         );
 
-        if (variable_instance_exists(_actor, "movimiento"))
-            _actor.movimiento = _moved;
+
+        if (
+            variable_instance_exists(
+                _actor,
+                "movimiento"
+            )
+        )
+        {
+            _actor.movimiento =
+                _moved;
+        }
+
+
+        scr_party_apply_walk_animation(
+            _actor,
+            _moved
+        );
     }
 }
+
+

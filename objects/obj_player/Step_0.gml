@@ -1,3 +1,66 @@
+// =========================================================
+// CONSOLA ABIERTA: CONGELAR PLAYER EN IDLE
+// =========================================================
+
+if (
+    variable_global_exists("dev_console_open")
+    &&
+    global.dev_console_open
+)
+{
+    movimiento =
+        false;
+
+    paso_timer =
+        0;
+
+    image_index =
+        0;
+
+
+    switch (face)
+    {
+        case RIGHT:
+            direccion =
+                "derecha";
+
+            sprite_index =
+                pendejo_derecha;
+            break;
+
+
+        case LEFT:
+            direccion =
+                "izquierda";
+
+            sprite_index =
+                pendejo_izquierda;
+            break;
+
+
+        case UP:
+            direccion =
+                "arriba";
+
+            sprite_index =
+                pendejo_arriba;
+            break;
+
+
+        case DOWN:
+            direccion =
+                "abajo";
+
+            sprite_index =
+                pendejo_abajo;
+            break;
+    }
+
+
+    exit;
+}
+
+
 // Reiniciar movimiento
 movimiento = false;
 

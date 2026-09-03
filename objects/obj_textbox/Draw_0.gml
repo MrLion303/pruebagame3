@@ -1,4 +1,4 @@
-
+/// =========================================================
 /// OBJ_TEXTBOX
 /// DRAW COMPLETO
 /// =========================================================
@@ -52,6 +52,22 @@ var _fast_skip_key =
     keyboard_check(ord("C"))
     ||
     keyboard_check(vk_control);
+
+
+var _console_blocks_textbox =
+(
+    variable_global_exists("dev_console_open")
+    &&
+    global.dev_console_open
+);
+
+
+if (_console_blocks_textbox)
+{
+    accept_key = false;
+    skip_key = false;
+    _fast_skip_key = false;
+}
 
 
 var _is_decision =
@@ -1445,10 +1461,13 @@ if (
         );
 
 
-        option_pos +=
-            keyboard_check_pressed(vk_right)
-            -
-            keyboard_check_pressed(vk_left);
+        if (!_console_blocks_textbox)
+        {
+            option_pos +=
+                keyboard_check_pressed(vk_right)
+                -
+                keyboard_check_pressed(vk_left);
+        }
 
 
         option_pos =

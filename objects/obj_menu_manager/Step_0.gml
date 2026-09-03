@@ -1,4 +1,18 @@
 // =========================================================
+// CONSOLA ABIERTA: NO RECIBIR INPUT DE GAMEPLAY
+// =========================================================
+
+if (
+    variable_global_exists("dev_console_open")
+    &&
+    global.dev_console_open
+)
+{
+    exit;
+}
+
+
+// =========================================================
 // BLOQUEAR MENÚ DURANTE CINEMÁTICAS
 // =========================================================
 

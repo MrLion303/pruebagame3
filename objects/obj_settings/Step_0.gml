@@ -1,10 +1,9 @@
 /// =========================================================
 /// OBJ_SETTINGS
-/// STEP - PARTY MANAGER
+/// STEP
 /// =========================================================
-///
-/// obj_settings ya es persistente, así que funciona como
-/// manager universal de la party.
-/// =========================================================
-
-scr_party_update();
+//
+// NO actualizar la party aquí.
+//
+// Debe existir UN SOLO scr_party_update() por frame.
+// =========================================================

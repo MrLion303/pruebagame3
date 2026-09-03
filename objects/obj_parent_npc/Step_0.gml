@@ -1,99 +1,183 @@
+/// =========================================================
+/// OBJ_PARENT_NPC - STEP
+/// =========================================================
+
+
 // =========================================================
 // PARTY
-// =========================================================
-//
-// Para un NPC reclutable, en su Creation Code:
-//
-//     party_id = "maya";
-//
-// Mientras sea miembro de la party, este Step padre deja de
-// abrir el diálogo normal. El seguimiento lo hace obj_settings.
 // =========================================================
 
 if (!variable_instance_exists(id, "party_id"))
 {
-    party_id = "";
+    party_id =
+        "";
 }
+
 
 if (!variable_instance_exists(id, "party_member"))
 {
-    party_member = false;
+    party_member =
+        false;
 }
+
 
 if (!variable_instance_exists(id, "party_follow_suspended"))
 {
-    party_follow_suspended = false;
+    party_follow_suspended =
+        false;
 }
+
 
 if (!variable_instance_exists(id, "party_rejoin"))
 {
-    party_rejoin = false;
+    party_rejoin =
+        false;
 }
 
+
+// IMPORTANTÍSIMO:
+// mientras pertenece a la party, este padre NO toca nada.
+// Posición, sprite y animación pertenecen al party system.
 if (party_member)
 {
     exit;
 }
 
 
-// Definir la distancia de interacción con los pies (en píxeles)
-var _interaction_distance = 32; 
+// =========================================================
+// NPC NORMAL
+// =========================================================
 
-// Comprobar si el jugador presiona Z o Enter
-var _interact_key = keyboard_check_pressed(ord("Z")) || keyboard_check_pressed(vk_enter);
+var _interaction_distance =
+    32;
 
-// Verificar si el jugador existe en la habitación
+var _interact_key =
+    keyboard_check_pressed(ord("Z"))
+    ||
+    keyboard_check_pressed(vk_enter);
+
+
 if (instance_exists(obj_player))
 {
-    // Usamos el centro horizontal del NPC, pero para la vertical usamos su PARTE BAJA (los pies)
-    var _npc_cx = bbox_left + (bbox_right - bbox_left) / 2;
-    var _npc_cy = bbox_bottom; // Base del NPC
-     
-    var _player_cx = obj_player.bbox_left + (obj_player.bbox_right - obj_player.bbox_left) / 2;
-    var _player_cy = obj_player.bbox_top + (obj_player.bbox_bottom - obj_player.bbox_top) / 2;
-     
-    // Calcular la distancia tomando en cuenta la base del NPC
-    var _distance = point_distance(_player_cx, _player_cy, _npc_cx, _npc_cy);
-     
-    // Verificamos si el menú está cerrado (o si ni siquiera existe el gestor de menús)
-    var _is_menu_closed = !instance_exists(obj_menu_manager) || (instance_exists(obj_menu_manager) && obj_menu_manager.state == MENU_STATE.CLOSED);
+    var _npc_cx =
+        bbox_left
+        +
+        (bbox_right - bbox_left) / 2;
 
-    // Si el jugador está cerca, presiona la tecla, NO hay caja de texto Y EL MENÚ ESTÁ CERRADO
-    if (_distance <= _interaction_distance && _interact_key && !instance_exists(obj_textbox) && _is_menu_closed)
+    var _npc_cy =
+        bbox_bottom;
+
+
+    var _player_cx =
+        obj_player.bbox_left
+        +
+        (obj_player.bbox_right - obj_player.bbox_left) / 2;
+
+    var _player_cy =
+        obj_player.bbox_top
+        +
+        (obj_player.bbox_bottom - obj_player.bbox_top) / 2;
+
+
+    var _distance =
+        point_distance(
+            _player_cx,
+            _player_cy,
+            _npc_cx,
+            _npc_cy
+        );
+
+
+    var _is_menu_closed =
+        !instance_exists(obj_menu_manager)
+        ||
+        obj_menu_manager.state == MENU_STATE.CLOSED;
+
+
+    if (
+        _distance <= _interaction_distance
+        &&
+        _interact_key
+        &&
+        !instance_exists(obj_textbox)
+        &&
+        _is_menu_closed
+    )
     {
-        var _player_facing = obj_player.facing_direction;
-        var _is_looking_at_npc = false;
-         
-        // Diferencias exactas basadas en la nueva posición de los pies del NPC
-        var _diff_x = _npc_cx - _player_cx; 
-        var _diff_y = _npc_cy - _player_cy; 
-         
-        // Margen de tolerancia lateral
-        var _tolerance = 20; 
-         
+        var _player_facing =
+            obj_player.facing_direction;
+
+        var _is_looking_at_npc =
+            false;
+
+
+        var _diff_x =
+            _npc_cx - _player_cx;
+
+        var _diff_y =
+            _npc_cy - _player_cy;
+
+
+        var _tolerance =
+            20;
+
+
         switch (_player_facing)
         {
-            case 0: // Mirando a la DERECHA
-                if (_diff_x > 0 && abs(_diff_y) <= _tolerance) _is_looking_at_npc = true;
+            case 0:
+                if (
+                    _diff_x > 0
+                    &&
+                    abs(_diff_y) <= _tolerance
+                )
+                {
+                    _is_looking_at_npc = true;
+                }
                 break;
-                 
-            case 1: // Mirando a la IZQUIERDA
-                if (_diff_x < 0 && abs(_diff_y) <= _tolerance) _is_looking_at_npc = true;
+
+
+            case 1:
+                if (
+                    _diff_x < 0
+                    &&
+                    abs(_diff_y) <= _tolerance
+                )
+                {
+                    _is_looking_at_npc = true;
+                }
                 break;
-                 
-            case 2: // Mirando ABAJO
-                if (_diff_y > 0 && abs(_diff_x) <= _tolerance) _is_looking_at_npc = true;
+
+
+            case 2:
+                if (
+                    _diff_y > 0
+                    &&
+                    abs(_diff_x) <= _tolerance
+                )
+                {
+                    _is_looking_at_npc = true;
+                }
                 break;
-                 
-            case 3: // Mirando ARRIBA
-                if (_diff_y < 0 && abs(_diff_x) <= _tolerance) _is_looking_at_npc = true;
+
+
+            case 3:
+                if (
+                    _diff_y < 0
+                    &&
+                    abs(_diff_x) <= _tolerance
+                )
+                {
+                    _is_looking_at_npc = true;
+                }
                 break;
         }
-         
-        // Si cumple la dirección y está en la zona de los pies, abrir diálogo
+
+
         if (_is_looking_at_npc)
         {
-            create_textbox(text_id);
+            create_textbox(
+                text_id
+            );
         }
     }
 }
