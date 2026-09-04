@@ -348,7 +348,7 @@ else if (estado == 1)
 {
     var _texto_olvidar_actual =
         scr_loc(
-            _texto_olvidar_actual
+            texto_olvidar
         );
 
 
@@ -366,7 +366,7 @@ else if (estado == 1)
 
     var _ancho =
         _ancho_texto_multilinea(
-            texto_olvidar
+            _texto_olvidar_actual
         )
         * _esc;
 

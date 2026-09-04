@@ -246,7 +246,16 @@ if (estado == 0)
                     || keyboard_check_pressed(vk_up)
                 )
                 {
-                    seleccion = 0;
+                    if (seleccion != 0)
+                    {
+                        seleccion = 0;
+
+                        audio_play_sound(
+                            snd_menumove,
+                            10,
+                            false
+                        );
+                    }
                 }
 
 
@@ -259,7 +268,16 @@ if (estado == 0)
                     || keyboard_check_pressed(vk_down)
                 )
                 {
-                    seleccion = 1;
+                    if (seleccion != 1)
+                    {
+                        seleccion = 1;
+
+                        audio_play_sound(
+                            snd_menumove,
+                            10,
+                            false
+                        );
+                    }
                 }
 
 
