@@ -83,7 +83,6 @@
     {"name":"scr_config_data","order":7,"path":"scripts/scr_config_data/scr_config_data.yy",},
     {"name":"scr_cutscene_data","order":1,"path":"scripts/scr_cutscene_data/scr_cutscene_data.yy",},
     {"name":"scr_death_enemigos_bbs","order":4,"path":"scripts/scr_death_enemigos_bbs/scr_death_enemigos_bbs.yy",},
-    {"name":"scr_dev_console","order":1,"path":"scripts/scr_dev_console/scr_dev_console.yy",},
     {"name":"scr_enemigos_data","order":8,"path":"scripts/scr_enemigos_data/scr_enemigos_data.yy",},
     {"name":"scr_equipped","order":3,"path":"scripts/scr_equipped/scr_equipped.yy",},
     {"name":"scr_equips_data","order":2,"path":"scripts/scr_equips_data/scr_equips_data.yy",},

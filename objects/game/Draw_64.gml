@@ -1119,4 +1119,4 @@ if (instance_exists(obj_cofre_ui))
 // DEBE SER LO ÚLTIMO DEL DRAW GUI DEL OBJETO "game"
 // =========================================================
 
-scr_dev_console_draw();
+

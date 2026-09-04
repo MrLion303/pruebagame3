@@ -1512,79 +1512,135 @@ function scr_party_update()
 
 
     // =====================================================
-    // ¿MAYA ESTÁ CORRIENDO?
+    // DISTANCIA DINÁMICA SOLO SI MAYA SE MUEVE
     // =====================================================
     //
-    // Misma lógica que usa obj_player:
+    // Mantener X / Shift mientras Maya está quieta NO debe
+    // cambiar la separación de Silicio.
     //
-    // Auto-correr OFF:
-    //     X / Shift = correr.
-    //
-    // Auto-correr ON:
-    //     corre normalmente;
-    //     X / Shift = caminar.
+    // Primero comprobamos si los PIES del player realmente
+    // cambiaron desde el último punto registrado.
     // =====================================================
 
-    var _auto_run_active =
-        variable_global_exists(
-            "autocorrer_enabled"
-        )
-        &&
-        global.autocorrer_enabled;
-
-
-    var _run_modifier =
-        keyboard_check(
-            ord("X")
-        )
-        ||
-        keyboard_check(
-            vk_shift
+    var _player_instance =
+        instance_find(
+            obj_player,
+            0
         );
 
 
-    var _player_running =
-        _auto_run_active
-        ?
-        !_run_modifier
-        :
-        _run_modifier;
+    var _player_feet_x_now =
+        scr_party_feet_x(
+            _player_instance
+        );
 
-
-    var _delay_target =
-        _player_running
-        ?
-        global.party_follow_delay_run
-        :
-        global.party_follow_delay_walk;
-
-
-    // Cambio suave entre ambas distancias.
-    global.party_follow_delay_current =
-        lerp(
-            global.party_follow_delay_current,
-            _delay_target,
-            0.28
+    var _player_feet_y_now =
+        scr_party_feet_y(
+            _player_instance
         );
 
 
-    if (
-        abs(
-            global.party_follow_delay_current
-            -
-            _delay_target
-        )
-        <
-        0.05
-    )
+    var _player_dx_now =
+        _player_feet_x_now
+        -
+        global.party_last_player_x;
+
+    var _player_dy_now =
+        _player_feet_y_now
+        -
+        global.party_last_player_y;
+
+
+    var _player_move_distance =
+        point_distance(
+            0,
+            0,
+            _player_dx_now,
+            _player_dy_now
+        );
+
+
+    var _player_actually_moved =
+        (_player_move_distance > 0.001);
+
+
+    // =====================================================
+    // SOLO CAMBIAR EL DELAY SI HUBO MOVIMIENTO REAL
+    // =====================================================
+
+    if (_player_actually_moved)
     {
+        // Detectamos caminar/correr por lo que Maya hizo
+        // realmente este frame, no por X/Shift ni Auto-correr.
+        //
+        // Normal ≈ 4 px
+        // Correr ≈ 6 px
+        var _player_running =
+            (_player_move_distance > 4.5);
+
+
+        var _delay_target =
+            _player_running
+            ?
+            global.party_follow_delay_run
+            :
+            global.party_follow_delay_walk;
+
+
+        // =================================================
+        // TRANSICIÓN DE DISTANCIA
+        // =================================================
+        //
+        // Al EMPEZAR a correr:
+        // abrimos distancia relativamente rápido.
+        //
+        // Al DEJAR de correr:
+        // volvemos más lentamente hacia Maya.
+        //
+        // Esto evita que Silicio "se recoja" de golpe.
+        // =================================================
+
+        var _delay_lerp_speed =
+            (
+                _delay_target
+                >
+                global.party_follow_delay_current
+            )
+            ?
+            0.24
+            :
+            0.08;
+
+
         global.party_follow_delay_current =
-            _delay_target;
+            lerp(
+                global.party_follow_delay_current,
+                _delay_target,
+                _delay_lerp_speed
+            );
+
+
+        if (
+            abs(
+                global.party_follow_delay_current
+                -
+                _delay_target
+            )
+            <
+            0.03
+        )
+        {
+            global.party_follow_delay_current =
+                _delay_target;
+        }
     }
 
 
-    // Mantener la variable antigua sincronizada por
-    // compatibilidad con cualquier otro código.
+    // Si Maya está quieta, party_follow_delay_current
+    // se queda EXACTAMENTE como estaba.
+
+
+    // Compatibilidad con código anterior.
     global.party_follow_delay =
         global.party_follow_delay_current;
 
