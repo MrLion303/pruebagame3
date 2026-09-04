@@ -1,5 +1,5 @@
 {
-    "total":  229,
+    "total":  236,
     "fuentes":  {
                     "Jugador X: ":  [
                                         "objects\\game\\Draw_64.gml:36"
@@ -280,36 +280,20 @@
                                          "objects\\obj_menu_manager\\Step_0.gml:619"
                                      ],
                     "Salvar":  [
-                                   "objects\\obj_save_menu\\Create_0.gml:11"
-                               ],
-                    "Cargar":  [
                                    "objects\\obj_save_menu\\Create_0.gml:12"
                                ],
-                    "Borrar":  [
+                    "Cargar":  [
                                    "objects\\obj_save_menu\\Create_0.gml:13"
                                ],
-                    "Test":  [
-                                 "objects\\obj_save_menu\\Create_0.gml:82"
-                             ],
-                    "Pasillo School":  [
-                                           "objects\\obj_save_menu\\Create_0.gml:83"
-                                       ],
-                    "Salón de Toriel":  [
-                                            "objects\\obj_save_menu\\Create_0.gml:84"
-                                        ],
-                    "El Huevo":  [
-                                     "objects\\obj_save_menu\\Create_0.gml:85"
-                                 ],
-                    "Desconocido":  [
-                                        "objects\\obj_save_menu\\Create_0.gml:87",
-                                        "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:265"
-                                    ],
+                    "Borrar":  [
+                                   "objects\\obj_save_menu\\Create_0.gml:14"
+                               ],
                     "Archivo {n}":  [
-                                        "objects\\obj_save_menu\\Create_0.gml:119",
-                                        "objects\\obj_save_menu\\Create_0.gml:139"
+                                        "objects\\obj_save_menu\\Create_0.gml:120",
+                                        "objects\\obj_save_menu\\Create_0.gml:140"
                                     ],
                     "Datos vacios":  [
-                                         "objects\\obj_save_menu\\Create_0.gml:148",
+                                         "objects\\obj_save_menu\\Create_0.gml:149",
                                          "objects\\obj_save_menu\\Step_0.gml:520"
                                      ],
                     "Partida salvada":  [
@@ -556,6 +540,10 @@
                     "* Acabaste con Toby B.":  [
                                                    "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:246"
                                                ],
+                    "Desconocido":  [
+                                        "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:265",
+                                        "scripts\\scr_save_room_names\\scr_save_room_names.gml:117"
+                                    ],
                     "Un error en la matrix.":  [
                                                    "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:272"
                                                ],
@@ -680,6 +668,43 @@
                     "Pastillas que ayudan a recuperar energía.":  [
                                                                       "scripts\\scr_items_data\\scr_items_data.gml:287"
                                                                   ],
+                    "* Sientes que este lugar quedará grabado en tu memoria.":  [
+                                                                                    "scripts\\scr_save_dialogues\\scr_save_dialogues.gml:124",
+                                                                                    "scripts\\scr_save_dialogues\\scr_save_dialogues.gml:236"
+                                                                                ],
+                    "* Por un instante, el silencio de la escuela parece tranquilizarte.":  [
+                                                                                                "scripts\\scr_save_dialogues\\scr_save_dialogues.gml:151"
+                                                                                            ],
+                    "* Sientes que podrías recordar este momento por mucho tiempo.":  [
+                                                                                          "scripts\\scr_save_dialogues\\scr_save_dialogues.gml:157"
+                                                                                      ],
+                    "* El eco de tus pasos desaparece lentamente.":  [
+                                                                         "scripts\\scr_save_dialogues\\scr_save_dialogues.gml:187"
+                                                                     ],
+                    "* Este texto se reproducirá cada vez que uses este guardado.":  [
+                                                                                         "scripts\\scr_save_dialogues\\scr_save_dialogues.gml:211"
+                                                                                     ],
+                    "Mi Habitación":  [
+                                          "scripts\\scr_save_room_names\\scr_save_room_names.gml:14"
+                                      ],
+                    "Pasillo School":  [
+                                           "scripts\\scr_save_room_names\\scr_save_room_names.gml:39",
+                                           "scripts\\scr_save_room_names\\scr_save_room_names.gml:95"
+                                       ],
+                    "Salón de Toriel":  [
+                                            "scripts\\scr_save_room_names\\scr_save_room_names.gml:46",
+                                            "scripts\\scr_save_room_names\\scr_save_room_names.gml:103"
+                                        ],
+                    "El Huevo":  [
+                                     "scripts\\scr_save_room_names\\scr_save_room_names.gml:53",
+                                     "scripts\\scr_save_room_names\\scr_save_room_names.gml:111"
+                                 ],
+                    "Tienda de Gerson":  [
+                                             "scripts\\scr_save_room_names\\scr_save_room_names.gml:59"
+                                         ],
+                    "Test":  [
+                                 "scripts\\scr_save_room_names\\scr_save_room_names.gml:87"
+                             ],
                     "Tienda 1":  [
                                      "scripts\\scr_shop_data\\scr_shop_data.gml:127"
                                  ],
