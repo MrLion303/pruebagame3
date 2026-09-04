@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"scr_ice_system",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"scr_ice_system",
+  "parent":{
+    "name":"Puzzles",
+    "path":"folders/Puzzles.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

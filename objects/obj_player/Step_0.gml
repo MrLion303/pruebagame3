@@ -70,128 +70,260 @@ if (!instance_exists(obj_pauser) && !instance_exists(obj_textbox) && !_menu_abie
     if (_key_up && _key_down)    { _key_up = false; _key_down = false; }
 
     // =====================================================
-    // MOVIMIENTO CON COLISIÓN PRECISA POR PÍXEL
+    // HIELO / HIELO AZUL
     // =====================================================
     //
-    // Antes se comprobaba directamente:
+    // Si scr_player_ice_update() devuelve true,
+    // el terreno de hielo se encargó por completo del
+    // movimiento de este frame.
     //
-    //     x + _vel
-    //     y + _vel
-    //
-    // Eso hacía que caminar (4 px) y correr (6 px)
-    // pudieran detenerse a distancias diferentes de la
-    // misma pared.
-    //
-    // Ahora cada uno de esos píxeles se comprueba
-    // individualmente.
+    // Si devuelve false, usamos el movimiento normal
+    // original del juego.
     // =====================================================
 
+    var _ice_handled =
+        scr_player_ice_update(
+            _vel,
+            _key_right,
+            _key_left,
+            _key_up,
+            _key_down
+        );
 
-    // =====================================================
-    // DERECHA
-    // =====================================================
 
-    if (_key_right)
+    if (!_ice_handled)
     {
-        direccion = "derecha";
-        face = RIGHT;
+            // =====================================================
+            // MOVIMIENTO CON COLISIÓN PRECISA POR PÍXEL
+            // =====================================================
+            //
+            // Antes se comprobaba directamente:
+            //
+            //     x + _vel
+            //     y + _vel
+            //
+            // Eso hacía que caminar (4 px) y correr (6 px)
+            // pudieran detenerse a distancias diferentes de la
+            // misma pared.
+            //
+            // Ahora cada uno de esos píxeles se comprueba
+            // individualmente.
+            // =====================================================
 
 
-        // =================================================
-        // ¿HAY UNA RAMPA EN EL RECORRIDO DE ESTE FRAME?
-        // =================================================
-        //
-        // Las rampas necesitan conservar la lógica antigua:
-        //
-        //     mover _vel horizontalmente
-        //     +
-        //     buscar corrección vertical hasta _vel
-        //
-        // Si las procesamos 1 píxel por vez, la subida se
-        // vuelve muchísimo más lenta.
-        // =================================================
+            // =====================================================
+            // DERECHA
+            // =====================================================
 
-        var _ramp_path =
-            false;
-
-
-        for (
-            var _probe = 1;
-            _probe <= _vel;
-            _probe++
-        )
-        {
-            if (
-                place_meeting(
-                    x + _probe,
-                    y,
-                    colision_rampa
-                )
-            )
+            if (_key_right)
             {
-                _ramp_path =
-                    true;
-
-                break;
-            }
-        }
+                direccion = "derecha";
+                face = RIGHT;
 
 
-        // =================================================
-        // RAMPA - MOVIMIENTO A VELOCIDAD COMPLETA
-        // =================================================
+                // =================================================
+                // ¿HAY UNA RAMPA EN EL RECORRIDO DE ESTE FRAME?
+                // =================================================
+                //
+                // Las rampas necesitan conservar la lógica antigua:
+                //
+                //     mover _vel horizontalmente
+                //     +
+                //     buscar corrección vertical hasta _vel
+                //
+                // Si las procesamos 1 píxel por vez, la subida se
+                // vuelve muchísimo más lenta.
+                // =================================================
 
-        if (_ramp_path)
-        {
-            var _max_slope =
-                _vel;
-
-
-            if (
-                !place_meeting(
-                    x + _vel,
-                    y,
-                    colision
-                )
-            )
-            {
-                x +=
-                    _vel;
-
-                movimiento =
-                    true;
-            }
-            else
-            {
-                var _sloped =
+                var _ramp_path =
                     false;
 
 
-                // Subir.
                 for (
-                    var _i = 1;
-                    _i <= _max_slope;
-                    _i++
+                    var _probe = 1;
+                    _probe <= _vel;
+                    _probe++
                 )
                 {
                     if (
+                        place_meeting(
+                            x + _probe,
+                            y,
+                            colision_rampa
+                        )
+                    )
+                    {
+                        _ramp_path =
+                            true;
+
+                        break;
+                    }
+                }
+
+
+                // =================================================
+                // RAMPA - MOVIMIENTO A VELOCIDAD COMPLETA
+                // =================================================
+
+                if (_ramp_path)
+                {
+                    var _max_slope =
+                        _vel;
+
+
+                    if (
                         !place_meeting(
                             x + _vel,
-                            y - _i,
+                            y,
                             colision
                         )
                     )
                     {
-                        y -=
-                            _i;
-
                         x +=
                             _vel;
 
                         movimiento =
                             true;
+                    }
+                    else
+                    {
+                        var _sloped =
+                            false;
 
-                        _sloped =
+
+                        // Subir.
+                        for (
+                            var _i = 1;
+                            _i <= _max_slope;
+                            _i++
+                        )
+                        {
+                            if (
+                                !place_meeting(
+                                    x + _vel,
+                                    y - _i,
+                                    colision
+                                )
+                            )
+                            {
+                                y -=
+                                    _i;
+
+                                x +=
+                                    _vel;
+
+                                movimiento =
+                                    true;
+
+                                _sloped =
+                                    true;
+
+                                break;
+                            }
+                        }
+
+
+                        // Bajar.
+                        if (!_sloped)
+                        {
+                            for (
+                                var _i = 1;
+                                _i <= _max_slope;
+                                _i++
+                            )
+                            {
+                                if (
+                                    !place_meeting(
+                                        x + _vel,
+                                        y + _i,
+                                        colision
+                                    )
+                                )
+                                {
+                                    y +=
+                                        _i;
+
+                                    x +=
+                                        _vel;
+
+                                    movimiento =
+                                        true;
+
+                                    _sloped =
+                                        true;
+
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+
+                // =================================================
+                // PARED NORMAL - PRECISIÓN PÍXEL POR PÍXEL
+                // =================================================
+
+                else
+                {
+                    for (
+                        var _step = 0;
+                        _step < _vel;
+                        _step++
+                    )
+                    {
+                        if (
+                            !place_meeting(
+                                x + 1,
+                                y,
+                                colision
+                            )
+                        )
+                        {
+                            x +=
+                                1;
+
+                            movimiento =
+                                true;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+
+
+            // =====================================================
+            // IZQUIERDA
+            // =====================================================
+
+            if (_key_left)
+            {
+                direccion = "izquierda";
+                face = LEFT;
+
+
+                var _ramp_path =
+                    false;
+
+
+                for (
+                    var _probe = 1;
+                    _probe <= _vel;
+                    _probe++
+                )
+                {
+                    if (
+                        place_meeting(
+                            x - _probe,
+                            y,
+                            colision_rampa
+                        )
+                    )
+                    {
+                        _ramp_path =
                             true;
 
                         break;
@@ -199,318 +331,218 @@ if (!instance_exists(obj_pauser) && !instance_exists(obj_textbox) && !_menu_abie
                 }
 
 
-                // Bajar.
-                if (!_sloped)
+                // =================================================
+                // RAMPA - MOVIMIENTO A VELOCIDAD COMPLETA
+                // =================================================
+
+                if (_ramp_path)
                 {
-                    for (
-                        var _i = 1;
-                        _i <= _max_slope;
-                        _i++
-                    )
-                    {
-                        if (
-                            !place_meeting(
-                                x + _vel,
-                                y + _i,
-                                colision
-                            )
-                        )
-                        {
-                            y +=
-                                _i;
-
-                            x +=
-                                _vel;
-
-                            movimiento =
-                                true;
-
-                            _sloped =
-                                true;
-
-                            break;
-                        }
-                    }
-                }
-            }
-        }
+                    var _max_slope =
+                        _vel;
 
 
-        // =================================================
-        // PARED NORMAL - PRECISIÓN PÍXEL POR PÍXEL
-        // =================================================
-
-        else
-        {
-            for (
-                var _step = 0;
-                _step < _vel;
-                _step++
-            )
-            {
-                if (
-                    !place_meeting(
-                        x + 1,
-                        y,
-                        colision
-                    )
-                )
-                {
-                    x +=
-                        1;
-
-                    movimiento =
-                        true;
-                }
-                else
-                {
-                    break;
-                }
-            }
-        }
-    }
-
-
-    // =====================================================
-    // IZQUIERDA
-    // =====================================================
-
-    if (_key_left)
-    {
-        direccion = "izquierda";
-        face = LEFT;
-
-
-        var _ramp_path =
-            false;
-
-
-        for (
-            var _probe = 1;
-            _probe <= _vel;
-            _probe++
-        )
-        {
-            if (
-                place_meeting(
-                    x - _probe,
-                    y,
-                    colision_rampa
-                )
-            )
-            {
-                _ramp_path =
-                    true;
-
-                break;
-            }
-        }
-
-
-        // =================================================
-        // RAMPA - MOVIMIENTO A VELOCIDAD COMPLETA
-        // =================================================
-
-        if (_ramp_path)
-        {
-            var _max_slope =
-                _vel;
-
-
-            if (
-                !place_meeting(
-                    x - _vel,
-                    y,
-                    colision
-                )
-            )
-            {
-                x -=
-                    _vel;
-
-                movimiento =
-                    true;
-            }
-            else
-            {
-                var _sloped =
-                    false;
-
-
-                // Subir.
-                for (
-                    var _i = 1;
-                    _i <= _max_slope;
-                    _i++
-                )
-                {
                     if (
                         !place_meeting(
                             x - _vel,
-                            y - _i,
+                            y,
                             colision
                         )
                     )
                     {
-                        y -=
-                            _i;
-
                         x -=
                             _vel;
 
                         movimiento =
                             true;
+                    }
+                    else
+                    {
+                        var _sloped =
+                            false;
 
-                        _sloped =
-                            true;
 
-                        break;
+                        // Subir.
+                        for (
+                            var _i = 1;
+                            _i <= _max_slope;
+                            _i++
+                        )
+                        {
+                            if (
+                                !place_meeting(
+                                    x - _vel,
+                                    y - _i,
+                                    colision
+                                )
+                            )
+                            {
+                                y -=
+                                    _i;
+
+                                x -=
+                                    _vel;
+
+                                movimiento =
+                                    true;
+
+                                _sloped =
+                                    true;
+
+                                break;
+                            }
+                        }
+
+
+                        // Bajar.
+                        if (!_sloped)
+                        {
+                            for (
+                                var _i = 1;
+                                _i <= _max_slope;
+                                _i++
+                            )
+                            {
+                                if (
+                                    !place_meeting(
+                                        x - _vel,
+                                        y + _i,
+                                        colision
+                                    )
+                                )
+                                {
+                                    y +=
+                                        _i;
+
+                                    x -=
+                                        _vel;
+
+                                    movimiento =
+                                        true;
+
+                                    _sloped =
+                                        true;
+
+                                    break;
+                                }
+                            }
+                        }
                     }
                 }
 
 
-                // Bajar.
-                if (!_sloped)
+                // =================================================
+                // PARED NORMAL - PRECISIÓN PÍXEL POR PÍXEL
+                // =================================================
+
+                else
                 {
                     for (
-                        var _i = 1;
-                        _i <= _max_slope;
-                        _i++
+                        var _step = 0;
+                        _step < _vel;
+                        _step++
                     )
                     {
                         if (
                             !place_meeting(
-                                x - _vel,
-                                y + _i,
+                                x - 1,
+                                y,
                                 colision
                             )
                         )
                         {
-                            y +=
-                                _i;
-
                             x -=
-                                _vel;
+                                1;
 
                             movimiento =
                                 true;
-
-                            _sloped =
-                                true;
-
+                        }
+                        else
+                        {
                             break;
                         }
                     }
                 }
             }
-        }
 
 
-        // =================================================
-        // PARED NORMAL - PRECISIÓN PÍXEL POR PÍXEL
-        // =================================================
+            // =====================================================
+            // ARRIBA
+            // =====================================================
 
-        else
-        {
-            for (
-                var _step = 0;
-                _step < _vel;
-                _step++
-            )
+            if (_key_up)
             {
-                if (
-                    !place_meeting(
-                        x - 1,
-                        y,
-                        colision
-                    )
-                )
-                {
-                    x -=
-                        1;
+                direccion = "arriba";
+                face = UP;
 
-                    movimiento =
-                        true;
-                }
-                else
+
+                for (var _step = 0; _step < _vel; _step++)
                 {
-                    break;
+                    if (!place_meeting(x, y - 1, colision))
+                    {
+                        y -= 1;
+                        movimiento = true;
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
             }
-        }
+
+
+            // =====================================================
+            // ABAJO
+            // =====================================================
+
+            if (_key_down)
+            {
+                direccion = "abajo";
+                face = DOWN;
+
+
+                for (var _step = 0; _step < _vel; _step++)
+                {
+                    if (!place_meeting(x, y + 1, colision))
+                    {
+                        y += 1;
+                        movimiento = true;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
     }
 
-
-    // =====================================================
-    // ARRIBA
-    // =====================================================
-
-    if (_key_up)
-    {
-        direccion = "arriba";
-        face = UP;
-
-
-        for (var _step = 0; _step < _vel; _step++)
-        {
-            if (!place_meeting(x, y - 1, colision))
-            {
-                y -= 1;
-                movimiento = true;
-            }
-            else
-            {
-                break;
-            }
-        }
-    }
-
-
-    // =====================================================
-    // ABAJO
-    // =====================================================
-
-    if (_key_down)
-    {
-        direccion = "abajo";
-        face = DOWN;
-
-
-        for (var _step = 0; _step < _vel; _step++)
-        {
-            if (!place_meeting(x, y + 1, colision))
-            {
-                y += 1;
-                movimiento = true;
-            }
-            else
-            {
-                break;
-            }
-        }
-    }
     
 // --- SONIDO DE CAMINAR ---
-    if (movimiento) {
+//
+// Sobre hielo Maya está resbalándose, no caminando.
+//
+    if (
+        movimiento
+        &&
+        !ice_anim_lock
+    ) {
         paso_timer -= 1;
-        
+
         if (paso_timer <= 0) {
-            audio_stop_sound(snd_step1); // Evita que se superpongan los audios
+            audio_stop_sound(snd_step1);
             audio_play_sound(snd_step1, 0, false);
-            
-            // Redujimos los valores para que suene más rápido
+
             if (_vel == 6) {
-                paso_timer = 10; // Antes era 12 (Corriendo)
+                paso_timer = 10;
             } else {
-                paso_timer = 14; // Antes era 16 (Caminando normal)
+                paso_timer = 14;
             }
         }
     } else {
-        // Reiniciamos el timer para que al volver a moverse, el sonido suene inmediatamente
         paso_timer = 0; 
     }
-    
-    // --- COMBATE POR TURNOS: CORREGIDO Y BLINDADO ---
+
+
+// --- COMBATE POR TURNOS: CORREGIDO Y BLINDADO ---
     if (keyboard_check_pressed(ord("Z"))) {
         var _xx = x;
         var _yy = y;
@@ -704,8 +736,125 @@ if (
     !_cs_sprite_override
 )
 {
-    if (movimiento)
+    // =====================================================
+    // HIELO AZUL
+    // =====================================================
+    //
+    // Siempre idle mientras se desliza.
+    // =====================================================
+
+    if (ice_on_blue)
     {
+        image_speed =
+            0;
+
+        image_index =
+            0;
+
+        ice_normal_tap_timer =
+            0;
+
+        walk_anim_hold =
+            0;
+
+        walk_anim_was_moving =
+            false;
+    }
+
+
+    // =====================================================
+    // HIELO NORMAL
+    // =====================================================
+    //
+    // Una NUEVA pulsación de flecha produce una pequeña
+    // reacción visual.
+    //
+    // keyboard_check_pressed() solamente es true el primer
+    // frame de la pulsación, así que mantener la flecha NO
+    // mantiene ni reinicia la animación.
+    // =====================================================
+
+    else if (ice_on_normal)
+    {
+        image_speed =
+            0;
+
+
+        var _ice_tap =
+            keyboard_check_pressed(vk_right)
+            ||
+            keyboard_check_pressed(vk_left)
+            ||
+            keyboard_check_pressed(vk_up)
+            ||
+            keyboard_check_pressed(vk_down);
+
+
+        if (_ice_tap)
+        {
+            var _ice_frames =
+                sprite_get_number(
+                    sprite_index
+                );
+
+
+            if (_ice_frames > 1)
+            {
+                ice_normal_tap_frame++;
+
+
+                if (
+                    ice_normal_tap_frame <= 0
+                    ||
+                    ice_normal_tap_frame >= _ice_frames
+                )
+                {
+                    ice_normal_tap_frame =
+                        1;
+                }
+
+
+                image_index =
+                    ice_normal_tap_frame;
+
+
+                ice_normal_tap_timer =
+                    ice_normal_tap_duration;
+            }
+        }
+
+
+        // Mantener brevemente el frame de reacción.
+        if (ice_normal_tap_timer > 0)
+        {
+            ice_normal_tap_timer--;
+        }
+        else
+        {
+            // Luego volver a idle aunque Maya siga
+            // deslizándose por inercia.
+            image_index =
+                0;
+        }
+
+
+        walk_anim_hold =
+            0;
+
+        walk_anim_was_moving =
+            false;
+    }
+
+
+    // =====================================================
+    // SUELO NORMAL
+    // =====================================================
+
+    else if (movimiento)
+    {
+        ice_normal_tap_timer =
+            0;
+
         // -------------------------------------------------
         // EMPEZÓ UN NUEVO "TAP"
         // -------------------------------------------------
@@ -765,6 +914,9 @@ if (
     }
     else
     {
+        ice_normal_tap_timer =
+            0;
+
         // =================================================
         // QUIETO: CONGELAR
         // =================================================
@@ -798,7 +950,11 @@ if (
 
 // Guardar para detectar inicio de movimiento del próximo frame.
 walk_anim_was_moving =
-    movimiento;
+    (
+        movimiento
+        &&
+        !ice_anim_lock
+    );
 
 
 // =========================================================

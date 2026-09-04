@@ -119,8 +119,8 @@
   "maintainGms1Font":false,
   "name":"Font1",
   "parent":{
-    "name":"Secuencias",
-    "path":"folders/00CINEMATICAS/Secuencias.yy",
+    "name":"Game Over",
+    "path":"folders/00CINEMATICAS/Secuencias/Game Over.yy",
   },
   "pointRounding":0,
   "ranges":[

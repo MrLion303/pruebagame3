@@ -94,3 +94,116 @@ walk_anim_was_moving =
 scr_depth_sort_register(
     id
 );
+
+
+
+// =========================================================
+// SISTEMA DE HIELO
+// =========================================================
+
+// ---------------------------------------------------------
+// HIELO NORMAL
+// ---------------------------------------------------------
+//
+// Velocidad acumulada.
+// No son hspeed/vspeed porque el proyecto mueve al player
+// manualmente píxel por píxel.
+//
+ice_vx =
+    0;
+
+ice_vy =
+    0;
+
+
+// Fracciones de píxel acumuladas.
+ice_accum_x =
+    0;
+
+ice_accum_y =
+    0;
+
+
+// Cuánto tarda en coger velocidad.
+ice_acceleration =
+    0.75;
+
+
+// Cuánto tarda en detenerse al soltar las flechas.
+//
+// Menor número = resbala más.
+// Mayor número = frena antes.
+//
+ice_friction =
+    0.32;
+
+
+// ---------------------------------------------------------
+// HIELO AZUL
+// ---------------------------------------------------------
+
+blue_ice_sliding =
+    false;
+
+
+// Después de chocar contra una pared, Maya queda detenida
+// hasta que pulses una nueva dirección.
+blue_ice_waiting_input =
+    false;
+
+
+blue_ice_dx =
+    0;
+
+blue_ice_dy =
+    0;
+
+
+// Velocidad fija del deslizamiento continuo.
+blue_ice_speed =
+    4;
+
+
+
+// =========================================================
+// ANIMACIÓN SOBRE HIELO
+// =========================================================
+//
+// Mientras sea true:
+//
+//     Maya puede desplazarse físicamente,
+//     pero su sprite permanece en idle.
+//
+ice_anim_lock =
+    false;
+
+
+
+// =========================================================
+// REACCIÓN DE ANIMACIÓN - HIELO NORMAL
+// =========================================================
+//
+// Cada NUEVA pulsación de una flecha muestra brevemente
+// uno de los frames de caminar.
+//
+// Mantener la flecha NO mantiene la animación.
+//
+ice_on_normal =
+    false;
+
+ice_on_blue =
+    false;
+
+
+// Cuántos frames permanece visible la reacción.
+// Juego a 30 FPS: 4 frames ≈ 0.13 s.
+ice_normal_tap_timer =
+    0;
+
+ice_normal_tap_duration =
+    4;
+
+
+// Frame no-idle que se irá alternando con cada pulsación.
+ice_normal_tap_frame =
+    0;

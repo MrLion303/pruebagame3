@@ -1,0 +1,1 @@
+puzzle_link_id = "puerta_1";

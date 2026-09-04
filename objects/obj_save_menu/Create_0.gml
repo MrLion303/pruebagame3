@@ -1,3 +1,4 @@
+
 // =========================================================
 // OBJ_SAVE_MENU
 // CREATE
@@ -76,16 +77,16 @@ action_index = from_title ? 1 : 0;
 // =========================================================
 // NOMBRES DE ROOMS
 // =========================================================
-
-get_room_name = function(_id)
-{
-    if (_id == 0) return scr_loc_src("Test");
-    if (_id == 1) return scr_loc_src("Pasillo School");
-    if (_id == 2) return scr_loc_src("Salón de Toriel");
-    if (_id == 3) return scr_loc_src("El Huevo");
-
-    return scr_loc_src("Desconocido");
-};
+//
+// Ahora se administran desde:
+//
+//     scr_save_room_names
+//
+// usando:
+//
+//     scr_save_room_name(room_asset)
+//
+// =========================================================
 
 
 // =========================================================
@@ -127,7 +128,7 @@ for (var i = 0; i < 3; i++)
                 _frames_guardados
             ),
 
-            lugar: get_room_name(
+            lugar: scr_save_room_name(
                 _rm_guardada
             )
         };

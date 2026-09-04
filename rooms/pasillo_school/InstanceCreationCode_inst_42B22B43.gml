@@ -1,4 +1,1 @@
-room_to_save = global.rm1
-
-//pasillo school = 1
-//toriel_salon = 2
+save_dialogue_id = "escuela";

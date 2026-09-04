@@ -414,7 +414,7 @@ else if (state == 1)
 
 
                 slots_data[slot_index].lugar =
-                    get_room_name(room);
+                    scr_save_room_name(room);
 
 
                 slots_data[slot_index].tiempo =
