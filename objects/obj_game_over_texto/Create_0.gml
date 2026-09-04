@@ -88,10 +88,21 @@ with (obj_player)
 // ============================================
 
 textos = [
-    "Parece que conseguiste\ndormir...",
-    "¿Esto es realmente\nlo que buscabas?",
-    "No dejes tus recuerdos\nmorir de nuevo...",
-    "¿Volverás a despertar?"
+    scr_loc_src(
+        "Parece que conseguiste\ndormir..."
+    ),
+
+    scr_loc_src(
+        "¿Esto es realmente\nlo que buscabas?"
+    ),
+
+    scr_loc_src(
+        "No dejes tus recuerdos\nmorir de nuevo..."
+    ),
+
+    scr_loc_src(
+        "¿Volverás a despertar?"
+    )
 ];
 
 pagina = 0;
@@ -128,6 +139,20 @@ escala_texto = 1.25;
 seleccion = 0;
 
 
+// Textos fuente de las opciones.
+// scr_loc_src() hace que el exportador de localización
+// pueda detectarlos y añadirlos a los JSON.
+texto_opcion_despertar =
+    scr_loc_src(
+        "Despertar"
+    );
+
+texto_opcion_olvidar =
+    scr_loc_src(
+        "Olvidar"
+    );
+
+
 // ============================================
 // FADE IN DE OPCIONES
 // ============================================
@@ -156,7 +181,9 @@ estado = 0;
 // ============================================
 
 texto_olvidar =
-    "Y de pronto... sientes\ntodo desvanecerse...";
+    scr_loc_src(
+        "Y de pronto... sientes\ntodo desvanecerse..."
+    );
 
 caracteres_olvidar = 0;
 acumulador_olvidar = 0;

@@ -225,7 +225,6 @@
     {"id":{"name":"spr_silicio_izquierda","path":"sprites/spr_silicio_izquierda/spr_silicio_izquierda.yy",},},
     {"id":{"name":"spr_speakblock","path":"sprites/spr_speakblock/spr_speakblock.yy",},},
     {"id":{"name":"spr_textbox_arrow","path":"sprites/spr_textbox_arrow/spr_textbox_arrow.yy",},},
-    {"id":{"name":"spr_textbox_save_fondo_1","path":"sprites/spr_textbox_save_fondo_1/spr_textbox_save_fondo_1.yy",},},
     {"id":{"name":"spr_textbox_save_fondo","path":"sprites/spr_textbox_save_fondo/spr_textbox_save_fondo.yy",},},
     {"id":{"name":"spr_textbox_save","path":"sprites/spr_textbox_save/spr_textbox_save.yy",},},
     {"id":{"name":"spr_textbox","path":"sprites/spr_textbox/spr_textbox.yy",},},

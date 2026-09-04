@@ -93,7 +93,9 @@ var _ty =
 if (estado == 0)
 {
     var _texto =
-        textos[pagina];
+        scr_loc(
+            textos[pagina]
+        );
 
 
     var _mostrar =
@@ -171,10 +173,14 @@ if (estado == 0)
         // ====================================
 
         var _txt_despertar =
-            "Despertar";
+            scr_loc(
+                texto_opcion_despertar
+            );
 
         var _txt_olvidar =
-            "Olvidar";
+            scr_loc(
+                texto_opcion_olvidar
+            );
 
 
         // ====================================
@@ -340,9 +346,15 @@ if (estado == 0)
 
 else if (estado == 1)
 {
+    var _texto_olvidar_actual =
+        scr_loc(
+            _texto_olvidar_actual
+        );
+
+
     var _mostrar =
         string_copy(
-            texto_olvidar,
+            _texto_olvidar_actual,
             1,
             caracteres_olvidar
         );

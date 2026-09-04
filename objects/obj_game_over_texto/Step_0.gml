@@ -92,8 +92,19 @@ var _multiplicador =
 
 if (estado == 0)
 {
-    var _texto = textos[pagina];
-    var _largo = string_length(_texto);
+    // Resolver la traducción de la página actual.
+    // El typewriter trabaja sobre el texto YA traducido,
+    // por lo que su longitud y caracteres coinciden con
+    // lo que realmente se dibuja.
+    var _texto =
+        scr_loc(
+            textos[pagina]
+        );
+
+    var _largo =
+        string_length(
+            _texto
+        );
 
 
     // ========================================
@@ -303,8 +314,16 @@ if (estado == 0)
 
 else if (estado == 1)
 {
+    var _texto_olvidar_actual =
+        scr_loc(
+            texto_olvidar
+        );
+
+
     var _largo =
-        string_length(texto_olvidar);
+        string_length(
+            _texto_olvidar_actual
+        );
 
 
     // ========================================
@@ -335,7 +354,7 @@ else if (estado == 1)
 
             var _char =
                 string_char_at(
-                    texto_olvidar,
+                    _texto_olvidar_actual,
                     caracteres_olvidar
                 );
 

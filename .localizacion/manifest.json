@@ -1,5 +1,5 @@
 {
-    "total":  222,
+    "total":  229,
     "fuentes":  {
                     "Jugador X: ":  [
                                         "objects\\game\\Draw_64.gml:36"
@@ -49,10 +49,10 @@
                                                                                    "objects\\game\\Draw_64.gml:1070"
                                                                                ],
                     "* {enemy} está aturdido y no puede atacar!":  [
-                                                                       "objects\\obj_batalla_controller\\Step_0.gml:156"
+                                                                       "objects\\obj_batalla_controller\\Step_0.gml:152"
                                                                    ],
                     "* {enemy} ataca y te causa {damage} de daño!":  [
-                                                                         "objects\\obj_batalla_controller\\Step_0.gml:176"
+                                                                         "objects\\obj_batalla_controller\\Step_0.gml:172"
                                                                      ],
                     "* ¡Has ganado la batalla! Conseguiste {xp} de XP y {so} de SO":  [
                                                                                           "objects\\obj_batalla_ui\\Create_0.gml:185"
@@ -83,28 +83,28 @@
                                "objects\\obj_batalla_ui\\Draw_64.gml:618"
                            ],
                     "¡Subiste de nivel!":  [
-                                               "objects\\obj_batalla_ui\\Step_0.gml:147"
+                                               "objects\\obj_batalla_ui\\Step_0.gml:143"
                                            ],
                     "* Consumiste {item}! Te curaste {hp} de vida!":  [
-                                                                          "objects\\obj_batalla_ui\\Step_0.gml:331"
+                                                                          "objects\\obj_batalla_ui\\Step_0.gml:327"
                                                                       ],
                     "* Consumiste {item}, pero ya tienes la vida llena!":  [
-                                                                               "objects\\obj_batalla_ui\\Step_0.gml:333"
+                                                                               "objects\\obj_batalla_ui\\Step_0.gml:329"
                                                                            ],
                     "* Consumiste {item}!":  [
-                                                 "objects\\obj_batalla_ui\\Step_0.gml:335"
+                                                 "objects\\obj_batalla_ui\\Step_0.gml:331"
                                              ],
                     "* Intentaste huir, ¡pero no pudiste escapar!":  [
-                                                                         "objects\\obj_batalla_ui\\Step_0.gml:523"
+                                                                         "objects\\obj_batalla_ui\\Step_0.gml:519"
                                                                      ],
                     "* Usaste {toy} en {enemy}!":  [
-                                                       "objects\\obj_batalla_ui\\Step_0.gml:628"
+                                                       "objects\\obj_batalla_ui\\Step_0.gml:541"
                                                    ],
                     "* Venciste a {enemy}!":  [
-                                                  "objects\\obj_batalla_ui\\Step_0.gml:752"
+                                                  "objects\\obj_batalla_ui\\Step_0.gml:622"
                                               ],
                     "* Hiciste {damage} de daño a {enemy}!":  [
-                                                                  "objects\\obj_batalla_ui\\Step_0.gml:810"
+                                                                  "objects\\obj_batalla_ui\\Step_0.gml:680"
                                                               ],
                     "Cerrando...":  [
                                         "objects\\obj_game_cerrar\\Step_0.gml:21"
@@ -118,6 +118,27 @@
                     "Cerrando":  [
                                      "objects\\obj_game_cerrar\\Step_0.gml:27"
                                  ],
+                    "Parece que conseguiste\ndormir...":  [
+                                                              "objects\\obj_game_over_texto\\Create_0.gml:91"
+                                                          ],
+                    "¿Esto es realmente\nlo que buscabas?":  [
+                                                                 "objects\\obj_game_over_texto\\Create_0.gml:95"
+                                                             ],
+                    "No dejes tus recuerdos\nmorir de nuevo...":  [
+                                                                      "objects\\obj_game_over_texto\\Create_0.gml:99"
+                                                                  ],
+                    "¿Volverás a despertar?":  [
+                                                   "objects\\obj_game_over_texto\\Create_0.gml:103"
+                                               ],
+                    "Despertar":  [
+                                      "objects\\obj_game_over_texto\\Create_0.gml:146"
+                                  ],
+                    "Olvidar":  [
+                                    "objects\\obj_game_over_texto\\Create_0.gml:151"
+                                ],
+                    "Y de pronto... sientes\ntodo desvanecerse...":  [
+                                                                         "objects\\obj_game_over_texto\\Create_0.gml:184"
+                                                                     ],
                     "INV":  [
                                 "objects\\obj_menu_manager\\Create_0.gml:1"
                             ],
@@ -237,26 +258,26 @@
                                             "objects\\obj_menu_manager\\Draw_64.gml:702"
                                         ],
                     "objeto":  [
-                                   "objects\\obj_menu_manager\\Step_0.gml:278",
+                                   "objects\\obj_menu_manager\\Step_0.gml:319",
                                    "scripts\\scr_cofre\\scr_cofre.gml:228"
                                ],
                     "Has tirado {item}.":  [
-                                               "objects\\obj_menu_manager\\Step_0.gml:284",
-                                               "objects\\obj_menu_manager\\Step_0.gml:432",
-                                               "objects\\obj_menu_manager\\Step_0.gml:585"
+                                               "objects\\obj_menu_manager\\Step_0.gml:325",
+                                               "objects\\obj_menu_manager\\Step_0.gml:473",
+                                               "objects\\obj_menu_manager\\Step_0.gml:626"
                                            ],
                     "Los toys se usan durante una batalla.":  [
-                                                                  "objects\\obj_menu_manager\\Step_0.gml:377"
+                                                                  "objects\\obj_menu_manager\\Step_0.gml:418"
                                                               ],
                     "toy":  [
-                                "objects\\obj_menu_manager\\Step_0.gml:425",
+                                "objects\\obj_menu_manager\\Step_0.gml:466",
                                 "scripts\\scr_cofre\\scr_cofre.gml:231"
                             ],
                     "Se equipo {item}.":  [
-                                              "objects\\obj_menu_manager\\Step_0.gml:544"
+                                              "objects\\obj_menu_manager\\Step_0.gml:585"
                                           ],
                     "equipamiento":  [
-                                         "objects\\obj_menu_manager\\Step_0.gml:578"
+                                         "objects\\obj_menu_manager\\Step_0.gml:619"
                                      ],
                     "Salvar":  [
                                    "objects\\obj_save_menu\\Create_0.gml:11"
@@ -289,7 +310,7 @@
                                     ],
                     "Datos vacios":  [
                                          "objects\\obj_save_menu\\Create_0.gml:148",
-                                         "objects\\obj_save_menu\\Step_0.gml:535"
+                                         "objects\\obj_save_menu\\Step_0.gml:520"
                                      ],
                     "Partida salvada":  [
                                             "objects\\obj_save_menu\\Draw_64.gml:211"
@@ -331,16 +352,16 @@
                                                        "objects\\obj_shop_controller\\Draw_64.gml:1280"
                                                    ],
                     "* No tienes suficientes Sueños.":  [
-                                                            "objects\\obj_shop_controller\\Step_0.gml:629"
+                                                            "objects\\obj_shop_controller\\Step_0.gml:624"
                                                         ],
                     "* No tienes espacio en el inventario.":  [
-                                                                  "objects\\obj_shop_controller\\Step_0.gml:668"
+                                                                  "objects\\obj_shop_controller\\Step_0.gml:663"
                                                               ],
                     "* Compraste {item}.":  [
-                                                "objects\\obj_shop_controller\\Step_0.gml:698"
+                                                "objects\\obj_shop_controller\\Step_0.gml:693"
                                             ],
                     "* Vendiste {item}.":  [
-                                               "objects\\obj_shop_controller\\Step_0.gml:1038"
+                                               "objects\\obj_shop_controller\\Step_0.gml:1033"
                                            ],
                     "* El enemigo se detiene de repente...":  [
                                                                   "scripts\\scr_bosses_cinematica_bbs\\scr_bosses_cinematica_bbs.gml:19",
