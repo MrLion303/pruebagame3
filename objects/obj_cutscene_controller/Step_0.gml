@@ -1,5 +1,30 @@
 /// =========================================================
 /// OBJ_CUTSCENE_CONTROLLER
+/// BLOQUEO DURANTE MUERTE
+/// =========================================================
+//
+// Este bloque es lo ÚNICO nuevo para el sistema de Game Over.
+// Si Maya llegó a 0 HP, la cinemática queda completamente
+// congelada durante los 30 frames previos a game_over.
+//
+// Todo el resto del Step conserva exactamente la versión
+// anterior que ya usábamos con party + diálogos.
+// =========================================================
+
+if (
+    variable_global_exists(
+        "gameover_death_freeze_active"
+    )
+    &&
+    global.gameover_death_freeze_active
+)
+{
+    exit;
+}
+
+
+/// =========================================================
+/// OBJ_CUTSCENE_CONTROLLER
 /// STEP
 /// =========================================================
 
@@ -106,6 +131,71 @@ if (camera_task_active && camera_valid)
 
 
 // =========================================================
+// FINALIZAR JOIN PROGRAMADO AL TERMINAR UN MOVE TASK
+// =========================================================
+
+var _finish_party_join_task =
+function(_actor, _task)
+{
+    if (
+        !variable_struct_exists(
+            _task,
+            "party_join_on_arrival"
+        )
+        ||
+        !_task.party_join_on_arrival
+    )
+    {
+        return;
+    }
+
+
+    if (
+        variable_struct_exists(
+            _task,
+            "party_join_seed_history"
+        )
+        &&
+        _task.party_join_seed_history
+    )
+    {
+        scr_party_seed_history_behind_player();
+    }
+
+
+    var _join_id =
+        "";
+
+
+    if (
+        variable_struct_exists(
+            _task,
+            "party_join_id"
+        )
+    )
+    {
+        _join_id =
+            _task.party_join_id;
+    }
+
+
+    if (
+        !scr_party_smart_join(
+            _actor,
+            _join_id
+        )
+    )
+    {
+        show_debug_message(
+            "[CUTSCENE] Falló join al llegar: "
+            +
+            string(_join_id)
+        );
+    }
+};
+
+
+// =========================================================
 // MOVIMIENTOS ACTIVOS DE ACTORES
 // =========================================================
 
@@ -152,6 +242,11 @@ for (var _i = array_length(move_tasks) - 1; _i >= 0; _i--)
                 _actor_move.can_move = player_can_move;
         }
 
+        _finish_party_join_task(
+            _actor_move,
+            _task
+        );
+
         array_delete(move_tasks, _i, 1);
         continue;
     }
@@ -192,6 +287,11 @@ for (var _i = array_length(move_tasks) - 1; _i >= 0; _i--)
             if (variable_instance_exists(_actor_move, "can_move"))
                 _actor_move.can_move = player_can_move;
         }
+
+        _finish_party_join_task(
+            _actor_move,
+            _task
+        );
 
         array_delete(move_tasks, _i, 1);
         continue;
@@ -291,6 +391,11 @@ for (var _i = array_length(move_tasks) - 1; _i >= 0; _i--)
                 _actor_move.can_move = player_can_move;
         }
 
+        _finish_party_join_task(
+            _actor_move,
+            _task
+        );
+
         array_delete(move_tasks, _i, 1);
         continue;
     }
@@ -304,6 +409,55 @@ for (var _i = array_length(move_tasks) - 1; _i >= 0; _i--)
 
     _actor_move.x += lengthdir_x(_task.speed, _direction);
     _actor_move.y += lengthdir_y(_task.speed, _direction);
+
+
+    // =====================================================
+    // DEPTH TOP-DOWN PARA ACTOR PARTY-CAPABLE EN CINEMÁTICA
+    // =====================================================
+    //
+    // Antes de pertenecer a la party, Silicio también puede
+    // cruzar delante/detrás de Maya correctamente.
+    // =====================================================
+
+    if (
+        _actor_move.object_index != obj_player
+        &&
+        variable_instance_exists(
+            _actor_move,
+            "party_id"
+        )
+        &&
+        instance_exists(obj_player)
+    )
+    {
+        var _depth_player =
+            instance_find(
+                obj_player,
+                0
+            );
+
+
+        if (
+            scr_party_feet_y(_actor_move)
+            >
+            scr_party_feet_y(_depth_player)
+            +
+            0.5
+        )
+        {
+            _actor_move.depth =
+                _depth_player.depth
+                -
+                1;
+        }
+        else
+        {
+            _actor_move.depth =
+                _depth_player.depth
+                +
+                1;
+        }
+    }
 }
 
 
@@ -1294,13 +1448,55 @@ switch (_action.type)
 
 
     // =====================================================
+    // PARTY ACTOR
+    // =====================================================
+    //
+    // Crea/asegura un personaje party-capable como actor
+    // normal de la cinemática, SIN unirlo al grupo.
+    // =====================================================
+
+    case CS_ACTION.PARTY_ACTOR:
+
+        var _cin_party_actor =
+            scr_party_spawn_cinematic_actor(
+                _action.party_id,
+                _action.x,
+                _action.y,
+                _action.layer
+            );
+
+
+        if (
+            _cin_party_actor == noone
+            ||
+            !instance_exists(
+                _cin_party_actor
+            )
+        )
+        {
+            show_debug_message(
+                "[CUTSCENE] No pude crear actor party: "
+                +
+                string(
+                    _action.party_id
+                )
+            );
+        }
+
+
+        action_index++;
+
+        break;
+
+
+    // =====================================================
     // PARTY JOIN
     // =====================================================
 
     case CS_ACTION.PARTY_JOIN:
 
         if (
-            !scr_party_join_actor(
+            !scr_party_smart_join(
                 _action.actor,
                 _action.party_id
             )
@@ -1312,6 +1508,210 @@ switch (_action.type)
                 string(_action.actor)
             );
         }
+
+
+        action_index++;
+
+        break;
+
+
+    // =====================================================
+    // PARTY JOIN BEHIND
+    // =====================================================
+    //
+    // 1. Busca al actor.
+    // 2. Calcula su slot REAL detrás de Maya.
+    // 3. Camina hasta ese punto.
+    // 4. SOLO al llegar se une al grupo.
+    // =====================================================
+
+    case CS_ACTION.PARTY_JOIN_BEHIND:
+
+        var _join_actor =
+            scr_cutscene_actor(
+                _action.actor
+            );
+
+
+        var _join_id =
+            _action.party_id;
+
+
+        if (
+            !is_string(_join_id)
+            ||
+            _join_id == ""
+        )
+        {
+            if (is_string(_action.actor))
+            {
+                _join_id =
+                    _action.actor;
+            }
+            else if (
+                _join_actor != noone
+                &&
+                instance_exists(_join_actor)
+                &&
+                variable_instance_exists(
+                    _join_actor,
+                    "party_id"
+                )
+            )
+            {
+                _join_id =
+                    _join_actor.party_id;
+            }
+        }
+
+
+        // Si no existe, JOIN normal ya sabe spawnearlo.
+        // No tiene sentido "acercarse" si no hay un punto
+        // inicial visible desde el que caminar.
+        if (
+            _join_actor == noone
+            ||
+            !instance_exists(_join_actor)
+        )
+        {
+            scr_party_smart_join(
+                _action.actor,
+                _join_id
+            );
+
+
+            action_index++;
+
+            break;
+        }
+
+
+        var _join_member_index =
+            scr_party_member_index(
+                _join_id
+            );
+
+
+        if (_join_member_index < 0)
+        {
+            _join_member_index =
+                array_length(
+                    global.party_data.members
+                );
+        }
+
+
+        var _join_target =
+            scr_party_get_join_target(
+                _join_member_index
+            );
+
+
+        // Primero poner sprite/dirección apropiada para que el
+        // bbox usado al convertir pies->origin sea el correcto.
+        scr_party_apply_direction(
+            _join_actor,
+            _join_target.face
+        );
+
+
+        var _join_origin =
+            scr_party_origin_for_feet(
+                _join_actor,
+                _join_target.x,
+                _join_target.y
+            );
+
+
+        var _join_task_id =
+            next_task_id++;
+
+
+        var _join_task =
+        {
+            id:
+                _join_task_id,
+
+            actor:
+                _action.actor,
+
+            x:
+                _join_origin.x,
+
+            y:
+                _join_origin.y,
+
+            speed:
+                _action.speed,
+
+            anim_speed:
+                _action.anim_speed,
+
+            old_image_speed:
+                _join_actor.image_speed,
+
+            anim_started:
+                false,
+
+            walk_frames:
+                0,
+
+            arrived:
+                false,
+
+            party_join_on_arrival:
+                true,
+
+            party_join_id:
+                _join_id,
+
+            party_join_seed_history:
+                _join_target.synthetic
+        };
+
+
+        if (
+            _action.anim_speed > 0
+            &&
+            _join_actor.sprite_index != -1
+            &&
+            sprite_exists(
+                _join_actor.sprite_index
+            )
+        )
+        {
+            var _join_frames =
+                sprite_get_number(
+                    _join_actor.sprite_index
+                );
+
+
+            if (_join_frames > 1)
+            {
+                _join_actor.image_speed =
+                    0;
+
+                _join_actor.image_index =
+                    1;
+
+                _join_task.anim_started =
+                    true;
+            }
+        }
+
+
+        array_push(
+            move_tasks,
+            _join_task
+        );
+
+
+        if (_action.wait)
+        {
+            waiting_task_id =
+                _join_task_id;
+        }
+
 
         action_index++;
 
@@ -1422,5 +1822,3 @@ switch (_action.type)
         game_end();
         exit;
 }
-
-

@@ -447,6 +447,32 @@ function scr_guardar_juego(_seccion)
     );
 
 
+    // =====================================================
+    // RECORDAR EL ÚLTIMO SLOT GUARDADO
+    // =====================================================
+    //
+    // global.save_actual:
+    //     permite saberlo durante la sesión actual.
+    //
+    // [Meta] last_save:
+    //     lo conserva también al cerrar y volver a abrir
+    //     el juego.
+    //
+    // Esto permite que "Despertar" en el Game Over cargue
+    // exactamente la última partida GUARDADA.
+    // =====================================================
+
+    global.save_actual =
+        _seccion;
+
+
+    ini_write_string(
+        "Meta",
+        "last_save",
+        _seccion
+    );
+
+
     ini_close();
 
 
@@ -928,3 +954,4 @@ function scr_aplicar_datos_cargados(_jugador)
         }
     }
 }
+

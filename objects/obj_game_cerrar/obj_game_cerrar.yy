@@ -10,8 +10,8 @@
   "name":"obj_game_cerrar",
   "overriddenProperties":[],
   "parent":{
-    "name":"admin obj",
-    "path":"folders/admin obj.yy",
+    "name":"Objetos",
+    "path":"folders/admin obj/Objetos.yy",
   },
   "parentObjectId":null,
   "persistent":true,

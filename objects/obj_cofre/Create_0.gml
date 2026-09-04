@@ -24,3 +24,5 @@ interaccion_tolerancia = 18;
 
 // El objeto físico no necesita ser persistente.
 persistent = false;
+
+scr_depth_sort_register(id);

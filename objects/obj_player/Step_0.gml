@@ -1,61 +1,27 @@
-// =========================================================
-// CONSOLA ABIERTA: CONGELAR PLAYER EN IDLE
-// =========================================================
+/// =========================================================
+/// GAME OVER - CONGELACIÓN DE 1 SEGUNDO
+/// =========================================================
 
 if (
-    variable_global_exists("dev_console_open")
+    variable_global_exists("gameover_death_freeze_active")
     &&
-    global.dev_console_open
+    global.gameover_death_freeze_active
 )
 {
     movimiento =
         false;
 
-    paso_timer =
+    image_speed =
         0;
 
-    image_index =
+    hspeed =
         0;
 
+    vspeed =
+        0;
 
-    switch (face)
-    {
-        case RIGHT:
-            direccion =
-                "derecha";
-
-            sprite_index =
-                pendejo_derecha;
-            break;
-
-
-        case LEFT:
-            direccion =
-                "izquierda";
-
-            sprite_index =
-                pendejo_izquierda;
-            break;
-
-
-        case UP:
-            direccion =
-                "arriba";
-
-            sprite_index =
-                pendejo_arriba;
-            break;
-
-
-        case DOWN:
-            direccion =
-                "abajo";
-
-            sprite_index =
-                pendejo_abajo;
-            break;
-    }
-
+    speed =
+        0;
 
     exit;
 }
@@ -103,69 +69,424 @@ if (!instance_exists(obj_pauser) && !instance_exists(obj_textbox) && !_menu_abie
     if (_key_right && _key_left) { _key_right = false; _key_left = false; }
     if (_key_up && _key_down)    { _key_up = false; _key_down = false; }
 
-    // Derecha
+    // =====================================================
+    // MOVIMIENTO CON COLISIÓN PRECISA POR PÍXEL
+    // =====================================================
+    //
+    // Antes se comprobaba directamente:
+    //
+    //     x + _vel
+    //     y + _vel
+    //
+    // Eso hacía que caminar (4 px) y correr (6 px)
+    // pudieran detenerse a distancias diferentes de la
+    // misma pared.
+    //
+    // Ahora cada uno de esos píxeles se comprueba
+    // individualmente.
+    // =====================================================
+
+
+    // =====================================================
+    // DERECHA
+    // =====================================================
+
     if (_key_right)
     {
         direccion = "derecha";
         face = RIGHT;
-        var _max_slope = _vel; 
-        if (!place_meeting(x + _vel, y, colision)) {
-            x += _vel;
-            movimiento = true;
-        } else {
-            var _sloped = false;
-            for (var _i = 1; _i <= _max_slope; _i++) {
-                if (!place_meeting(x + _vel, y - _i, colision)) { y -= _i; x += _vel; movimiento = true; _sloped = true; break; }
+
+
+        // =================================================
+        // ¿HAY UNA RAMPA EN EL RECORRIDO DE ESTE FRAME?
+        // =================================================
+        //
+        // Las rampas necesitan conservar la lógica antigua:
+        //
+        //     mover _vel horizontalmente
+        //     +
+        //     buscar corrección vertical hasta _vel
+        //
+        // Si las procesamos 1 píxel por vez, la subida se
+        // vuelve muchísimo más lenta.
+        // =================================================
+
+        var _ramp_path =
+            false;
+
+
+        for (
+            var _probe = 1;
+            _probe <= _vel;
+            _probe++
+        )
+        {
+            if (
+                place_meeting(
+                    x + _probe,
+                    y,
+                    colision_rampa
+                )
+            )
+            {
+                _ramp_path =
+                    true;
+
+                break;
             }
-            if (!_sloped) {
-                for (var _i = 1; _i <= _max_slope; _i++) {
-                    if (!place_meeting(x + _vel, y + _i, colision)) { y += _i; x += _vel; movimiento = true; _sloped = true; break; }
+        }
+
+
+        // =================================================
+        // RAMPA - MOVIMIENTO A VELOCIDAD COMPLETA
+        // =================================================
+
+        if (_ramp_path)
+        {
+            var _max_slope =
+                _vel;
+
+
+            if (
+                !place_meeting(
+                    x + _vel,
+                    y,
+                    colision
+                )
+            )
+            {
+                x +=
+                    _vel;
+
+                movimiento =
+                    true;
+            }
+            else
+            {
+                var _sloped =
+                    false;
+
+
+                // Subir.
+                for (
+                    var _i = 1;
+                    _i <= _max_slope;
+                    _i++
+                )
+                {
+                    if (
+                        !place_meeting(
+                            x + _vel,
+                            y - _i,
+                            colision
+                        )
+                    )
+                    {
+                        y -=
+                            _i;
+
+                        x +=
+                            _vel;
+
+                        movimiento =
+                            true;
+
+                        _sloped =
+                            true;
+
+                        break;
+                    }
+                }
+
+
+                // Bajar.
+                if (!_sloped)
+                {
+                    for (
+                        var _i = 1;
+                        _i <= _max_slope;
+                        _i++
+                    )
+                    {
+                        if (
+                            !place_meeting(
+                                x + _vel,
+                                y + _i,
+                                colision
+                            )
+                        )
+                        {
+                            y +=
+                                _i;
+
+                            x +=
+                                _vel;
+
+                            movimiento =
+                                true;
+
+                            _sloped =
+                                true;
+
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+
+        // =================================================
+        // PARED NORMAL - PRECISIÓN PÍXEL POR PÍXEL
+        // =================================================
+
+        else
+        {
+            for (
+                var _step = 0;
+                _step < _vel;
+                _step++
+            )
+            {
+                if (
+                    !place_meeting(
+                        x + 1,
+                        y,
+                        colision
+                    )
+                )
+                {
+                    x +=
+                        1;
+
+                    movimiento =
+                        true;
+                }
+                else
+                {
+                    break;
                 }
             }
         }
     }
 
-    // Izquierda
+
+    // =====================================================
+    // IZQUIERDA
+    // =====================================================
+
     if (_key_left)
     {
         direccion = "izquierda";
         face = LEFT;
-        var _max_slope = _vel;
-        if (!place_meeting(x - _vel, y, colision)) {
-            x -= _vel;
-            movimiento = true;
-        } else {
-            var _sloped = false;
-            for (var _i = 1; _i <= _max_slope; _i++) {
-                if (!place_meeting(x - _vel, y - _i, colision)) { y -= _i; x -= _vel; movimiento = true; _sloped = true; break; }
+
+
+        var _ramp_path =
+            false;
+
+
+        for (
+            var _probe = 1;
+            _probe <= _vel;
+            _probe++
+        )
+        {
+            if (
+                place_meeting(
+                    x - _probe,
+                    y,
+                    colision_rampa
+                )
+            )
+            {
+                _ramp_path =
+                    true;
+
+                break;
             }
-            if (!_sloped) {
-                for (var _i = 1; _i <= _max_slope; _i++) {
-                    if (!place_meeting(x - _vel, y + _i, colision)) { y += _i; x -= _vel; movimiento = true; _sloped = true; break; }
+        }
+
+
+        // =================================================
+        // RAMPA - MOVIMIENTO A VELOCIDAD COMPLETA
+        // =================================================
+
+        if (_ramp_path)
+        {
+            var _max_slope =
+                _vel;
+
+
+            if (
+                !place_meeting(
+                    x - _vel,
+                    y,
+                    colision
+                )
+            )
+            {
+                x -=
+                    _vel;
+
+                movimiento =
+                    true;
+            }
+            else
+            {
+                var _sloped =
+                    false;
+
+
+                // Subir.
+                for (
+                    var _i = 1;
+                    _i <= _max_slope;
+                    _i++
+                )
+                {
+                    if (
+                        !place_meeting(
+                            x - _vel,
+                            y - _i,
+                            colision
+                        )
+                    )
+                    {
+                        y -=
+                            _i;
+
+                        x -=
+                            _vel;
+
+                        movimiento =
+                            true;
+
+                        _sloped =
+                            true;
+
+                        break;
+                    }
+                }
+
+
+                // Bajar.
+                if (!_sloped)
+                {
+                    for (
+                        var _i = 1;
+                        _i <= _max_slope;
+                        _i++
+                    )
+                    {
+                        if (
+                            !place_meeting(
+                                x - _vel,
+                                y + _i,
+                                colision
+                            )
+                        )
+                        {
+                            y +=
+                                _i;
+
+                            x -=
+                                _vel;
+
+                            movimiento =
+                                true;
+
+                            _sloped =
+                                true;
+
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+
+        // =================================================
+        // PARED NORMAL - PRECISIÓN PÍXEL POR PÍXEL
+        // =================================================
+
+        else
+        {
+            for (
+                var _step = 0;
+                _step < _vel;
+                _step++
+            )
+            {
+                if (
+                    !place_meeting(
+                        x - 1,
+                        y,
+                        colision
+                    )
+                )
+                {
+                    x -=
+                        1;
+
+                    movimiento =
+                        true;
+                }
+                else
+                {
+                    break;
                 }
             }
         }
     }
 
-    // Arriba
+
+    // =====================================================
+    // ARRIBA
+    // =====================================================
+
     if (_key_up)
     {
         direccion = "arriba";
         face = UP;
-        if (!place_meeting(x, y - _vel, colision)) {
-            y -= _vel;
-            movimiento = true;
+
+
+        for (var _step = 0; _step < _vel; _step++)
+        {
+            if (!place_meeting(x, y - 1, colision))
+            {
+                y -= 1;
+                movimiento = true;
+            }
+            else
+            {
+                break;
+            }
         }
     }
 
-    // Abajo
+
+    // =====================================================
+    // ABAJO
+    // =====================================================
+
     if (_key_down)
     {
         direccion = "abajo";
         face = DOWN;
-        if (!place_meeting(x, y + _vel, colision)) {
-            y += _vel;
-            movimiento = true;
+
+
+        for (var _step = 0; _step < _vel; _step++)
+        {
+            if (!place_meeting(x, y + 1, colision))
+            {
+                y += 1;
+                movimiento = true;
+            }
+            else
+            {
+                break;
+            }
         }
     }
     
@@ -228,6 +549,65 @@ else
 {
     movimiento = false;
 }
+
+// =========================================================
+// ANIMACIÓN DE CAMINAR SIN "PASO EXTRA" AL DETENERSE
+// =========================================================
+//
+// OBJETIVO:
+//
+// MOVIÉNDOSE:
+//     la animación avanza normalmente.
+//
+// ACABA DE PARARSE:
+//     se CONGELA inmediatamente en el frame actual.
+//     NO sigue avanzando por su cuenta.
+//
+// VUELVE A TOCAR UNA FLECHA:
+//     mostramos claramente otro frame de caminata.
+//
+// QUIETO UN MOMENTO:
+//     vuelve al frame 0.
+//
+// Esto mantiene visibles los movimientos cortos sin que Maya
+// parezca caminar un paso adicional después de detenerse.
+// =========================================================
+
+if (
+    !variable_instance_exists(
+        id,
+        "walk_anim_hold"
+    )
+)
+{
+    walk_anim_hold =
+        0;
+}
+
+
+if (
+    !variable_instance_exists(
+        id,
+        "walk_anim_hold_max"
+    )
+)
+{
+    walk_anim_hold_max =
+        6;
+}
+
+
+if (
+    !variable_instance_exists(
+        id,
+        "walk_anim_was_moving"
+    )
+)
+{
+    walk_anim_was_moving =
+        false;
+}
+
 
 // =========================================================
 // ESTADO CINEMÁTICO
@@ -312,24 +692,113 @@ else
 
 
 // =========================================================
-// QUIETO
+// ANIMACIÓN NORMAL DEL PLAYER
 // =========================================================
 //
-// No reseteamos image_index mientras una cinemática
-// está controlando la animación.
+// No tocar image_speed si una cinemática controla el sprite.
 // =========================================================
 
 if (
-    !movimiento
-    &&
     !_cs_motion
     &&
     !_cs_sprite_override
 )
 {
-    image_index =
-        0;
+    if (movimiento)
+    {
+        // -------------------------------------------------
+        // EMPEZÓ UN NUEVO "TAP"
+        // -------------------------------------------------
+        //
+        // Un solo frame de movimiento puede ser demasiado
+        // corto para que GameMaker alcance a cambiar el
+        // subimage automáticamente.
+        //
+        // Si veníamos quietos, avanzamos UN frame manual.
+        // Así cada toque corto sí se ve caminando.
+        // -------------------------------------------------
+
+        if (!walk_anim_was_moving)
+        {
+            var _frames =
+                sprite_get_number(
+                    sprite_index
+                );
+
+
+            if (_frames > 1)
+            {
+                var _next_frame =
+                    floor(
+                        image_index
+                    )
+                    +
+                    1;
+
+
+                // Evitar que un nuevo tap caiga directamente
+                // al frame 0 (idle).
+                if (_next_frame >= _frames)
+                {
+                    _next_frame =
+                        1;
+                }
+
+
+                image_index =
+                    clamp(
+                        _next_frame,
+                        1,
+                        _frames - 1
+                    );
+            }
+        }
+
+
+        // Volver a permitir la animación normal del sprite.
+        image_speed =
+            1;
+
+
+        walk_anim_hold =
+            walk_anim_hold_max;
+    }
+    else
+    {
+        // =================================================
+        // QUIETO: CONGELAR
+        // =================================================
+        //
+        // ESTA es la corrección principal.
+        //
+        // El sprite deja de avanzar en el MISMO frame en que
+        // Maya deja de moverse.
+        // =================================================
+
+        image_speed =
+            0;
+
+
+        if (walk_anim_hold > 0)
+        {
+            walk_anim_hold--;
+        }
+
+
+        // Cuando ya pasó el margen entre taps:
+        // idle real.
+        if (walk_anim_hold <= 0)
+        {
+            image_index =
+                0;
+        }
+    }
 }
+
+
+// Guardar para detectar inicio de movimiento del próximo frame.
+walk_anim_was_moving =
+    movimiento;
 
 
 // =========================================================

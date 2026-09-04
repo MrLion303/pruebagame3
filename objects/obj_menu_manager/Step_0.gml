@@ -1,15 +1,56 @@
 // =========================================================
-// CONSOLA ABIERTA: NO RECIBIR INPUT DE GAMEPLAY
+// OBJ_MENU_MANAGER
+// BLOQUEO DE GAME OVER
+// =========================================================
+//
+// C y Ctrl no pueden abrir el menú:
+//
+// - durante el segundo de congelación al morir;
+// - mientras estamos en la room game_over;
+// - mientras obj_game_over_texto sigue haciendo el fade
+//   blanco de regreso a la partida guardada.
+//
+// Al terminar el fade, obj_game_over_texto se destruye y
+// este bloqueo desaparece automáticamente.
 // =========================================================
 
-if (
-    variable_global_exists("dev_console_open")
-    &&
-    global.dev_console_open
-)
+var _bloqueo_game_over =
+(
+    (
+        variable_global_exists(
+            "gameover_death_freeze_active"
+        )
+        &&
+        global.gameover_death_freeze_active
+    )
+    ||
+    room == game_over
+    ||
+    instance_exists(
+        obj_game_over_texto
+    )
+);
+
+
+if (_bloqueo_game_over)
 {
+    state =
+        MENU_STATE.CLOSED;
+
+
+    keyboard_clear(
+        ord("C")
+    );
+
+
+    keyboard_clear(
+        vk_control
+    );
+
+
     exit;
 }
+
 
 
 // =========================================================

@@ -13,7 +13,7 @@
   "overriddenProperties":[],
   "parent":{
     "name":"Objetos",
-    "path":"folders/Objetos.yy",
+    "path":"folders/admin obj/Objetos.yy",
   },
   "parentObjectId":{
     "name":"obj_pauser",

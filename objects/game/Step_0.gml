@@ -1,4 +1,27 @@
 /// =========================================================
+/// BLOQUEO DURANTE EL SEGUNDO DE MUERTE
+/// =========================================================
+
+if (
+    variable_global_exists("gameover_death_freeze_active")
+    &&
+    global.gameover_death_freeze_active
+)
+{
+    // No permitir debug, fullscreen ni sumar playtime
+    // mientras el juego está congelado.
+    keyboard_clear(ord("C"));
+    keyboard_clear(vk_control);
+    keyboard_clear(ord("Z"));
+    keyboard_clear(vk_enter);
+    keyboard_clear(ord("X"));
+    keyboard_clear(vk_shift);
+
+    exit;
+}
+
+
+/// =========================================================
 /// OBJETO "game" - STEP
 /// =========================================================
 

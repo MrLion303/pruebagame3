@@ -25,8 +25,8 @@
   "nineSlice":null,
   "origin":4,
   "parent":{
-    "name":"00CINEMATICAS",
-    "path":"folders/00CINEMATICAS.yy",
+    "name":"Sprites",
+    "path":"folders/00CINEMATICAS/Sprites.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",

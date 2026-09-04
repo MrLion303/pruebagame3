@@ -7,3 +7,6 @@ keep_music = false; // Indicamos explícitamente que NO debe conservar la músic
 
 //false = deja de sonar anterior
 //true = mantener cancion
+
+//EN CASO DE CINEMATICA AL ENTRAR, SERÍA
+//

@@ -284,6 +284,799 @@ function scr_party_find_world_actor(_party_id)
 // RUNTIME
 // =========================================================
 
+
+// =========================================================
+// RESOLVER OBJETO A PARTIR DEL PARTY ID
+// =========================================================
+//
+// "silicio" -> obj_silicio
+//
+// Primero intenta usar datos ya conocidos de la party.
+// Después intenta automáticamente "obj_" + party_id.
+// =========================================================
+
+function scr_party_object_from_id(_party_id)
+{
+    scr_party_init();
+
+
+    _party_id =
+        scr_party_normalize_id(
+            _party_id
+        );
+
+
+    if (
+        !is_string(_party_id)
+        ||
+        _party_id == ""
+    )
+    {
+        return -1;
+    }
+
+
+    var _index =
+        scr_party_member_index(
+            _party_id
+        );
+
+
+    if (_index >= 0)
+    {
+        var _member =
+            global.party_data.members[
+                _index
+            ];
+
+
+        if (
+            is_struct(_member)
+            &&
+            variable_struct_exists(
+                _member,
+                "object_name"
+            )
+        )
+        {
+            var _known_obj =
+                asset_get_index(
+                    string(
+                        _member.object_name
+                    )
+                );
+
+
+            if (_known_obj != -1)
+                return _known_obj;
+        }
+    }
+
+
+    // Convención automática:
+    // "silicio" -> "obj_silicio"
+    var _automatic =
+        asset_get_index(
+            "obj_"
+            +
+            string(_party_id)
+        );
+
+
+    if (_automatic != -1)
+        return _automatic;
+
+
+    // Fallback: por si el propio ID ya era nombre de objeto.
+    _automatic =
+        asset_get_index(
+            string(_party_id)
+        );
+
+
+    return _automatic;
+}
+
+
+// =========================================================
+// SPAWN DE ACTOR PARTY-CAPABLE SIN UNIRLO TODAVÍA
+// =========================================================
+//
+// Sirve para cinematica:
+//
+// cs_party_actor("silicio", 500, 200)
+//
+// Lo crea como NPC/actor cinematográfico normal.
+// TODAVÍA NO es follower.
+// =========================================================
+
+function scr_party_spawn_cinematic_actor(
+    _party_id,
+    _x,
+    _y,
+    _layer = "Instances"
+)
+{
+    scr_party_init();
+
+
+    _party_id =
+        scr_party_normalize_id(
+            _party_id
+        );
+
+
+    // Ya existe como actor registrado / party / NPC.
+    var _existing =
+        scr_cutscene_actor(
+            _party_id
+        );
+
+
+    if (
+        _existing != noone
+        &&
+        instance_exists(_existing)
+    )
+    {
+        scr_cutscene_register(
+            _party_id,
+            _existing
+        );
+
+        return _existing;
+    }
+
+
+    var _obj =
+        scr_party_object_from_id(
+            _party_id
+        );
+
+
+    if (_obj == -1)
+    {
+        show_debug_message(
+            "[PARTY] No pude resolver objeto para: "
+            +
+            string(_party_id)
+        );
+
+        return noone;
+    }
+
+
+    var _actor =
+        noone;
+
+
+    if (
+        is_string(_layer)
+        &&
+        layer_get_id(_layer) != -1
+    )
+    {
+        _actor =
+            instance_create_layer(
+                _x,
+                _y,
+                _layer,
+                _obj
+            );
+    }
+    else
+    {
+        _actor =
+            instance_create_depth(
+                _x,
+                _y,
+                0,
+                _obj
+            );
+    }
+
+
+    if (
+        _actor == noone
+        ||
+        !instance_exists(_actor)
+    )
+    {
+        return noone;
+    }
+
+
+    _actor.party_id =
+        _party_id;
+
+
+    // Todavía NO forma parte del grupo.
+    if (
+        variable_instance_exists(
+            _actor,
+            "party_member"
+        )
+    )
+    {
+        _actor.party_member =
+            false;
+    }
+
+
+    if (
+        variable_instance_exists(
+            _actor,
+            "party_follow_suspended"
+        )
+    )
+    {
+        _actor.party_follow_suspended =
+            false;
+    }
+
+
+    // No persistente mientras siga siendo un NPC normal.
+    _actor.persistent =
+        false;
+
+
+    scr_cutscene_register(
+        _party_id,
+        _actor
+    );
+
+
+    return _actor;
+}
+
+
+// =========================================================
+// SEMBRAR RUTA ARTIFICIAL DETRÁS DE MAYA
+// =========================================================
+//
+// Solo se usa cuando una cinemática necesita poner un
+// personaje "detrás de Maya" pero todavía no existe una
+// ruta antigua suficiente.
+//
+// Cada entrada equivale aproximadamente a un paso normal
+// de Maya (~4 px).
+// =========================================================
+
+function scr_party_seed_history_behind_player()
+{
+    scr_party_init();
+
+
+    if (!instance_exists(obj_player))
+        return false;
+
+
+    var _p =
+        instance_find(
+            obj_player,
+            0
+        );
+
+
+    var _face =
+        variable_instance_exists(
+            _p,
+            "face"
+        )
+        ?
+        _p.face
+        :
+        DOWN;
+
+
+    var _feet_x =
+        scr_party_feet_x(
+            _p
+        );
+
+    var _feet_y =
+        scr_party_feet_y(
+            _p
+        );
+
+
+    // Un "snapshot" normal representa aproximadamente 4px.
+    var _step =
+        4;
+
+
+    var _back_x =
+        0;
+
+    var _back_y =
+        -_step;
+
+
+    switch (_face)
+    {
+        case RIGHT:
+            _back_x = -_step;
+            _back_y = 0;
+            break;
+
+        case LEFT:
+            _back_x = _step;
+            _back_y = 0;
+            break;
+
+        case DOWN:
+            _back_x = 0;
+            _back_y = -_step;
+            break;
+
+        case UP:
+            _back_x = 0;
+            _back_y = _step;
+            break;
+    }
+
+
+    var _seed_count =
+        max(
+            40,
+            (
+                array_length(
+                    global.party_data.members
+                )
+                +
+                3
+            )
+            *
+            max(
+                global.party_follow_delay_walk,
+                global.party_follow_delay_run
+            )
+            +
+            12
+        );
+
+
+    global.party_history =
+        [];
+
+
+    // Punto más viejo -> punto más nuevo.
+    for (
+        var _i = _seed_count;
+        _i >= 0;
+        _i--
+    )
+    {
+        array_push(
+            global.party_history,
+            {
+                x:
+                    _feet_x
+                    +
+                    (_back_x * _i),
+
+                y:
+                    _feet_y
+                    +
+                    (_back_y * _i),
+
+                face:
+                    _face
+            }
+        );
+    }
+
+
+    global.party_history_room =
+        room;
+
+    global.party_room_dirty =
+        false;
+
+    global.party_last_player_x =
+        _feet_x;
+
+    global.party_last_player_y =
+        _feet_y;
+
+
+    return true;
+}
+
+
+// =========================================================
+// OBTENER PUESTO CORRECTO DETRÁS DE MAYA PARA UN NUEVO
+// FOLLOWER
+// =========================================================
+//
+// Devuelve:
+//
+// {
+//     x: feet_x,
+//     y: feet_y,
+//     face: ...,
+//     synthetic: true/false
+// }
+//
+// synthetic = true significa que no había ruta útil y hay
+// que sembrar una ruta detrás de Maya antes de unir.
+// =========================================================
+
+function scr_party_get_join_target(_follower_index)
+{
+    scr_party_init();
+
+
+    if (!instance_exists(obj_player))
+    {
+        return {
+            x: 0,
+            y: 0,
+            face: DOWN,
+            synthetic: true
+        };
+    }
+
+
+    var _p =
+        instance_find(
+            obj_player,
+            0
+        );
+
+
+    var _player_feet_x =
+        scr_party_feet_x(
+            _p
+        );
+
+    var _player_feet_y =
+        scr_party_feet_y(
+            _p
+        );
+
+
+    var _face =
+        variable_instance_exists(
+            _p,
+            "face"
+        )
+        ?
+        _p.face
+        :
+        DOWN;
+
+
+    // Asegurar que haya historial.
+    if (
+        global.party_room_dirty
+        ||
+        global.party_history_room != room
+        ||
+        array_length(
+            global.party_history
+        )
+        <=
+        0
+    )
+    {
+        scr_party_seed_history();
+    }
+
+
+    var _target =
+        scr_party_get_delayed_position(
+            _follower_index
+        );
+
+
+    var _dist_to_player =
+        point_distance(
+            _target.x,
+            _target.y,
+            _player_feet_x,
+            _player_feet_y
+        );
+
+
+    // Si el historial sí contiene un punto realmente detrás,
+    // usar exactamente ese camino.
+    if (_dist_to_player >= 8)
+    {
+        return {
+            x: _target.x,
+            y: _target.y,
+            face: _target.face,
+            synthetic: false
+        };
+    }
+
+
+    // No hay camino suficiente (por ejemplo, Maya estaba
+    // quieta desde el inicio de la room).
+    //
+    // Crear un punto geométrico detrás de ella.
+    var _gap =
+        round(
+            global.party_follow_delay_walk
+            *
+            4
+            *
+            (_follower_index + 1)
+        );
+
+
+    var _x =
+        _player_feet_x;
+
+    var _y =
+        _player_feet_y;
+
+
+    switch (_face)
+    {
+        case RIGHT:
+            _x -= _gap;
+            break;
+
+        case LEFT:
+            _x += _gap;
+            break;
+
+        case DOWN:
+            _y -= _gap;
+            break;
+
+        case UP:
+            _y += _gap;
+            break;
+    }
+
+
+    return {
+        x: _x,
+        y: _y,
+        face: _face,
+        synthetic: true
+    };
+}
+
+
+// =========================================================
+// CONVERTIR UN TARGET DE "PIES" A X/Y DE LA INSTANCIA
+// =========================================================
+
+function scr_party_origin_for_feet(
+    _actor,
+    _feet_x,
+    _feet_y
+)
+{
+    if (
+        _actor == noone
+        ||
+        !instance_exists(_actor)
+    )
+    {
+        return {
+            x: 0,
+            y: 0
+        };
+    }
+
+
+    return {
+        x:
+            _actor.x
+            +
+            (
+                _feet_x
+                -
+                scr_party_feet_x(_actor)
+            ),
+
+        y:
+            _actor.y
+            +
+            (
+                _feet_y
+                -
+                scr_party_feet_y(_actor)
+            )
+    };
+}
+
+
+// =========================================================
+// SMART JOIN
+// =========================================================
+//
+// cs_party_join("silicio")
+//
+// Si Silicio existe:
+//     usa esa instancia.
+//
+// Si NO existe:
+//     resuelve obj_silicio,
+//     lo crea directamente en su slot detrás de Maya,
+//     y lo une.
+//
+// No es necesario dejar obj_silicio colocado en la room.
+// =========================================================
+
+function scr_party_smart_join(
+    _actor_or_name,
+    _party_id = ""
+)
+{
+    scr_party_init();
+
+
+    var _actor =
+        noone;
+
+    var _id =
+        _party_id;
+
+
+    if (is_string(_actor_or_name))
+    {
+        if (
+            !is_string(_id)
+            ||
+            _id == ""
+        )
+        {
+            _id =
+                scr_party_normalize_id(
+                    _actor_or_name
+                );
+        }
+
+
+        _actor =
+            scr_cutscene_actor(
+                _actor_or_name
+            );
+
+
+        if (_actor == noone)
+        {
+            _actor =
+                scr_party_find_world_actor(
+                    _actor_or_name
+                );
+        }
+    }
+    else if (
+        _actor_or_name != noone
+        &&
+        instance_exists(
+            _actor_or_name
+        )
+    )
+    {
+        _actor =
+            _actor_or_name;
+
+
+        if (
+            !is_string(_id)
+            ||
+            _id == ""
+        )
+        {
+            if (
+                variable_instance_exists(
+                    _actor,
+                    "party_id"
+                )
+            )
+            {
+                _id =
+                    _actor.party_id;
+            }
+        }
+    }
+
+
+    // =====================================================
+    // NO EXISTE -> SPAWN AUTOMÁTICO EN SU SLOT
+    // =====================================================
+
+    if (
+        _actor == noone
+        ||
+        !instance_exists(_actor)
+    )
+    {
+        if (
+            !is_string(_id)
+            ||
+            _id == ""
+        )
+        {
+            return false;
+        }
+
+
+        var _slot_index =
+            array_length(
+                global.party_data.members
+            );
+
+
+        var _target =
+            scr_party_get_join_target(
+                _slot_index
+            );
+
+
+        // Si era un target sintético, preparar el historial
+        // antes del join para que no haya snap en el siguiente
+        // End Step.
+        if (_target.synthetic)
+        {
+            scr_party_seed_history_behind_player();
+
+            _target =
+                scr_party_get_join_target(
+                    _slot_index
+                );
+        }
+
+
+        if (!instance_exists(obj_player))
+            return false;
+
+
+        var _p =
+            instance_find(
+                obj_player,
+                0
+            );
+
+
+        _actor =
+            scr_party_spawn_cinematic_actor(
+                _id,
+                _p.x,
+                _p.y,
+                "Instances"
+            );
+
+
+        if (
+            _actor == noone
+            ||
+            !instance_exists(_actor)
+        )
+        {
+            return false;
+        }
+
+
+        scr_party_apply_direction(
+            _actor,
+            _target.face
+        );
+
+
+        scr_party_place_feet(
+            _actor,
+            _target.x,
+            _target.y
+        );
+    }
+
+
+    return scr_party_join_actor(
+        _actor,
+        _id
+    );
+}
+
+
 function scr_party_runtime_set(_party_id, _actor)
 {
     scr_party_init();
@@ -932,9 +1725,7 @@ function scr_party_apply_walk_animation(_actor, _moving)
     }
 
 
-    // Siempre manual.
-    // Así ningún image_speed externo puede apagar o reiniciar
-    // la animación de Silicio.
+    // Silicio usa animación manual.
     _actor.image_speed =
         0;
 
@@ -951,15 +1742,39 @@ function scr_party_apply_walk_animation(_actor, _moving)
     }
 
 
-    if (!_moving)
+    if (
+        !variable_instance_exists(
+            _actor,
+            "party_anim_hold"
+        )
+    )
     {
-        _actor.party_anim_accum =
+        _actor.party_anim_hold =
             0;
+    }
 
-        _actor.image_index =
-            0;
 
-        return;
+    if (
+        !variable_instance_exists(
+            _actor,
+            "party_anim_hold_max"
+        )
+    )
+    {
+        _actor.party_anim_hold_max =
+            6;
+    }
+
+
+    if (
+        !variable_instance_exists(
+            _actor,
+            "party_anim_was_moving"
+        )
+    )
+    {
+        _actor.party_anim_was_moving =
+            false;
     }
 
 
@@ -987,50 +1802,140 @@ function scr_party_apply_walk_animation(_actor, _moving)
         _actor.image_index =
             0;
 
+        _actor.party_anim_accum =
+            0;
+
+        _actor.party_anim_was_moving =
+            _moving;
+
         return;
     }
 
 
-    // 0.22 = alrededor de un frame nuevo cada 4-5 steps.
-    var _anim_speed =
-        0.22;
+    // =====================================================
+    // MOVIÉNDOSE
+    // =====================================================
 
-
-    if (
-        variable_instance_exists(
-            _actor,
-            "party_walk_anim_speed"
-        )
-    )
+    if (_moving)
     {
-        _anim_speed =
-            max(
-                0.01,
-                _actor.party_walk_anim_speed
-            );
-    }
-
-
-    _actor.party_anim_accum +=
-        _anim_speed;
-
-
-    while (_actor.party_anim_accum >= 1)
-    {
-        _actor.party_anim_accum -=
-            1;
-
-        _actor.image_index =
-            (
+        // Un movimiento de un solo frame necesita producir
+        // un cambio visual claro.
+        if (!_actor.party_anim_was_moving)
+        {
+            var _next_frame =
                 floor(
                     _actor.image_index
                 )
                 +
-                1
+                1;
+
+
+            // No caer en frame 0 al iniciar un nuevo tap.
+            if (_next_frame >= _frame_count)
+            {
+                _next_frame =
+                    1;
+            }
+
+
+            _actor.image_index =
+                clamp(
+                    _next_frame,
+                    1,
+                    _frame_count - 1
+                );
+        }
+
+
+        _actor.party_anim_hold =
+            _actor.party_anim_hold_max;
+
+
+        var _anim_speed =
+            0.22;
+
+
+        if (
+            variable_instance_exists(
+                _actor,
+                "party_walk_anim_speed"
             )
-            mod
-            _frame_count;
+        )
+        {
+            _anim_speed =
+                max(
+                    0.01,
+                    _actor.party_walk_anim_speed
+                );
+        }
+
+
+        _actor.party_anim_accum +=
+            _anim_speed;
+
+
+        while (_actor.party_anim_accum >= 1)
+        {
+            _actor.party_anim_accum -=
+                1;
+
+
+            var _next =
+                floor(
+                    _actor.image_index
+                )
+                +
+                1;
+
+
+            if (_next >= _frame_count)
+            {
+                _next =
+                    1;
+            }
+
+
+            _actor.image_index =
+                clamp(
+                    _next,
+                    1,
+                    _frame_count - 1
+                );
+        }
     }
+
+
+    // =====================================================
+    // QUIETO
+    // =====================================================
+    //
+    // NO avanzamos party_anim_accum.
+    //
+    // Silicio se queda literalmente congelado en su último
+    // frame de caminar durante el margen de taps.
+    // =====================================================
+
+    else
+    {
+        if (_actor.party_anim_hold > 0)
+        {
+            _actor.party_anim_hold--;
+        }
+
+
+        if (_actor.party_anim_hold <= 0)
+        {
+            _actor.party_anim_accum =
+                0;
+
+            _actor.image_index =
+                0;
+        }
+    }
+
+
+    _actor.party_anim_was_moving =
+        _moving;
 }
 
 

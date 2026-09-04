@@ -3,6 +3,20 @@
 /// STEP COMPLETO
 /// =========================================================
 
+// =========================================================
+// CINEMÁTICA ACTIVA
+// =========================================================
+//
+// Durante una cinemática este warp sigue existiendo,
+// pero NO puede activarse.
+// =========================================================
+
+if (scr_cutscene_world_locked())
+{
+    exit;
+}
+
+
 if (!instance_exists(obj_player))
 {
     exit;
@@ -153,6 +167,14 @@ if (
     inst.keep_music =
         keep_music;
 
-    // No hay transición especial para tiendas:
-    // obj_warp conserva su sprite y comportamiento normales.
+
+    // =====================================================
+    // CINEMÁTICA CONFIGURADA EN ESTE TP
+    // =====================================================
+
+    inst.target_cutscene =
+        target_cutscene;
+
+    inst.target_cutscene_once =
+        target_cutscene_once;
 }

@@ -6,11 +6,13 @@
 // MISMO FLUJO PARA TODAS LAS HABITACIONES:
 //
 // 1. La animación cierra.
-// 2. Cambiamos de room.
-// 3. Colocamos al jugador y gestionamos música.
-// 4. La MISMA animación se reproduce hacia atrás.
-// 5. Al terminar de abrir, obj_warp se destruye y devuelve
-//    el movimiento al jugador.
+// 2. Preparamos una posible cinemática del destino.
+// 3. Cambiamos de room.
+// 4. Colocamos al jugador y gestionamos música.
+// 5. La MISMA animación se reproduce hacia atrás.
+// 6. Al terminar de abrir, obj_warp se destruye.
+// 7. Si hay cinemática pendiente, el jugador sigue bloqueado
+//    hasta que obj_settings la inicie.
 // =========================================================
 
 if (!warp_room_changed)
@@ -31,6 +33,37 @@ if (!warp_room_changed)
     {
         global.viajando_a_batalla = false;
     }
+
+
+    // =====================================================
+    // PREPARAR CINEMÁTICA DEL DESTINO
+    // =====================================================
+    //
+    // IMPORTANTE:
+    //
+    // Esto NO inicia la cinemática ahora.
+    //
+    // Solo deja anotado:
+    //
+    //     target_cutscene
+    //     target_rm
+    //     target_cutscene_once
+    //
+    // obj_settings la iniciará cuando esta transición haya
+    // terminado completamente.
+    //
+    // Si target_cutscene == "":
+    //     no hace nada.
+    //
+    // Si ya fue vista y target_cutscene_once == true:
+    //     tampoco hace nada.
+    // =====================================================
+
+    scr_cutscene_warp_entry_queue(
+        target_cutscene,
+        target_rm,
+        target_cutscene_once
+    );
 
 
     // =====================================================

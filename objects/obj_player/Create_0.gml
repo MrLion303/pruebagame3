@@ -64,3 +64,33 @@ if (!global.new_game) {
 
 // --- SISTEMA DE AUDIO DE PASOS ---
 paso_timer = 0;
+
+
+// =========================================================
+// ANIMACIÓN AL HACER MOVIMIENTOS CORTOS
+// =========================================================
+//
+// Evita volver al frame 0 inmediatamente si el jugador
+// toca repetidamente las flechas en vez de mantenerlas.
+//
+walk_anim_hold =
+    0;
+
+// Más corto que antes.
+// Solo sirve como pequeño margen entre "taps".
+walk_anim_hold_max =
+    6;
+
+
+// Indica si en el frame ANTERIOR Maya estaba moviéndose.
+walk_anim_was_moving =
+    false;
+
+
+// =========================================================
+// DEPTH SORT AUTOMÁTICO
+// =========================================================
+
+scr_depth_sort_register(
+    id
+);

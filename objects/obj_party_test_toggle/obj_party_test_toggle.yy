@@ -10,8 +10,8 @@
   "name":"obj_party_test_toggle",
   "overriddenProperties":[],
   "parent":{
-    "name":"admin obj",
-    "path":"folders/admin obj.yy",
+    "name":"Objetos",
+    "path":"folders/admin obj/Objetos.yy",
   },
   "parentObjectId":null,
   "persistent":false,

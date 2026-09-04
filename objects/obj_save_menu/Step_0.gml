@@ -1,16 +1,11 @@
-// =========================================================
-// CONSOLA ABIERTA: NO RECIBIR INPUT DE GAMEPLAY
-// =========================================================
-
 if (
-    variable_global_exists("dev_console_open")
+    variable_global_exists("gameover_death_freeze_active")
     &&
-    global.dev_console_open
+    global.gameover_death_freeze_active
 )
 {
     exit;
 }
-
 
 
 // =========================================================
@@ -453,16 +448,6 @@ else if (state == 1)
             //
             // Primero iniciamos el fade.
 
-
-            // La partida comienza: quitar música del título.
-            if (audio_exists(mus_menu))
-            {
-                audio_stop_sound(
-                    mus_menu
-                );
-            }
-
-
             audio_play_sound(
                 snd_shineselect,
                 10,
@@ -542,5 +527,3 @@ else if (state == 1)
         }
     }
 }
-
-

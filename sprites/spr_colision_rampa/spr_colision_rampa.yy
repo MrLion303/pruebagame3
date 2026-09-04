@@ -26,7 +26,7 @@
   "origin":0,
   "parent":{
     "name":"Objetos",
-    "path":"folders/Objetos.yy",
+    "path":"folders/admin obj/Objetos.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",

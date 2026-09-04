@@ -1,11 +1,7 @@
-// =========================================================
-// CONSOLA ABIERTA: NO RECIBIR INPUT DE GAMEPLAY
-// =========================================================
-
 if (
-    variable_global_exists("dev_console_open")
+    variable_global_exists("gameover_death_freeze_active")
     &&
-    global.dev_console_open
+    global.gameover_death_freeze_active
 )
 {
     exit;

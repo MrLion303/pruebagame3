@@ -9,8 +9,8 @@
   "name":"obj_damage_test",
   "overriddenProperties":[],
   "parent":{
-    "name":"admin obj",
-    "path":"folders/admin obj.yy",
+    "name":"Objetos",
+    "path":"folders/admin obj/Objetos.yy",
   },
   "parentObjectId":null,
   "persistent":false,

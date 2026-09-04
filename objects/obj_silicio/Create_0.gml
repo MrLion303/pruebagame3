@@ -27,12 +27,46 @@ party_sprite_left =
     spr_silicio_izquierda;
 
 
+// =========================================================
+// SPRITES PARA CINEMÁTICAS
+// =========================================================
+//
+// Permite que:
+//     cs_move_to("silicio", ...)
+// cambie automáticamente su dirección y conserve animación.
+// =========================================================
+
+cutscene_sprite_down =
+    spr_silicio_abajo;
+
+cutscene_sprite_up =
+    spr_silicio_arriba;
+
+cutscene_sprite_right =
+    spr_silicio_derecha;
+
+cutscene_sprite_left =
+    spr_silicio_izquierda;
+
+
 // Animación manual del party system.
 party_walk_anim_speed =
     0.22;
 
 party_anim_accum =
     0;
+
+
+// Mantener unos frames la caminata cuando recibe
+// movimientos muy cortos / intermitentes.
+party_anim_hold =
+    0;
+
+party_anim_hold_max =
+    6;
+
+party_anim_was_moving =
+    false;
 
 
 // =========================================================

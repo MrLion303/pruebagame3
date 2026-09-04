@@ -55,7 +55,9 @@ enum CS_ACTION
     CALL,
     WAIT_UNTIL,
 
+    PARTY_ACTOR,
     PARTY_JOIN,
+    PARTY_JOIN_BEHIND,
     PARTY_LEAVE,
 
     BATTLE,
@@ -227,11 +229,29 @@ function scr_cutscene_register(_name, _instance)
 
 function scr_cutscene_actor(_name)
 {
-    if (is_real(_name))
+    // =====================================================
+    // REFERENCIA DIRECTA DE INSTANCIA
+    // =====================================================
+    //
+    // GameMaker moderno puede devolver "ref instance".
+    // No usamos is_real().
+    // =====================================================
+
+    if (
+        !is_string(_name)
+        &&
+        _name != noone
+        &&
+        instance_exists(_name)
+    )
     {
-        if (instance_exists(_name))
-            return _name;
+        return _name;
     }
+
+
+    // =====================================================
+    // PLAYER
+    // =====================================================
 
     if (
         is_string(_name)
@@ -245,9 +265,14 @@ function scr_cutscene_actor(_name)
         return noone;
     }
 
+
     scr_cutscene_registry_init();
 
-    // Miembro activo de la party.
+
+    // =====================================================
+    // PARTY ACTIVA
+    // =====================================================
+
     if (
         is_string(_name)
         &&
@@ -259,6 +284,7 @@ function scr_cutscene_actor(_name)
                 _name
             );
 
+
         if (
             _party_actor != noone
             &&
@@ -269,6 +295,10 @@ function scr_cutscene_actor(_name)
         }
     }
 
+
+    // =====================================================
+    // REGISTRO DE ACTORES DE CINEMÁTICA
+    // =====================================================
 
     if (
         is_string(_name)
@@ -285,14 +315,22 @@ function scr_cutscene_actor(_name)
                 _name
             );
 
-        if (instance_exists(_actor))
+
+        if (
+            _actor != noone
+            &&
+            instance_exists(_actor)
+        )
+        {
             return _actor;
+        }
     }
 
 
-    // NPC colocado en el room con un party_id.
-    // Esto permite usar cs_party_join("maya")
-    // sin haberlo creado previamente con cs_spawn().
+    // =====================================================
+    // NPC PARTY-CAPABLE COLOCADO / SPAWNEADO EN LA ROOM
+    // =====================================================
+
     if (is_string(_name))
     {
         var _world_actor =
@@ -300,12 +338,19 @@ function scr_cutscene_actor(_name)
                 _name
             );
 
+
         if (
             _world_actor != noone
             &&
             instance_exists(_world_actor)
         )
         {
+            scr_cutscene_register(
+                _name,
+                _world_actor
+            );
+
+
             return _world_actor;
         }
     }
@@ -330,24 +375,55 @@ function scr_cutscene_face_actor(_actor, _dir)
         return;
     }
 
-    var _sprite_direccion = noone;
+
+    var _sprite_direccion =
+        noone;
+
+    var _new_face =
+        -1;
+
+    var _new_facing =
+        -1;
+
+    var _new_direction =
+        "";
+
 
     switch (_dir)
     {
         case "derecha":
         case "right":
 
-            if (variable_instance_exists(_actor, "direccion"))
-                _actor.direccion = "derecha";
+            _new_face =
+                RIGHT;
 
-            if (variable_instance_exists(_actor, "face"))
-                _actor.face = RIGHT;
+            _new_facing =
+                0;
 
-            if (variable_instance_exists(_actor, "facing_direction"))
-                _actor.facing_direction = 0;
+            _new_direction =
+                "derecha";
 
-            if (variable_instance_exists(_actor, "cutscene_sprite_right"))
-                _sprite_direccion = _actor.cutscene_sprite_right;
+
+            if (
+                variable_instance_exists(
+                    _actor,
+                    "cutscene_sprite_right"
+                )
+            )
+            {
+                _sprite_direccion =
+                    _actor.cutscene_sprite_right;
+            }
+            else if (
+                variable_instance_exists(
+                    _actor,
+                    "party_sprite_right"
+                )
+            )
+            {
+                _sprite_direccion =
+                    _actor.party_sprite_right;
+            }
 
             break;
 
@@ -355,17 +431,36 @@ function scr_cutscene_face_actor(_actor, _dir)
         case "izquierda":
         case "left":
 
-            if (variable_instance_exists(_actor, "direccion"))
-                _actor.direccion = "izquierda";
+            _new_face =
+                LEFT;
 
-            if (variable_instance_exists(_actor, "face"))
-                _actor.face = LEFT;
+            _new_facing =
+                1;
 
-            if (variable_instance_exists(_actor, "facing_direction"))
-                _actor.facing_direction = 1;
+            _new_direction =
+                "izquierda";
 
-            if (variable_instance_exists(_actor, "cutscene_sprite_left"))
-                _sprite_direccion = _actor.cutscene_sprite_left;
+
+            if (
+                variable_instance_exists(
+                    _actor,
+                    "cutscene_sprite_left"
+                )
+            )
+            {
+                _sprite_direccion =
+                    _actor.cutscene_sprite_left;
+            }
+            else if (
+                variable_instance_exists(
+                    _actor,
+                    "party_sprite_left"
+                )
+            )
+            {
+                _sprite_direccion =
+                    _actor.party_sprite_left;
+            }
 
             break;
 
@@ -373,17 +468,36 @@ function scr_cutscene_face_actor(_actor, _dir)
         case "abajo":
         case "down":
 
-            if (variable_instance_exists(_actor, "direccion"))
-                _actor.direccion = "abajo";
+            _new_face =
+                DOWN;
 
-            if (variable_instance_exists(_actor, "face"))
-                _actor.face = DOWN;
+            _new_facing =
+                2;
 
-            if (variable_instance_exists(_actor, "facing_direction"))
-                _actor.facing_direction = 2;
+            _new_direction =
+                "abajo";
 
-            if (variable_instance_exists(_actor, "cutscene_sprite_down"))
-                _sprite_direccion = _actor.cutscene_sprite_down;
+
+            if (
+                variable_instance_exists(
+                    _actor,
+                    "cutscene_sprite_down"
+                )
+            )
+            {
+                _sprite_direccion =
+                    _actor.cutscene_sprite_down;
+            }
+            else if (
+                variable_instance_exists(
+                    _actor,
+                    "party_sprite_down"
+                )
+            )
+            {
+                _sprite_direccion =
+                    _actor.party_sprite_down;
+            }
 
             break;
 
@@ -391,28 +505,116 @@ function scr_cutscene_face_actor(_actor, _dir)
         case "arriba":
         case "up":
 
-            if (variable_instance_exists(_actor, "direccion"))
-                _actor.direccion = "arriba";
+            _new_face =
+                UP;
 
-            if (variable_instance_exists(_actor, "face"))
-                _actor.face = UP;
+            _new_facing =
+                3;
 
-            if (variable_instance_exists(_actor, "facing_direction"))
-                _actor.facing_direction = 3;
+            _new_direction =
+                "arriba";
 
-            if (variable_instance_exists(_actor, "cutscene_sprite_up"))
-                _sprite_direccion = _actor.cutscene_sprite_up;
+
+            if (
+                variable_instance_exists(
+                    _actor,
+                    "cutscene_sprite_up"
+                )
+            )
+            {
+                _sprite_direccion =
+                    _actor.cutscene_sprite_up;
+            }
+            else if (
+                variable_instance_exists(
+                    _actor,
+                    "party_sprite_up"
+                )
+            )
+            {
+                _sprite_direccion =
+                    _actor.party_sprite_up;
+            }
 
             break;
     }
 
+
+    if (
+        _new_direction != ""
+        &&
+        variable_instance_exists(
+            _actor,
+            "direccion"
+        )
+    )
+    {
+        _actor.direccion =
+            _new_direction;
+    }
+
+
+    if (
+        _new_face != -1
+        &&
+        variable_instance_exists(
+            _actor,
+            "face"
+        )
+    )
+    {
+        _actor.face =
+            _new_face;
+    }
+
+
+    if (
+        _new_facing != -1
+        &&
+        variable_instance_exists(
+            _actor,
+            "facing_direction"
+        )
+    )
+    {
+        _actor.facing_direction =
+            _new_facing;
+    }
+
+
+    // No reasignar el mismo sprite cada Step.
+    // Así no reiniciamos una animación en curso.
     if (
         _sprite_direccion != noone
         &&
         sprite_exists(_sprite_direccion)
+        &&
+        _actor.sprite_index != _sprite_direccion
     )
     {
-        _actor.sprite_index = _sprite_direccion;
+        var _old_frame =
+            floor(
+                _actor.image_index
+            );
+
+
+        _actor.sprite_index =
+            _sprite_direccion;
+
+
+        var _frames =
+            sprite_get_number(
+                _sprite_direccion
+            );
+
+
+        if (_frames > 0)
+        {
+            _actor.image_index =
+                _old_frame
+                mod
+                _frames;
+        }
     }
 }
 
@@ -901,18 +1103,54 @@ function cs_wait_until(_func)
 }
 
 // =========================================================
-// PARTY
+// PARTY / ACTORES PARTY-CAPABLE
 // =========================================================
 //
-// Unir:
-//     cs_party_join("maya")
+// SPAWNEAR COMO ACTOR DE CINEMÁTICA, SIN UNIR:
 //
-// Sacar, pero dejar como NPC:
-//     cs_party_leave("maya")
+//     cs_party_actor("silicio", 500, 200)
 //
-// Sacar y destruir/desaparecer:
-//     cs_party_leave("maya", true)
+// Después puedes:
+//
+//     cs_move_to("silicio", ...)
+//     cs_face("silicio", ...)
+//
+// UNIR INSTANTÁNEAMENTE:
+//
+//     cs_party_join("silicio")
+//
+// Si no existe, lo spawnea automáticamente.
+//
+// ACERCARSE DETRÁS DE MAYA Y UNIR AL LLEGAR:
+//
+//     cs_party_join_behind("silicio", 2)
 // =========================================================
+
+function cs_party_actor(
+    _party_id,
+    _x,
+    _y,
+    _layer = "Instances"
+)
+{
+    return {
+        type:
+            CS_ACTION.PARTY_ACTOR,
+
+        party_id:
+            _party_id,
+
+        x:
+            _x,
+
+        y:
+            _y,
+
+        layer:
+            _layer
+    };
+}
+
 
 function cs_party_join(
     _actor,
@@ -928,6 +1166,76 @@ function cs_party_join(
 
         party_id:
             _party_id
+    };
+}
+
+
+// ---------------------------------------------------------
+// ACERCARSE AUTOMÁTICAMENTE A SU SLOT Y UNIRSE
+// ---------------------------------------------------------
+//
+// _speed:
+//     velocidad del acercamiento.
+//
+// _wait:
+//     true = la cinemática espera a que llegue.
+//
+// _anim_speed:
+//     -1 = automático.
+//
+// _party_id:
+//     opcional si actor y party_id tienen nombres distintos.
+// ---------------------------------------------------------
+
+function cs_party_join_behind(
+    _actor,
+    _speed = 2,
+    _wait = true,
+    _anim_speed = -1,
+    _party_id = ""
+)
+{
+    var _velocidad =
+        max(
+            0.01,
+            _speed
+        );
+
+
+    var _vel_anim =
+        _anim_speed;
+
+
+    if (_vel_anim < 0)
+    {
+        _vel_anim =
+            max(
+                0.20,
+                _velocidad
+                *
+                0.10
+            );
+    }
+
+
+    return {
+        type:
+            CS_ACTION.PARTY_JOIN_BEHIND,
+
+        actor:
+            _actor,
+
+        party_id:
+            _party_id,
+
+        speed:
+            _velocidad,
+
+        wait:
+            _wait,
+
+        anim_speed:
+            _vel_anim
     };
 }
 

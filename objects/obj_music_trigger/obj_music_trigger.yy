@@ -9,8 +9,8 @@
   "name":"obj_music_trigger",
   "overriddenProperties":[],
   "parent":{
-    "name":"admin obj",
-    "path":"folders/admin obj.yy",
+    "name":"Objetos",
+    "path":"folders/admin obj/Objetos.yy",
   },
   "parentObjectId":null,
   "persistent":false,

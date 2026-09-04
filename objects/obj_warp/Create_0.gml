@@ -11,6 +11,29 @@ target_face = 0;
 target_music = -1;
 keep_music = false;
 
+
+// =========================================================
+// CINEMÁTICA AL ENTRAR AL DESTINO
+// =========================================================
+//
+// Estos valores llegan desde obj_warp_block.
+//
+// Vacío:
+//     no inicia ninguna cinemática.
+//
+// Ejemplo:
+//     target_cutscene = "entrada_gerson";
+//
+// true:
+//     solo una vez por partida.
+//
+// false:
+//     se ejecuta cada vez que se use ese warp.
+//
+target_cutscene = "";
+target_cutscene_once = true;
+
+
 // =========================================================
 // TRANSICIÓN NORMAL UNIVERSAL
 // =========================================================
@@ -44,25 +67,74 @@ image_index = 0;
 
 warp_finish = function()
 {
+    // =====================================================
+    // ¿HAY UNA CINEMÁTICA PENDIENTE PARA ESTA ROOM?
+    // =====================================================
+    //
+    // Si la hay, NO devolveremos el movimiento todavía.
+    //
+    // obj_settings iniciará la cinemática inmediatamente
+    // después de desaparecer obj_warp.
+    // =====================================================
+
+    var _hold_for_cutscene =
+        false;
+
+
+    if (
+        variable_global_exists("warp_cutscene_pending")
+        &&
+        global.warp_cutscene_pending
+        &&
+        variable_global_exists("warp_cutscene_pending_room")
+        &&
+        global.warp_cutscene_pending_room == room
+    )
+    {
+        _hold_for_cutscene =
+            true;
+    }
+
+
     if (instance_exists(obj_player))
     {
         var _p = instance_find(obj_player, 0);
 
-        if (variable_instance_exists(_p, "puede_moverse"))
+
+        if (!_hold_for_cutscene)
         {
-            _p.puede_moverse = true;
+            if (variable_instance_exists(_p, "puede_moverse"))
+            {
+                _p.puede_moverse = true;
+            }
+
+            if (variable_instance_exists(_p, "can_move"))
+            {
+                _p.can_move = true;
+            }
+        }
+        else
+        {
+            // Mantener completamente bloqueado hasta que
+            // comience la cinemática.
+            if (variable_instance_exists(_p, "puede_moverse"))
+            {
+                _p.puede_moverse = false;
+            }
+
+            if (variable_instance_exists(_p, "can_move"))
+            {
+                _p.can_move = false;
+            }
         }
 
-        if (variable_instance_exists(_p, "can_move"))
-        {
-            _p.can_move = true;
-        }
 
         if (variable_instance_exists(_p, "cutscene_motion_active"))
         {
             _p.cutscene_motion_active = false;
         }
     }
+
 
     persistent = false;
     instance_destroy();

@@ -5,6 +5,22 @@
 
 
 // =========================================================
+// REACTIVAR MUNDO
+// =========================================================
+//
+// Va ANTES de cualquier exit.
+//
+// Si fue un cs_battle(), la cinemática se suspende:
+// desbloqueamos durante la batalla.
+//
+// Al reanudarse se crea otro controller y vuelve a bloquear.
+//
+// =========================================================
+
+scr_cutscene_world_unlock();
+
+
+// =========================================================
 // SONIDO LARGO DE DIÁLOGO
 // =========================================================
 
