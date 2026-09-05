@@ -140,6 +140,62 @@ function scr_party_init()
     if (!variable_global_exists("party_history_max"))
         global.party_history_max = 300;
 
+
+    // =====================================================
+    // TERRENOS ESPECIALES - DISTANCIA DEL FOLLOWER
+    // =====================================================
+    //
+    // Hielo:
+    //     conserva la distancia física que había al entrar.
+    //
+    // Deslizamiento hacia abajo:
+    //     Silicio sigue lateralmente a Maya mientras baja.
+    //     Al terminar espera a que Maya genere la separación
+    //     normal y luego se reincorpora suavemente al punto
+    //     exacto de formación, sin teletransportes.
+    // =====================================================
+
+    if (!variable_global_exists("party_ice_recover_rate"))
+        global.party_ice_recover_rate = 1.25;
+
+    if (!variable_global_exists("party_downslide_wait_frames"))
+        global.party_downslide_wait_frames = 8;
+
+
+    // Cuando Maya ya salió por abajo pero Silicio todavía
+    // está dentro, Silicio debe seguir avanzando aunque Maya
+    // esté completamente quieta.
+    //
+    // 6 px/frame = misma velocidad vertical del deslizamiento.
+    if (!variable_global_exists("party_downslide_finish_rate"))
+        global.party_downslide_finish_rate = 6.0;
+
+
+    // Una vez Silicio también sale por abajo, acelera todavía
+    // más para recuperar la separación normal.
+    if (!variable_global_exists("party_downslide_catchup_rate"))
+        global.party_downslide_catchup_rate = 8.0;
+
+
+    // Reincorporación después del deslizamiento.
+    //
+    // Empieza despacio y acelera gradualmente.
+    // Así nunca hay un salto brusco al abandonar wait_gap,
+    // pero Silicio sí puede alcanzar la formación aunque Maya
+    // continúe corriendo.
+    if (!variable_global_exists("party_downslide_rejoin_start_speed"))
+        global.party_downslide_rejoin_start_speed = 2.0;
+
+    if (!variable_global_exists("party_downslide_rejoin_speed"))
+        global.party_downslide_rejoin_speed = 7.0;
+
+    if (!variable_global_exists("party_downslide_rejoin_accel"))
+        global.party_downslide_rejoin_accel = 0.5;
+
+
+    if (!variable_global_exists("party_special_failsafe_frames"))
+        global.party_special_failsafe_frames = 180;
+
     // Última posición REAL registrada de Maya.
     if (!variable_global_exists("party_last_player_x"))
         global.party_last_player_x = 0;
@@ -1702,6 +1758,37 @@ function scr_party_apply_direction(_actor, _face)
 
 
 // =========================================================
+// TERRENO BAJO UN FOLLOWER
+// =========================================================
+
+function scr_party_actor_overlaps(_actor, _object)
+{
+    if (
+        _actor == noone
+        ||
+        !instance_exists(_actor)
+    )
+    {
+        return false;
+    }
+
+
+    return
+        collision_rectangle(
+            _actor.bbox_left,
+            _actor.bbox_top,
+            _actor.bbox_right,
+            _actor.bbox_bottom,
+            _object,
+            false,
+            true
+        )
+        !=
+        noone;
+}
+
+
+// =========================================================
 // ANIMACIÓN DEL FOLLOWER
 // =========================================================
 //
@@ -1725,57 +1812,268 @@ function scr_party_apply_walk_animation(_actor, _moving)
     }
 
 
-    // Silicio usa animación manual.
     _actor.image_speed =
         0;
 
 
+    // =====================================================
+    // VARIABLES SEGURAS
+    // =====================================================
+
+    if (!variable_instance_exists(_actor, "party_anim_accum"))
+        _actor.party_anim_accum = 0;
+
+    if (!variable_instance_exists(_actor, "party_anim_hold"))
+        _actor.party_anim_hold = 0;
+
+    if (!variable_instance_exists(_actor, "party_anim_hold_max"))
+        _actor.party_anim_hold_max = 6;
+
+    if (!variable_instance_exists(_actor, "party_anim_was_moving"))
+        _actor.party_anim_was_moving = false;
+
+    if (!variable_instance_exists(_actor, "party_ice_tap_timer"))
+        _actor.party_ice_tap_timer = 0;
+
+    if (!variable_instance_exists(_actor, "party_ice_tap_duration"))
+        _actor.party_ice_tap_duration = 4;
+
+    if (!variable_instance_exists(_actor, "party_ice_tap_frame"))
+        _actor.party_ice_tap_frame = 0;
+
+
+    // =====================================================
+    // DESLIZAMIENTO HACIA ABAJO
+    // =====================================================
+    //
+    // El follower ya sigue la ruta histórica de Maya.
+    // Aquí solamente forzamos su pose especial mientras su
+    // cuerpo está dentro del objeto.
+    // =====================================================
+
+    var _party_downslide_visual =
+        false;
+
+
     if (
-        !variable_instance_exists(
+        variable_instance_exists(
             _actor,
-            "party_anim_accum"
+            "party_special_mode"
         )
     )
     {
+        _party_downslide_visual =
+            (
+                (
+                    _actor.party_special_mode
+                    ==
+                    "downslide_follow"
+                )
+                &&
+                scr_party_actor_overlaps(
+                    _actor,
+                    obj_deslizamiento_abajo
+                )
+            )
+            ||
+            (
+                _actor.party_special_mode
+                ==
+                "downslide_exit"
+            );
+    }
+
+
+    if (_party_downslide_visual)
+    {
+        scr_party_apply_direction(
+            _actor,
+            DOWN
+        );
+
+
+        var _slide_frames =
+            sprite_get_number(
+                _actor.sprite_index
+            );
+
+
+        if (_slide_frames >= 5)
+        {
+            _actor.image_index =
+                4;
+        }
+        else
+        {
+            _actor.image_index =
+                max(
+                    0,
+                    _slide_frames - 1
+                );
+        }
+
+
         _actor.party_anim_accum =
             0;
-    }
 
-
-    if (
-        !variable_instance_exists(
-            _actor,
-            "party_anim_hold"
-        )
-    )
-    {
         _actor.party_anim_hold =
             0;
-    }
 
-
-    if (
-        !variable_instance_exists(
-            _actor,
-            "party_anim_hold_max"
-        )
-    )
-    {
-        _actor.party_anim_hold_max =
-            6;
-    }
-
-
-    if (
-        !variable_instance_exists(
-            _actor,
-            "party_anim_was_moving"
-        )
-    )
-    {
         _actor.party_anim_was_moving =
             false;
+
+        _actor.party_ice_tap_timer =
+            0;
+
+        return;
     }
+
+
+    // =====================================================
+    // HIELO AZUL - PARTY
+    // =====================================================
+    //
+    // Silicio se desliza visualmente en idle igual que Maya.
+    // =====================================================
+
+    if (
+        scr_party_actor_overlaps(
+            _actor,
+            obj_hielo_azul
+        )
+    )
+    {
+        _actor.image_index =
+            0;
+
+        _actor.party_anim_accum =
+            0;
+
+        _actor.party_anim_hold =
+            0;
+
+        _actor.party_anim_was_moving =
+            false;
+
+        _actor.party_ice_tap_timer =
+            0;
+
+        return;
+    }
+
+
+    // =====================================================
+    // HIELO NORMAL - PARTY
+    // =====================================================
+    //
+    // Igual que Maya:
+    // una nueva pulsación produce una pequeña reacción,
+    // mantener la tecla NO mantiene la caminata.
+    // =====================================================
+
+    if (
+        scr_party_actor_overlaps(
+            _actor,
+            obj_hielo
+        )
+    )
+    {
+        var _ice_frame_count =
+            sprite_get_number(
+                _actor.sprite_index
+            );
+
+
+        // El frame 4 de spr_silicio_abajo queda reservado.
+        if (
+            variable_instance_exists(
+                _actor,
+                "party_sprite_down"
+            )
+            &&
+            _actor.sprite_index
+            ==
+            _actor.party_sprite_down
+            &&
+            _ice_frame_count >= 5
+        )
+        {
+            _ice_frame_count =
+                4;
+        }
+
+
+        var _ice_tap =
+            keyboard_check_pressed(vk_right)
+            ||
+            keyboard_check_pressed(vk_left)
+            ||
+            keyboard_check_pressed(vk_up)
+            ||
+            keyboard_check_pressed(vk_down);
+
+
+        if (
+            _ice_tap
+            &&
+            _ice_frame_count > 1
+        )
+        {
+            _actor.party_ice_tap_frame++;
+
+
+            if (
+                _actor.party_ice_tap_frame <= 0
+                ||
+                _actor.party_ice_tap_frame
+                >=
+                _ice_frame_count
+            )
+            {
+                _actor.party_ice_tap_frame =
+                    1;
+            }
+
+
+            _actor.image_index =
+                _actor.party_ice_tap_frame;
+
+
+            _actor.party_ice_tap_timer =
+                _actor.party_ice_tap_duration;
+        }
+
+
+        if (_actor.party_ice_tap_timer > 0)
+        {
+            _actor.party_ice_tap_timer--;
+        }
+        else
+        {
+            _actor.image_index =
+                0;
+        }
+
+
+        _actor.party_anim_accum =
+            0;
+
+        _actor.party_anim_hold =
+            0;
+
+        _actor.party_anim_was_moving =
+            false;
+
+        return;
+    }
+
+
+    // =====================================================
+    // ANIMACIÓN NORMAL
+    // =====================================================
+
+    _actor.party_ice_tap_timer =
+        0;
 
 
     var _frame_count =
@@ -1797,7 +2095,33 @@ function scr_party_apply_walk_animation(_actor, _moving)
     }
 
 
-    if (_frame_count <= 1)
+    // =====================================================
+    // RESERVAR EL QUINTO FRAME DE ABAJO
+    // =====================================================
+
+    var _walk_frame_count =
+        _frame_count;
+
+
+    if (
+        variable_instance_exists(
+            _actor,
+            "party_sprite_down"
+        )
+        &&
+        _actor.sprite_index
+        ==
+        _actor.party_sprite_down
+        &&
+        _frame_count >= 5
+    )
+    {
+        _walk_frame_count =
+            4;
+    }
+
+
+    if (_walk_frame_count <= 1)
     {
         _actor.image_index =
             0;
@@ -1812,41 +2136,44 @@ function scr_party_apply_walk_animation(_actor, _moving)
     }
 
 
+    // Si venimos del frame especial 4, volver al frame 0.
+    //
+    // La caminata normal de Silicio SIEMPRE empieza dentro
+    // del rango:
+    //
+    //     0, 1, 2, 3
+    //
+    if (
+        floor(_actor.image_index)
+        < 0
+        ||
+        floor(_actor.image_index)
+        >=
+        _walk_frame_count
+    )
+    {
+        _actor.image_index =
+            0;
+
+        _actor.party_anim_accum =
+            0;
+    }
+
+
     // =====================================================
     // MOVIÉNDOSE
     // =====================================================
 
     if (_moving)
     {
-        // Un movimiento de un solo frame necesita producir
-        // un cambio visual claro.
-        if (!_actor.party_anim_was_moving)
-        {
-            var _next_frame =
-                floor(
-                    _actor.image_index
-                )
-                +
-                1;
-
-
-            // No caer en frame 0 al iniciar un nuevo tap.
-            if (_next_frame >= _frame_count)
-            {
-                _next_frame =
-                    1;
-            }
-
-
-            _actor.image_index =
-                clamp(
-                    _next_frame,
-                    1,
-                    _frame_count - 1
-                );
-        }
-
-
+        // NO forzar 0 -> 1 al empezar.
+        //
+        // El frame 0 forma parte real de la caminata, por lo
+        // que la secuencia completa será:
+        //
+        //     0 -> 1 -> 2 -> 3 -> 0
+        //
+        // para ARRIBA, ABAJO, IZQUIERDA y DERECHA.
         _actor.party_anim_hold =
             _actor.party_anim_hold_max;
 
@@ -1874,7 +2201,24 @@ function scr_party_apply_walk_animation(_actor, _moving)
             _anim_speed;
 
 
-        while (_actor.party_anim_accum >= 1)
+        // =================================================
+        // SECUENCIA ESTRICTA DE SILICIO
+        // =================================================
+        //
+        // Máximo UN avance por Step.
+        //
+        // Esto garantiza que jamás pueda ocurrir:
+        //
+        //     1 -> 3
+        //
+        // aunque el acumulador tenga un valor alto.
+        //
+        // Secuencia:
+        //
+        //     0 -> 1 -> 2 -> 3 -> 0
+        // =================================================
+
+        if (_actor.party_anim_accum >= 1)
         {
             _actor.party_anim_accum -=
                 1;
@@ -1888,18 +2232,18 @@ function scr_party_apply_walk_animation(_actor, _moving)
                 1;
 
 
-            if (_next >= _frame_count)
+            if (_next >= _walk_frame_count)
             {
                 _next =
-                    1;
+                    0;
             }
 
 
             _actor.image_index =
                 clamp(
                     _next,
-                    1,
-                    _frame_count - 1
+                    0,
+                    _walk_frame_count - 1
                 );
         }
     }
@@ -1907,12 +2251,6 @@ function scr_party_apply_walk_animation(_actor, _moving)
 
     // =====================================================
     // QUIETO
-    // =====================================================
-    //
-    // NO avanzamos party_anim_accum.
-    //
-    // Silicio se queda literalmente congelado en su último
-    // frame de caminar durante el margen de taps.
     // =====================================================
 
     else
@@ -2336,6 +2674,424 @@ function scr_party_get_delayed_position(_follower_index)
 }
 
 
+
+// =========================================================
+// DISTANCIA FÍSICA SOBRE EL HISTORIAL
+// =========================================================
+//
+// Los delays normales de la party se basan en "snapshots".
+// En hielo eso puede reducir mucho la separación física
+// cuando Maya desacelera.
+//
+// Para terrenos especiales usamos distancia REAL recorrida
+// sobre el historial, no cantidad de snapshots.
+// =========================================================
+
+function scr_party_history_gap_for_delay(_follower_index)
+{
+    scr_party_init();
+
+
+    var _count =
+        array_length(
+            global.party_history
+        );
+
+
+    if (_count <= 1)
+        return 0;
+
+
+    var _base_delay =
+        global.party_follow_delay_current;
+
+
+    var _delay =
+        round(
+            (
+                _follower_index + 1
+            )
+            *
+            _base_delay
+        );
+
+
+    var _target_index =
+        clamp(
+            _count
+            -
+            1
+            -
+            _delay,
+            0,
+            _count - 1
+        );
+
+
+    var _distance =
+        0;
+
+
+    for (
+        var _i = _count - 1;
+        _i > _target_index;
+        _i--
+    )
+    {
+        var _a =
+            global.party_history[_i];
+
+        var _b =
+            global.party_history[_i - 1];
+
+
+        _distance +=
+            point_distance(
+                _a.x,
+                _a.y,
+                _b.x,
+                _b.y
+            );
+    }
+
+
+    return _distance;
+}
+
+
+// =========================================================
+// TARGET A X PÍXELES DE DISTANCIA SOBRE LA RUTA
+// =========================================================
+
+function scr_party_get_position_by_path_gap(_gap)
+{
+    scr_party_init();
+
+
+    var _count =
+        array_length(
+            global.party_history
+        );
+
+
+    if (_count <= 0)
+    {
+        return {
+            x: 0,
+            y: 0,
+            face: DOWN
+        };
+    }
+
+
+    _gap =
+        max(
+            0,
+            _gap
+        );
+
+
+    var _accum =
+        0;
+
+
+    // Punto más nuevo.
+    var _latest =
+        global.party_history[
+            _count - 1
+        ];
+
+
+    if (_gap <= 0)
+        return _latest;
+
+
+    // Recorrer la ruta hacia atrás.
+    for (
+        var _i = _count - 1;
+        _i > 0;
+        _i--
+    )
+    {
+        var _newer =
+            global.party_history[_i];
+
+        var _older =
+            global.party_history[_i - 1];
+
+
+        var _segment =
+            point_distance(
+                _newer.x,
+                _newer.y,
+                _older.x,
+                _older.y
+            );
+
+
+        if (_segment <= 0.0001)
+            continue;
+
+
+        if (
+            _accum
+            +
+            _segment
+            >=
+            _gap
+        )
+        {
+            var _inside =
+                _gap
+                -
+                _accum;
+
+
+            var _t =
+                clamp(
+                    _inside
+                    /
+                    _segment,
+                    0,
+                    1
+                );
+
+
+            return {
+                x:
+                    lerp(
+                        _newer.x,
+                        _older.x,
+                        _t
+                    ),
+
+                y:
+                    lerp(
+                        _newer.y,
+                        _older.y,
+                        _t
+                    ),
+
+                face:
+                    _older.face
+            };
+        }
+
+
+        _accum +=
+            _segment;
+    }
+
+
+    return global.party_history[0];
+}
+
+
+// =========================================================
+// DISTANCIA ACTUAL DE UN FOLLOWER SOBRE LA RUTA
+// =========================================================
+//
+// Busca el punto del historial más cercano a los pies del
+// follower y calcula cuánta ruta hay desde ahí hasta Maya.
+// =========================================================
+
+function scr_party_path_gap_to_actor(_actor)
+{
+    scr_party_init();
+
+
+    if (
+        _actor == noone
+        ||
+        !instance_exists(_actor)
+    )
+    {
+        return 0;
+    }
+
+
+    var _count =
+        array_length(
+            global.party_history
+        );
+
+
+    if (_count <= 1)
+        return 0;
+
+
+    var _feet_x =
+        scr_party_feet_x(
+            _actor
+        );
+
+    var _feet_y =
+        scr_party_feet_y(
+            _actor
+        );
+
+
+    var _nearest_index =
+        _count - 1;
+
+    var _nearest_distance =
+        1000000000;
+
+
+    for (
+        var _i = _count - 1;
+        _i >= 0;
+        _i--
+    )
+    {
+        var _point =
+            global.party_history[_i];
+
+
+        var _d =
+            point_distance(
+                _feet_x,
+                _feet_y,
+                _point.x,
+                _point.y
+            );
+
+
+        if (_d < _nearest_distance)
+        {
+            _nearest_distance =
+                _d;
+
+            _nearest_index =
+                _i;
+        }
+    }
+
+
+    var _gap =
+        0;
+
+
+    for (
+        var _i = _count - 1;
+        _i > _nearest_index;
+        _i--
+    )
+    {
+        var _a =
+            global.party_history[_i];
+
+        var _b =
+            global.party_history[_i - 1];
+
+
+        _gap +=
+            point_distance(
+                _a.x,
+                _a.y,
+                _b.x,
+                _b.y
+            );
+    }
+
+
+    return
+        _gap
+        +
+        _nearest_distance;
+}
+
+
+// =========================================================
+// ACERCAR UN VALOR SIN SALTOS
+// =========================================================
+
+function scr_party_approach_value(
+    _value,
+    _target,
+    _amount
+)
+{
+    if (_value < _target)
+    {
+        return min(
+            _value + _amount,
+            _target
+        );
+    }
+
+
+    if (_value > _target)
+    {
+        return max(
+            _value - _amount,
+            _target
+        );
+    }
+
+
+    return _target;
+}
+
+
+// =========================================================
+// ESTADO ESPECIAL DEL FOLLOWER
+// =========================================================
+
+function scr_party_special_state_init(_actor)
+{
+    if (
+        _actor == noone
+        ||
+        !instance_exists(_actor)
+    )
+    {
+        return;
+    }
+
+
+    if (!variable_instance_exists(_actor, "party_special_mode"))
+        _actor.party_special_mode = "none";
+
+    if (!variable_instance_exists(_actor, "party_special_gap"))
+        _actor.party_special_gap = 0;
+
+    if (!variable_instance_exists(_actor, "party_downslide_wait_timer"))
+        _actor.party_downslide_wait_timer = 0;
+
+    if (!variable_instance_exists(_actor, "party_downslide_has_entered"))
+        _actor.party_downslide_has_entered = false;
+
+    if (!variable_instance_exists(_actor, "party_downslide_exit_remaining"))
+        _actor.party_downslide_exit_remaining = 0;
+
+    // Distancia NUEVA recorrida por Maya DESPUÉS de que
+    // Silicio termina completamente el deslizamiento.
+    //
+    // No incluye ningún zig-zag hecho dentro del trigger.
+    if (!variable_instance_exists(_actor, "party_downslide_gap_accum"))
+        _actor.party_downslide_gap_accum = 0;
+
+    // Velocidad física actual de la reincorporación.
+    if (!variable_instance_exists(_actor, "party_downslide_rejoin_current_speed"))
+        _actor.party_downslide_rejoin_current_speed = 0;
+
+    // Borde inferior anterior de Silicio.
+    //
+    // Sirve para saber si realmente ENTRÓ desde arriba.
+    // Así caminar hacia arriba atravesando el trigger no
+    // activa accidentalmente el deslizamiento.
+    if (!variable_instance_exists(_actor, "party_downslide_prev_bottom"))
+        _actor.party_downslide_prev_bottom = _actor.bbox_bottom;
+
+    if (!variable_instance_exists(_actor, "party_ice_has_entered"))
+        _actor.party_ice_has_entered = false;
+
+    if (!variable_instance_exists(_actor, "party_special_post_timer"))
+        _actor.party_special_post_timer = 0;
+}
+
+
 function scr_party_cutscene_take_control(_actor)
 {
     if (
@@ -2473,7 +3229,34 @@ function scr_party_update()
     // SOLO CAMBIAR EL DELAY SI HUBO MOVIMIENTO REAL
     // =====================================================
 
-    if (_player_actually_moved)
+    var _player_on_forced_surface_for_delay =
+        (
+            scr_party_actor_overlaps(
+                _player_instance,
+                obj_hielo
+            )
+            ||
+            scr_party_actor_overlaps(
+                _player_instance,
+                obj_hielo_azul
+            )
+            ||
+            (
+                variable_instance_exists(
+                    _player_instance,
+                    "downslide_active"
+                )
+                &&
+                _player_instance.downslide_active
+            )
+        );
+
+
+    if (
+        _player_actually_moved
+        &&
+        !_player_on_forced_surface_for_delay
+    )
     {
         // Detectamos caminar/correr por lo que Maya hizo
         // realmente este frame, no por X/Shift ni Auto-correr.
@@ -2705,10 +3488,1102 @@ function scr_party_update()
         }
 
 
-        var _target =
+        // =================================================
+        // TARGET NORMAL + TERRENOS ESPECIALES
+        // =================================================
+        //
+        // El movimiento normal de party sigue usando el
+        // sistema habitual.
+        //
+        // Solo hielo / deslizamiento usan distancia física
+        // sobre la ruta para evitar cambios bruscos.
+        // =================================================
+
+        scr_party_special_state_init(
+            _actor
+        );
+
+
+        var _normal_target =
             scr_party_get_delayed_position(
                 _i
             );
+
+
+        var _normal_gap =
+            max(
+                scr_party_history_gap_for_delay(
+                    _i
+                ),
+                (
+                    _i + 1
+                )
+                *
+                global.party_follow_delay_walk
+                *
+                4
+            );
+
+
+        var _target =
+            _normal_target;
+
+
+        var _hold_follow =
+            false;
+
+
+        var _player_on_normal_ice =
+            scr_party_actor_overlaps(
+                _player_instance,
+                obj_hielo
+            );
+
+
+        var _player_on_blue_ice =
+            scr_party_actor_overlaps(
+                _player_instance,
+                obj_hielo_azul
+            );
+
+
+        var _player_on_ice =
+            (
+                _player_on_normal_ice
+                ||
+                _player_on_blue_ice
+            );
+
+
+        var _actor_on_ice =
+            (
+                scr_party_actor_overlaps(
+                    _actor,
+                    obj_hielo
+                )
+                ||
+                scr_party_actor_overlaps(
+                    _actor,
+                    obj_hielo_azul
+                )
+            );
+
+
+        var _player_on_downslide =
+            (
+                variable_instance_exists(
+                    _player_instance,
+                    "downslide_active"
+                )
+                &&
+                _player_instance.downslide_active
+            );
+
+
+        var _actor_on_downslide =
+            scr_party_actor_overlaps(
+                _actor,
+                obj_deslizamiento_abajo
+            );
+
+
+        // =================================================
+        // DESLIZAMIENTO HACIA ABAJO - SILICIO
+        // =================================================
+        //
+        // NUEVO COMPORTAMIENTO:
+        //
+        // - NO espera ningún tiempo artificial.
+        // - Sigue normalmente a Maya hasta entrar él mismo.
+        // - Solo se activa si Silicio entra desde ARRIBA.
+        // - Una vez activado, YA NO DEPENDE de dónde esté Maya.
+        // - Baja automáticamente hasta salir del objeto.
+        // - Después recorre downslide_exit_extra píxeles.
+        // - Finalmente vuelve a alcanzar a Maya.
+        //
+        // =================================================
+
+        var _mode =
+            _actor.party_special_mode;
+
+
+        var _mode_is_downslide =
+            (
+                _mode == "downslide_follow"
+                ||
+                _mode == "downslide_exit"
+                ||
+                _mode == "downslide_wait_gap"
+                ||
+                _mode == "downslide_rejoin"
+            );
+
+
+        // -------------------------------------------------
+        // OBTENER EL OBJETO DE DESLIZAMIENTO QUE TOCA SILICIO
+        // -------------------------------------------------
+
+        var _actor_downslide_zone =
+            collision_rectangle(
+                _actor.bbox_left,
+                _actor.bbox_top,
+                _actor.bbox_right,
+                _actor.bbox_bottom,
+                obj_deslizamiento_abajo,
+                false,
+                true
+            );
+
+
+        _actor_on_downslide =
+            (
+                _actor_downslide_zone
+                !=
+                noone
+            );
+
+
+        // -------------------------------------------------
+        // ACTIVAR ÚNICAMENTE AL ENTRAR DESDE ARRIBA
+        // -------------------------------------------------
+        //
+        // También exigimos que el borde inferior ACTUAL haya
+        // avanzado hacia abajo respecto al frame anterior.
+        //
+        // Por eso:
+        //
+        // caminar hacia ARRIBA por el trigger
+        //     -> NO activa el modo
+        //
+        // entrar desde ARRIBA bajando
+        //     -> SÍ activa el modo
+        //
+        // -------------------------------------------------
+
+        if (
+            !_mode_is_downslide
+            &&
+            _actor_on_downslide
+        )
+        {
+            var _actor_entered_from_top =
+                (
+                    _actor.bbox_bottom
+                    >
+                    _actor.party_downslide_prev_bottom
+                )
+                &&
+                (
+                    _actor.party_downslide_prev_bottom
+                    <=
+                    _actor_downslide_zone.bbox_top
+                    +
+                    4
+                );
+
+
+            if (_actor_entered_from_top)
+            {
+                _actor.party_special_mode =
+                    "downslide_follow";
+
+
+                _actor.party_downslide_has_entered =
+                    true;
+
+
+                _actor.party_special_post_timer =
+                    0;
+
+
+                // Guardar la separación solo para poder
+                // recuperarla después del deslizamiento.
+                _actor.party_special_gap =
+                    max(
+                        _normal_gap,
+                        scr_party_path_gap_to_actor(
+                            _actor
+                        )
+                    );
+            }
+        }
+
+
+        // -------------------------------------------------
+        // ARRASTRE AUTÓNOMO HACIA ABAJO
+        // -------------------------------------------------
+        //
+        // IMPORTANTE:
+        //
+        // La BAJADA no depende de Maya: Silicio seguirá
+        // avanzando hacia abajo mientras siga dentro de
+        // obj_deslizamiento_abajo.
+        //
+        // La X sí usa la ruta de party para copiar los
+        // movimientos laterales de Maya durante la bajada.
+        //
+        // Por tanto, aunque Maya:
+        //
+        //     - esté quieta;
+        //     - esté muy lejos;
+        //     - haya girado;
+        //     - ya haya salido hace tiempo;
+        //
+        // Silicio terminará de bajar obligatoriamente.
+        //
+        // -------------------------------------------------
+
+        if (
+            _actor.party_special_mode
+            ==
+            "downslide_follow"
+        )
+        {
+            // Recalcular zona porque el estado puede haber
+            // empezado este mismo frame.
+            _actor_downslide_zone =
+                collision_rectangle(
+                    _actor.bbox_left,
+                    _actor.bbox_top,
+                    _actor.bbox_right,
+                    _actor.bbox_bottom,
+                    obj_deslizamiento_abajo,
+                    false,
+                    true
+                );
+
+
+            _actor_on_downslide =
+                (
+                    _actor_downslide_zone
+                    !=
+                    noone
+                );
+
+
+            if (_actor_on_downslide)
+            {
+                // =================================================
+                // BAJADA AUTOMÁTICA
+                // =================================================
+                //
+                // Silicio siempre baja a la misma velocidad que
+                // Maya durante el deslizamiento.
+                // =================================================
+
+                var _slide_step =
+                    6;
+
+
+                // =================================================
+                // SEGUIR TAMBIÉN EL MOVIMIENTO LATERAL DE MAYA
+                // =================================================
+                //
+                // La Y sigue siendo autónoma: Silicio terminará
+                // de bajar aunque Maya ya esté lejos o quieta.
+                //
+                // Pero la X sí toma el recorrido de la party con
+                // la separación que Silicio llevaba al entrar.
+                //
+                // Así, si Maya hace:
+                //
+                //     ↓
+                //     ↓
+                //     ← ←
+                //     ↓
+                //
+                // Silicio repetirá también ese desplazamiento
+                // lateral cuando ese tramo de ruta le corresponda.
+                // =================================================
+
+                var _slide_route_target =
+                    scr_party_get_position_by_path_gap(
+                        _actor.party_special_gap
+                    );
+
+
+                var _current_slide_x =
+                    scr_party_feet_x(
+                        _actor
+                    );
+
+
+                var _desired_slide_x =
+                    _slide_route_target.x;
+
+
+                // Usar la misma velocidad lateral configurada
+                // para el deslizamiento de Maya.
+                var _slide_side_step =
+                    4;
+
+
+                if (
+                    variable_instance_exists(
+                        _player_instance,
+                        "downslide_side_speed"
+                    )
+                )
+                {
+                    _slide_side_step =
+                        max(
+                            1,
+                            _player_instance.downslide_side_speed
+                        );
+                }
+
+
+                var _slide_dx =
+                    _desired_slide_x
+                    -
+                    _current_slide_x;
+
+
+                var _next_slide_x =
+                    _current_slide_x;
+
+
+                if (_slide_dx != 0)
+                {
+                    _next_slide_x +=
+                        sign(
+                            _slide_dx
+                        )
+                        *
+                        min(
+                            abs(
+                                _slide_dx
+                            ),
+                            _slide_side_step
+                        );
+                }
+
+
+                _target = {
+                    x:
+                        _next_slide_x,
+
+                    y:
+                        scr_party_feet_y(
+                            _actor
+                        )
+                        +
+                        _slide_step,
+
+                    face:
+                        DOWN
+                };
+            }
+            else
+            {
+                // =========================================
+                // YA SALIÓ DEL OBJETO
+                // =========================================
+                //
+                // Ahora debe ser expulsado unos píxeles extra
+                // igual que Maya.
+                // =========================================
+
+                _actor.party_special_mode =
+                    "downslide_exit";
+
+
+                if (
+                    variable_instance_exists(
+                        _player_instance,
+                        "downslide_exit_extra"
+                    )
+                )
+                {
+                    _actor.party_downslide_exit_remaining =
+                        max(
+                            0,
+                            _player_instance.downslide_exit_extra
+                        );
+                }
+                else
+                {
+                    _actor.party_downslide_exit_remaining =
+                        4;
+                }
+            }
+        }
+
+
+        // -------------------------------------------------
+        // EXPULSIÓN EXTRA FUERA DEL OBJETO
+        // -------------------------------------------------
+
+        if (
+            _actor.party_special_mode
+            ==
+            "downslide_exit"
+        )
+        {
+            if (
+                _actor.party_downslide_exit_remaining
+                >
+                0
+            )
+            {
+                var _exit_step =
+                    min(
+                        6,
+                        _actor.party_downslide_exit_remaining
+                    );
+
+
+                _target = {
+                    x:
+                        scr_party_feet_x(
+                            _actor
+                        ),
+
+                    y:
+                        scr_party_feet_y(
+                            _actor
+                        )
+                        +
+                        _exit_step,
+
+                    face:
+                        DOWN
+                };
+
+
+                _actor.party_downslide_exit_remaining -=
+                    _exit_step;
+            }
+            else
+            {
+                // =========================================
+                // TERMINÓ COMPLETAMENTE EL DESLIZAMIENTO
+                // =========================================
+                //
+                // NO intentar alcanzar ni separarse de Maya.
+                //
+                // Silicio se queda exactamente donde terminó
+                // la expulsión.
+                //
+                // La separación normal se reconstruirá porque
+                // MAYA se alejará al volver a caminar.
+                // =========================================
+
+                _actor.party_special_mode =
+                    "downslide_wait_gap";
+
+
+                // Empezamos a contar DESDE AQUÍ.
+                // Todo lo recorrido durante el deslizamiento
+                // queda fuera de esta medición.
+                _actor.party_downslide_gap_accum =
+                    0;
+
+
+                _actor.party_downslide_rejoin_current_speed =
+                    0;
+
+
+                _actor.party_special_post_timer =
+                    0;
+
+
+                _actor.party_special_gap =
+                    0;
+            }
+        }
+
+
+        // -------------------------------------------------
+        // ESPERAR A QUE MAYA GENERE LA SEPARACIÓN NORMAL
+        // -------------------------------------------------
+        //
+        // COMPORTAMIENTO DESEADO:
+        //
+        // 1. Maya termina de deslizarse.
+        // 2. Silicio termina de deslizarse.
+        // 3. Ambos pueden quedar exactamente en el mismo punto.
+        // 4. Si Maya está quieta, Silicio TAMBIÉN queda quieto.
+        // 5. Cuando Maya camina, Silicio NO se mueve todavía.
+        // 6. La distancia sobre la ruta va creciendo.
+        // 7. Cuando alcanza _normal_gap, Silicio vuelve al
+        //    sistema normal de seguimiento.
+        //
+        // Silicio jamás intenta "crear" esa distancia por sí
+        // mismo.
+        // -------------------------------------------------
+
+        if (
+            _actor.party_special_mode
+            ==
+            "downslide_wait_gap"
+        )
+        {
+            // =================================================
+            // SILICIO SE QUEDA EXACTAMENTE QUIETO
+            // =================================================
+
+            var _actor_wait_x =
+                scr_party_feet_x(
+                    _actor
+                );
+
+
+            var _actor_wait_y =
+                scr_party_feet_y(
+                    _actor
+                );
+
+
+            _target = {
+                x:
+                    _actor_wait_x,
+
+                y:
+                    _actor_wait_y,
+
+                face:
+                    _actor.face
+            };
+
+
+            // =================================================
+            // CONTAR SOLO RECORRIDO NUEVO DE MAYA
+            // =================================================
+            //
+            // _player_move_distance es lo que Maya recorrió
+            // realmente ESTE frame.
+            //
+            // Como party_downslide_gap_accum se puso a 0 justo
+            // al terminar Silicio la expulsión, aquí NO entran:
+            //
+            //     - zig-zags hechos durante el deslizamiento;
+            //     - distancia histórica previa;
+            //     - correcciones laterales antiguas.
+            //
+            // Solo cuenta lo que Maya camina A PARTIR DE AHORA.
+            // =================================================
+
+            if (_player_actually_moved)
+            {
+                _actor.party_downslide_gap_accum +=
+                    max(
+                        0,
+                        _player_move_distance
+                    );
+            }
+
+
+            _actor.party_special_gap =
+                _actor.party_downslide_gap_accum;
+
+
+            // =================================================
+            // YA SE GENERÓ LA DISTANCIA NORMAL DE LA PARTY
+            // =================================================
+
+            if (
+                _actor.party_downslide_gap_accum
+                >=
+                _normal_gap
+            )
+            {
+                _actor.party_special_mode =
+                    "downslide_rejoin";
+
+
+                // IMPORTANTÍSIMO:
+                // impedir que el bloque rejoin mueva a Silicio
+                // en ESTE MISMO Step.
+                _actor.party_special_post_timer =
+                    1;
+
+
+                _actor.party_downslide_rejoin_current_speed =
+                    0;
+            }
+        }
+
+
+        // -------------------------------------------------
+        // REINCORPORACIÓN SUAVE A LA FORMACIÓN
+        // -------------------------------------------------
+        //
+        // Ya existe la distancia normal entre Maya y Silicio,
+        // pero Silicio puede estar lateralmente desplazado.
+        //
+        // Aquí NO teletransportamos.
+        //
+        // Calculamos el punto normal de formación y avanzamos
+        // hacia él con una velocidad física máxima.
+        //
+        // Como _target cambia poco a poco:
+        //
+        //     _moved = true
+        //
+        // y scr_party_apply_walk_animation() reproduce la
+        // animación normal de caminar/correr de Silicio.
+        // -------------------------------------------------
+
+        if (
+            _actor.party_special_mode
+            ==
+            "downslide_rejoin"
+        )
+        {
+            var _rejoin_x =
+                scr_party_feet_x(
+                    _actor
+                );
+
+
+            var _rejoin_y =
+                scr_party_feet_y(
+                    _actor
+                );
+
+
+            // =================================================
+            // PRIMER FRAME: NO MOVER NADA
+            // =================================================
+            //
+            // El cambio wait_gap -> rejoin ocurre antes dentro
+            // del mismo Step. Sin esta protección, Silicio podía
+            // desplazarse inmediatamente varios píxeles.
+            // =================================================
+
+            if (_actor.party_special_post_timer > 0)
+            {
+                _actor.party_special_post_timer--;
+
+
+                _target = {
+                    x:
+                        _rejoin_x,
+
+                    y:
+                        _rejoin_y,
+
+                    face:
+                        _actor.face
+                };
+            }
+            else
+            {
+                var _rejoin_target =
+                    _normal_target;
+
+
+                var _rejoin_dx =
+                    _rejoin_target.x
+                    -
+                    _rejoin_x;
+
+
+                var _rejoin_dy =
+                    _rejoin_target.y
+                    -
+                    _rejoin_y;
+
+
+                var _rejoin_distance =
+                    point_distance(
+                        _rejoin_x,
+                        _rejoin_y,
+                        _rejoin_target.x,
+                        _rejoin_target.y
+                    );
+
+
+                // =============================================
+                // ACELERACIÓN PROGRESIVA
+                // =============================================
+                //
+                // Primer movimiento ≈ 2.5 px.
+                // Después 3.0, 3.5, 4.0... hasta máximo 7.
+                //
+                // Nunca empieza con un salto de 8 px.
+                // =============================================
+
+                if (
+                    _actor.party_downslide_rejoin_current_speed
+                    <=
+                    0
+                )
+                {
+                    _actor.party_downslide_rejoin_current_speed =
+                        global.party_downslide_rejoin_start_speed;
+                }
+                else
+                {
+                    _actor.party_downslide_rejoin_current_speed =
+                        min(
+                            global.party_downslide_rejoin_speed,
+                            _actor.party_downslide_rejoin_current_speed
+                            +
+                            global.party_downslide_rejoin_accel
+                        );
+                }
+
+
+                var _rejoin_speed =
+                    max(
+                        0.1,
+                        _actor.party_downslide_rejoin_current_speed
+                    );
+
+
+                // =============================================
+                // DIRECCIÓN VISUAL PARA LA ANIMACIÓN
+                // =============================================
+
+                var _rejoin_face =
+                    _rejoin_target.face;
+
+
+                if (abs(_rejoin_dx) > abs(_rejoin_dy))
+                {
+                    if (_rejoin_dx > 0)
+                        _rejoin_face = RIGHT;
+                    else if (_rejoin_dx < 0)
+                        _rejoin_face = LEFT;
+                }
+                else
+                {
+                    if (_rejoin_dy > 0)
+                        _rejoin_face = DOWN;
+                    else if (_rejoin_dy < 0)
+                        _rejoin_face = UP;
+                }
+
+
+                // =============================================
+                // YA ESTÁ EXACTAMENTE EN FORMACIÓN
+                // =============================================
+
+                if (_rejoin_distance <= 0.25)
+                {
+                    // No hace falta ninguna corrección visible.
+                    _target = {
+                        x:
+                            _rejoin_x,
+
+                        y:
+                            _rejoin_y,
+
+                        face:
+                            _rejoin_face
+                    };
+
+
+                    _actor.party_special_mode =
+                        "none";
+
+
+                    _actor.party_downslide_has_entered =
+                        false;
+
+
+                    _actor.party_downslide_exit_remaining =
+                        0;
+
+
+                    _actor.party_downslide_gap_accum =
+                        0;
+
+
+                    _actor.party_downslide_rejoin_current_speed =
+                        0;
+
+
+                    _actor.party_special_post_timer =
+                        0;
+                }
+                else
+                {
+                    // =========================================
+                    // MOVER COMO MÁXIMO _rejoin_speed
+                    // =========================================
+                    //
+                    // Incluso el último ajuste pasa por aquí.
+                    // No existe un "snap al target" separado.
+                    // =========================================
+
+                    var _step_distance =
+                        min(
+                            _rejoin_speed,
+                            _rejoin_distance
+                        );
+
+
+                    var _rejoin_direction =
+                        point_direction(
+                            _rejoin_x,
+                            _rejoin_y,
+                            _rejoin_target.x,
+                            _rejoin_target.y
+                        );
+
+
+                    _target = {
+                        x:
+                            _rejoin_x
+                            +
+                            lengthdir_x(
+                                _step_distance,
+                                _rejoin_direction
+                            ),
+
+                        y:
+                            _rejoin_y
+                            +
+                            lengthdir_y(
+                                _step_distance,
+                                _rejoin_direction
+                            ),
+
+                        face:
+                            _rejoin_face
+                    };
+
+
+                    // Si este paso alcanza el target, NO hacemos
+                    // none todavía. Se comprobará en el siguiente
+                    // Step con distancia <= 0.25.
+                    //
+                    // Así tampoco existe un cambio de sistema en
+                    // el mismo frame que el último movimiento.
+                }
+            }
+        }
+
+
+        // -------------------------------------------------
+        // GUARDAR POSICIÓN PREVIA PARA EL PRÓXIMO FRAME
+        // -------------------------------------------------
+        //
+        // Esto se hace ANTES de colocar al actor en _target.
+        //
+        // En el siguiente Step tendremos:
+        //
+        //     previous bottom = posición antes del movimiento
+        //     current bottom  = posición después del movimiento
+        //
+        // suficiente para saber si entró bajando.
+        // -------------------------------------------------
+
+        _actor.party_downslide_prev_bottom =
+            _actor.bbox_bottom;
+
+
+        // =================================================
+        // HIELO NORMAL / AZUL
+        // =================================================
+        //
+        // Al entrar al hielo capturamos la distancia FÍSICA
+        // actual de Silicio sobre la ruta y la conservamos.
+        //
+        // Esto arregla:
+        //
+        // - hielo normal: que se acerque demasiado cuando
+        //   Maya pierde velocidad;
+        //
+        // - hielo azul: que al entrar corriendo se reajuste
+        //   de golpe a la distancia de caminar.
+        // =================================================
+
+        _mode =
+            _actor.party_special_mode;
+
+
+        _mode_is_downslide =
+            (
+                _mode == "downslide_follow"
+                ||
+                _mode == "downslide_exit"
+                ||
+                _mode == "downslide_wait_gap"
+                ||
+                _mode == "downslide_rejoin"
+            );
+
+
+        if (
+            !_mode_is_downslide
+            &&
+            _player_on_ice
+            &&
+            _mode != "ice_hold"
+        )
+        {
+            _actor.party_special_mode =
+                "ice_hold";
+
+
+            _actor.party_special_gap =
+                max(
+                    _normal_gap,
+                    scr_party_path_gap_to_actor(
+                        _actor
+                    )
+                );
+
+
+            _actor.party_ice_has_entered =
+                _actor_on_ice;
+
+
+            _actor.party_special_post_timer =
+                0;
+        }
+
+
+        // -------------------------------------------------
+        // CONSERVAR DISTANCIA EN HIELO
+        // -------------------------------------------------
+
+        if (
+            _actor.party_special_mode
+            ==
+            "ice_hold"
+        )
+        {
+            if (_actor_on_ice)
+            {
+                _actor.party_ice_has_entered =
+                    true;
+            }
+
+
+            _target =
+                scr_party_get_position_by_path_gap(
+                    _actor.party_special_gap
+                );
+
+
+            if (_player_on_ice)
+            {
+                _actor.party_special_post_timer =
+                    0;
+            }
+            else
+            {
+                _actor.party_special_post_timer++;
+            }
+
+
+            // No recuperar la distancia normal hasta que
+            // Silicio también haya pasado y salido del hielo.
+            if (
+                !_player_on_ice
+                &&
+                _actor.party_ice_has_entered
+                &&
+                !_actor_on_ice
+            )
+            {
+                _actor.party_special_mode =
+                    "ice_recover";
+            }
+
+
+            if (
+                !_player_on_ice
+                &&
+                _actor.party_special_post_timer
+                >=
+                global.party_special_failsafe_frames
+            )
+            {
+                _actor.party_special_mode =
+                    "ice_recover";
+            }
+        }
+
+
+        // -------------------------------------------------
+        // VOLVER SUAVEMENTE A LA DISTANCIA NORMAL
+        // -------------------------------------------------
+
+        if (
+            _actor.party_special_mode
+            ==
+            "ice_recover"
+        )
+        {
+            // Si Maya entra a otro hielo antes de terminar
+            // la recuperación, conservar la distancia actual.
+            if (_player_on_ice)
+            {
+                _actor.party_special_mode =
+                    "ice_hold";
+
+
+                _actor.party_special_gap =
+                    max(
+                        1,
+                        scr_party_path_gap_to_actor(
+                            _actor
+                        )
+                    );
+
+
+                _actor.party_ice_has_entered =
+                    _actor_on_ice;
+
+
+                _actor.party_special_post_timer =
+                    0;
+
+
+                _target =
+                    scr_party_get_position_by_path_gap(
+                        _actor.party_special_gap
+                    );
+            }
+            else
+            {
+                _actor.party_special_gap =
+                    scr_party_approach_value(
+                        _actor.party_special_gap,
+                        _normal_gap,
+                        global.party_ice_recover_rate
+                    );
+
+
+                _target =
+                    scr_party_get_position_by_path_gap(
+                        _actor.party_special_gap
+                    );
+
+
+                if (
+                    abs(
+                        _actor.party_special_gap
+                        -
+                        _normal_gap
+                    )
+                    <=
+                    0.5
+                )
+                {
+                    _actor.party_special_mode =
+                        "none";
+
+
+                    _actor.party_ice_has_entered =
+                        false;
+
+
+                    _actor.party_special_post_timer =
+                        0;
+
+
+                    _target =
+                        _normal_target;
+                }
+            }
+        }
 
 
         // =================================================
@@ -2734,21 +4609,24 @@ function scr_party_update()
         // Por eso el sprite se cambia ANTES de colocar pies.
         // =================================================
 
-        scr_party_apply_direction(
-            _actor,
-            _target.face
-        );
+        if (!_hold_follow)
+        {
+            scr_party_apply_direction(
+                _actor,
+                _target.face
+            );
 
 
-        // =================================================
-        // DESPUÉS ALINEAR PIES
-        // =================================================
+            // =============================================
+            // DESPUÉS ALINEAR PIES
+            // =============================================
 
-        scr_party_place_feet(
-            _actor,
-            _target.x,
-            _target.y
-        );
+            scr_party_place_feet(
+                _actor,
+                _target.x,
+                _target.y
+            );
+        }
 
 
         var _new_feet_x =
@@ -2866,5 +4744,3 @@ function scr_party_update()
         );
     }
 }
-
-

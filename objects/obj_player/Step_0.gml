@@ -70,28 +70,46 @@ if (!instance_exists(obj_pauser) && !instance_exists(obj_textbox) && !_menu_abie
     if (_key_up && _key_down)    { _key_up = false; _key_down = false; }
 
     // =====================================================
-    // HIELO / HIELO AZUL
+    // TERRENOS ESPECIALES
     // =====================================================
     //
-    // Si scr_player_ice_update() devuelve true,
-    // el terreno de hielo se encargó por completo del
-    // movimiento de este frame.
+    // Prioridad:
     //
-    // Si devuelve false, usamos el movimiento normal
-    // original del juego.
+    //     1. deslizamiento hacia abajo
+    //     2. hielo / hielo azul
+    //     3. movimiento normal
     // =====================================================
 
-    var _ice_handled =
-        scr_player_ice_update(
-            _vel,
+    var _downslide_handled =
+        scr_player_downslide_update(
+            6,
             _key_right,
-            _key_left,
-            _key_up,
-            _key_down
+            _key_left
         );
 
 
-    if (!_ice_handled)
+    var _ice_handled =
+        false;
+
+
+    if (!_downslide_handled)
+    {
+        _ice_handled =
+            scr_player_ice_update(
+                _vel,
+                _key_right,
+                _key_left,
+                _key_up,
+                _key_down
+            );
+    }
+
+
+    if (
+        !_downslide_handled
+        &&
+        !_ice_handled
+    )
     {
             // =====================================================
             // MOVIMIENTO CON COLISIÓN PRECISA POR PÍXEL
@@ -524,6 +542,8 @@ if (!instance_exists(obj_pauser) && !instance_exists(obj_textbox) && !_menu_abie
         movimiento
         &&
         !ice_anim_lock
+        &&
+        !downslide_active
     ) {
         paso_timer -= 1;
 
@@ -737,13 +757,78 @@ if (
 )
 {
     // =====================================================
+    // DESLIZAMIENTO HACIA ABAJO
+    // =====================================================
+    //
+    // Quinto fotograma exclusivo:
+    //
+    //     pendejo_abajo frame 4
+    //
+    // Moverse a los lados NO cambia sprite ni frame.
+    // =====================================================
+
+    if (downslide_active)
+    {
+        sprite_index =
+            pendejo_abajo;
+
+        direccion =
+            "abajo";
+
+        face =
+            DOWN;
+
+        facing_direction =
+            2;
+
+        image_speed =
+            0;
+
+
+        var _slide_frames =
+            sprite_get_number(
+                pendejo_abajo
+            );
+
+
+        if (_slide_frames >= 5)
+        {
+            image_index =
+                4;
+        }
+        else
+        {
+            // Fallback de seguridad mientras se añade el frame.
+            image_index =
+                max(
+                    0,
+                    _slide_frames - 1
+                );
+        }
+
+
+        ice_normal_tap_timer =
+            0;
+
+        walk_anim_hold =
+            0;
+
+        walk_anim_was_moving =
+            false;
+
+        walk_down_anim_accum =
+            0;
+    }
+
+
+    // =====================================================
     // HIELO AZUL
     // =====================================================
     //
     // Siempre idle mientras se desliza.
     // =====================================================
 
-    if (ice_on_blue)
+    else if (ice_on_blue)
     {
         image_speed =
             0;
@@ -796,6 +881,19 @@ if (
                 sprite_get_number(
                     sprite_index
                 );
+
+
+            // pendejo_abajo frame 4 es EXCLUSIVO del
+            // deslizamiento hacia abajo.
+            if (
+                sprite_index == pendejo_abajo
+                &&
+                _ice_frames >= 5
+            )
+            {
+                _ice_frames =
+                    4;
+            }
 
 
             if (_ice_frames > 1)
@@ -875,38 +973,190 @@ if (
                 );
 
 
-            if (_frames > 1)
+            // El quinto frame de pendejo_abajo NO pertenece
+            // a la caminata normal.
+            if (
+                sprite_index == pendejo_abajo
+                &&
+                _frames >= 5
+            )
             {
-                var _next_frame =
-                    floor(
-                        image_index
-                    )
+                _frames =
+                    4;
+            }
+
+
+            // =================================================
+            // ARRANQUE SIN SALTARSE FRAMES
+            // =================================================
+            //
+            // El arreglo anterior hacía:
+            //
+            //     frame actual + 1
+            //
+            // cada vez que "movimiento" volvía a true.
+            //
+            // Si durante caminar había un frame muy corto en
+            // que movimiento se cortaba, la siguiente entrada
+            // avanzaba OTRO frame manualmente y parecía saltar
+            // fotogramas.
+            //
+            // Ahora solamente salimos del idle (frame 0).
+            // Si ya estábamos congelados en 1/2/3, continuamos
+            // desde ESE MISMO frame.
+            // =================================================
+
+            // Para pendejo_abajo con frame 4 reservado NO
+            // forzamos el frame 1 aquí.
+            //
+            // Su animador manual de abajo recorrerá:
+            //
+            //     0 -> 1 -> 2 -> 3 -> 0
+            //
+            // sin saltos.
+            if (
+                _frames > 1
+                &&
+                floor(image_index) <= 0
+                &&
+                !(
+                    sprite_index == pendejo_abajo
+                    &&
+                    sprite_get_number(pendejo_abajo) >= 5
+                )
+            )
+            {
+                image_index =
+                    1;
+            }
+        }
+
+
+        // =================================================
+        // REPRODUCCIÓN NORMAL
+        // =================================================
+        //
+        // En pendejo_abajo hay 5 frames, pero el frame 4 es
+        // exclusivo del deslizamiento. Por eso esa dirección
+        // se anima manualmente solamente entre 1..3.
+        //
+        // Las demás direcciones conservan su reproducción
+        // normal exactamente como antes.
+        // =================================================
+
+        if (
+            sprite_index == pendejo_abajo
+            &&
+            sprite_get_number(pendejo_abajo) >= 5
+        )
+        {
+            image_speed =
+                0;
+
+
+            var _asset_speed =
+                sprite_get_speed(
+                    pendejo_abajo
+                );
+
+
+            var _asset_speed_type =
+                sprite_get_speed_type(
+                    pendejo_abajo
+                );
+
+
+            var _frames_per_step =
+                _asset_speed;
+
+
+            if (
+                _asset_speed_type
+                ==
+                spritespeed_framespersecond
+            )
+            {
+                _frames_per_step =
+                    _asset_speed
+                    /
+                    max(
+                        1,
+                        game_get_speed(
+                            gamespeed_fps
+                        )
+                    );
+            }
+
+
+            // Si venimos del frame exclusivo de deslizamiento,
+            // regresar al inicio de la caminata.
+            if (
+                floor(image_index) < 0
+                ||
+                floor(image_index) >= 4
+            )
+            {
+                image_index =
+                    0;
+
+                walk_down_anim_accum =
+                    0;
+            }
+
+
+            walk_down_anim_accum +=
+                max(
+                    0,
+                    _frames_per_step
+                );
+
+
+            // =================================================
+            // SECUENCIA ESTRICTA 0 -> 1 -> 2 -> 3 -> 0
+            // =================================================
+            //
+            // IMPORTANTE:
+            //
+            // Solo permitimos UN avance de frame por Step.
+            // Incluso si por alguna razón el acumulador supera
+            // 2, jamás saltará directamente 1 -> 3.
+            // =================================================
+
+            if (walk_down_anim_accum >= 1)
+            {
+                walk_down_anim_accum -=
+                    1;
+
+
+                var _down_next =
+                    floor(image_index)
                     +
                     1;
 
 
-                // Evitar que un nuevo tap caiga directamente
-                // al frame 0 (idle).
-                if (_next_frame >= _frames)
+                if (_down_next >= 4)
                 {
-                    _next_frame =
-                        1;
+                    _down_next =
+                        0;
                 }
 
 
                 image_index =
                     clamp(
-                        _next_frame,
-                        1,
-                        _frames - 1
+                        _down_next,
+                        0,
+                        3
                     );
             }
         }
+        else
+        {
+            walk_down_anim_accum =
+                0;
 
-
-        // Volver a permitir la animación normal del sprite.
-        image_speed =
-            1;
+            image_speed =
+                1;
+        }
 
 
         walk_anim_hold =
@@ -954,6 +1204,8 @@ walk_anim_was_moving =
         movimiento
         &&
         !ice_anim_lock
+        &&
+        !downslide_active
     );
 
 

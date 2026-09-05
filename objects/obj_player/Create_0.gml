@@ -207,3 +207,57 @@ ice_normal_tap_duration =
 // Frame no-idle que se irá alternando con cada pulsación.
 ice_normal_tap_frame =
     0;
+
+
+
+// =========================================================
+// DESLIZAMIENTO HACIA ABAJO
+// =========================================================
+//
+// pendejo_abajo:
+//
+//     frames 0..3 = animación normal
+//     frame 4     = deslizamiento exclusivo
+// =========================================================
+
+downslide_active =
+    false;
+
+
+downslide_exiting =
+    false;
+
+
+// Velocidad automática hacia abajo.
+downslide_speed =
+    4;
+
+
+// Velocidad permitida a izquierda/derecha.
+downslide_side_speed =
+    4;
+
+
+// Cuántos píxeles avanza después de dejar de tocar el objeto.
+downslide_exit_extra =
+    4;
+
+
+downslide_exit_remaining =
+    0;
+
+
+// Margen para reconocer que entró desde arriba.
+downslide_entry_tolerance =
+    6;
+
+
+// Se usa para comprobar de qué lado entramos.
+downslide_prev_bottom =
+    bbox_bottom;
+
+
+// Acumulador manual únicamente para que el quinto frame de
+// pendejo_abajo jamás entre en la caminata normal.
+walk_down_anim_accum =
+    0;

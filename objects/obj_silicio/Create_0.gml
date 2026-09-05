@@ -11,7 +11,7 @@ character_name =
 
 
 // =========================================================
-// SPRITES - TODOS DE 4 FRAMES
+// SPRITES - CAMINATA 0..3; ABAJO TIENE FRAME 4 ESPECIAL
 // =========================================================
 
 party_sprite_down =
@@ -120,3 +120,24 @@ party_hidden_by_system =
 
 text_id =
     "silicio";
+
+
+
+// =========================================================
+// TERRENOS ESPECIALES - PARTY
+// =========================================================
+//
+// spr_silicio_abajo:
+//
+//     frames 0..3 = caminar normal
+//     frame 4     = deslizamiento hacia abajo EXCLUSIVO
+// =========================================================
+
+party_ice_tap_timer =
+    0;
+
+party_ice_tap_duration =
+    4;
+
+party_ice_tap_frame =
+    0;

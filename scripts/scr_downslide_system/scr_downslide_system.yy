@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"scr_downslide_system",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"scr_downslide_system",
+  "parent":{
+    "name":"Mecánicas",
+    "path":"folders/Mecánicas.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
