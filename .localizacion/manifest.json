@@ -1,5 +1,5 @@
 {
-    "total":  236,
+    "total":  246,
     "fuentes":  {
                     "Jugador X: ":  [
                                         "objects\\game\\Draw_64.gml:36"
@@ -18,8 +18,8 @@
                                  ],
                     "Ninguna":  [
                                     "objects\\game\\Draw_64.gml:128",
-                                    "objects\\obj_menu_manager\\Draw_64.gml:99",
-                                    "objects\\obj_menu_manager\\Draw_64.gml:106"
+                                    "objects\\obj_menu_manager\\Draw_64.gml:284",
+                                    "objects\\obj_menu_manager\\Draw_64.gml:294"
                                 ],
                     "Musica: ":  [
                                      "objects\\game\\Draw_64.gml:161"
@@ -49,63 +49,66 @@
                                                                                    "objects\\game\\Draw_64.gml:1070"
                                                                                ],
                     "* {enemy} está aturdido y no puede atacar!":  [
-                                                                       "objects\\obj_batalla_controller\\Step_0.gml:152"
+                                                                       "objects\\obj_batalla_controller\\Step_0.gml:200"
                                                                    ],
                     "* {enemy} ataca y te causa {damage} de daño!":  [
-                                                                         "objects\\obj_batalla_controller\\Step_0.gml:172"
+                                                                         "objects\\obj_batalla_controller\\Step_0.gml:220"
                                                                      ],
-                    "* ¡Has ganado la batalla! Conseguiste {xp} de XP y {so} de SO":  [
-                                                                                          "objects\\obj_batalla_ui\\Create_0.gml:185"
-                                                                                      ],
-                    "¡Un combate comienza!":  [
-                                                  "objects\\obj_batalla_ui\\Create_0.gml:232"
+                    "* Fallaste el ataque.":  [
+                                                  "objects\\obj_batalla_ui\\Create_0.gml:494"
                                               ],
-                    "* Elige a quien usar el toy!":  [
-                                                         "objects\\obj_batalla_ui\\Draw_64.gml:213"
-                                                     ],
-                    "* Elige a quien atacar!":  [
-                                                    "objects\\obj_batalla_ui\\Draw_64.gml:213"
-                                                ],
-                    "¡Elige el enemigo!":  [
-                                               "objects\\obj_batalla_ui\\Draw_64.gml:218"
-                                           ],
-                    "* Atacar":  [
-                                     "objects\\obj_batalla_ui\\Draw_64.gml:230",
-                                     "objects\\obj_batalla_ui\\Draw_64.gml:250"
-                                 ],
-                    "* Info":  [
-                                   "objects\\obj_batalla_ui\\Draw_64.gml:230"
-                               ],
-                    "Maya":  [
-                                 "objects\\obj_batalla_ui\\Draw_64.gml:603"
-                             ],
-                    "HP":  [
-                               "objects\\obj_batalla_ui\\Draw_64.gml:618"
-                           ],
-                    "¡Subiste de nivel!":  [
-                                               "objects\\obj_batalla_ui\\Step_0.gml:143"
-                                           ],
-                    "* Consumiste {item}! Te curaste {hp} de vida!":  [
-                                                                          "objects\\obj_batalla_ui\\Step_0.gml:327"
-                                                                      ],
-                    "* Consumiste {item}, pero ya tienes la vida llena!":  [
-                                                                               "objects\\obj_batalla_ui\\Step_0.gml:329"
-                                                                           ],
-                    "* Consumiste {item}!":  [
-                                                 "objects\\obj_batalla_ui\\Step_0.gml:331"
-                                             ],
-                    "* Intentaste huir, ¡pero no pudiste escapar!":  [
-                                                                         "objects\\obj_batalla_ui\\Step_0.gml:519"
-                                                                     ],
-                    "* Usaste {toy} en {enemy}!":  [
-                                                       "objects\\obj_batalla_ui\\Step_0.gml:541"
-                                                   ],
                     "* Venciste a {enemy}!":  [
-                                                  "objects\\obj_batalla_ui\\Step_0.gml:622"
+                                                  "objects\\obj_batalla_ui\\Create_0.gml:635"
                                               ],
                     "* Hiciste {damage} de daño a {enemy}!":  [
-                                                                  "objects\\obj_batalla_ui\\Step_0.gml:680"
+                                                                  "objects\\obj_batalla_ui\\Create_0.gml:713"
                                                               ],
+                    "* ¡Has ganado la batalla! Conseguiste {xp} de XP y {so} de SO":  [
+                                                                                          "objects\\obj_batalla_ui\\Create_0.gml:896"
+                                                                                      ],
+                    "¡Un combate comienza!":  [
+                                                  "objects\\obj_batalla_ui\\Create_0.gml:943"
+                                              ],
+                    "* Elige a quien usar el toy!":  [
+                                                         "objects\\obj_batalla_ui\\Draw_64.gml:898"
+                                                     ],
+                    "* Elige a quien atacar!":  [
+                                                    "objects\\obj_batalla_ui\\Draw_64.gml:898"
+                                                ],
+                    "¡Elige el enemigo!":  [
+                                               "objects\\obj_batalla_ui\\Draw_64.gml:903"
+                                           ],
+                    "* Atacar":  [
+                                     "objects\\obj_batalla_ui\\Draw_64.gml:915",
+                                     "objects\\obj_batalla_ui\\Draw_64.gml:935"
+                                 ],
+                    "* Info":  [
+                                   "objects\\obj_batalla_ui\\Draw_64.gml:915"
+                               ],
+                    "Noelle":  [
+                                   "objects\\obj_batalla_ui\\Draw_64.gml:1288"
+                               ],
+                    "HP":  [
+                               "objects\\obj_batalla_ui\\Draw_64.gml:1303"
+                           ],
+                    "¡Subiste de nivel!":  [
+                                               "objects\\obj_batalla_ui\\Step_0.gml:447"
+                                           ],
+                    "* Consumiste {item}! Te curaste {hp} de vida!":  [
+                                                                          "objects\\obj_batalla_ui\\Step_0.gml:631"
+                                                                      ],
+                    "* Consumiste {item}, pero ya tienes la vida llena!":  [
+                                                                               "objects\\obj_batalla_ui\\Step_0.gml:633"
+                                                                           ],
+                    "* Consumiste {item}!":  [
+                                                 "objects\\obj_batalla_ui\\Step_0.gml:635"
+                                             ],
+                    "* Intentaste huir, ¡pero no pudiste escapar!":  [
+                                                                         "objects\\obj_batalla_ui\\Step_0.gml:823"
+                                                                     ],
+                    "* Usaste {toy} en {enemy}!":  [
+                                                       "objects\\obj_batalla_ui\\Step_0.gml:845"
+                                                   ],
                     "Cerrando...":  [
                                         "objects\\obj_game_cerrar\\Step_0.gml:21"
                                     ],
@@ -140,144 +143,152 @@
                                                                          "objects\\obj_game_over_texto\\Create_0.gml:184"
                                                                      ],
                     "INV":  [
-                                "objects\\obj_menu_manager\\Create_0.gml:1"
+                                "objects\\obj_menu_manager\\Create_0.gml:2",
+                                "objects\\obj_menu_manager\\Draw_64.gml:150"
                             ],
                     "TOYS":  [
-                                 "objects\\obj_menu_manager\\Create_0.gml:1"
+                                 "objects\\obj_menu_manager\\Create_0.gml:2"
                              ],
-                    "EQUIP":  [
-                                  "objects\\obj_menu_manager\\Create_0.gml:1",
-                                  "objects\\obj_menu_manager\\Create_0.gml:217"
-                              ],
                     "STAD":  [
-                                 "objects\\obj_menu_manager\\Create_0.gml:1"
+                                 "objects\\obj_menu_manager\\Create_0.gml:2"
                              ],
                     "CONFIG":  [
-                                   "objects\\obj_menu_manager\\Create_0.gml:1"
+                                   "objects\\obj_menu_manager\\Create_0.gml:2"
                                ],
                     "CERRAR":  [
-                                   "objects\\obj_menu_manager\\Create_0.gml:1"
+                                   "objects\\obj_menu_manager\\Create_0.gml:2"
                                ],
                     "Usar":  [
-                                 "objects\\obj_menu_manager\\Create_0.gml:210",
-                                 "objects\\obj_menu_manager\\Draw_64.gml:405"
+                                 "objects\\obj_menu_manager\\Create_0.gml:253",
+                                 "objects\\obj_menu_manager\\Draw_64.gml:676"
                              ],
                     "Tirar":  [
-                                  "objects\\obj_menu_manager\\Create_0.gml:210",
-                                  "objects\\obj_menu_manager\\Create_0.gml:217",
-                                  "objects\\obj_menu_manager\\Draw_64.gml:405"
+                                  "objects\\obj_menu_manager\\Create_0.gml:253",
+                                  "objects\\obj_menu_manager\\Create_0.gml:260",
+                                  "objects\\obj_menu_manager\\Draw_64.gml:676"
                               ],
                     "Info":  [
-                                 "objects\\obj_menu_manager\\Create_0.gml:210",
-                                 "objects\\obj_menu_manager\\Create_0.gml:217",
-                                 "objects\\obj_menu_manager\\Draw_64.gml:405"
+                                 "objects\\obj_menu_manager\\Create_0.gml:253",
+                                 "objects\\obj_menu_manager\\Create_0.gml:260",
+                                 "objects\\obj_menu_manager\\Draw_64.gml:676"
                              ],
+                    "Equip":  [
+                                  "objects\\obj_menu_manager\\Create_0.gml:260",
+                                  "objects\\obj_menu_manager\\Draw_64.gml:151"
+                              ],
+                    "CLAVE":  [
+                                  "objects\\obj_menu_manager\\Draw_64.gml:152"
+                              ],
                     "Estas seguro?":  [
-                                          "objects\\obj_menu_manager\\Draw_64.gml:43",
-                                          "objects\\obj_menu_manager\\Draw_64.gml:294",
-                                          "objects\\obj_menu_manager\\Draw_64.gml:425",
-                                          "objects\\obj_menu_manager\\Draw_64.gml:626"
+                                          "objects\\obj_menu_manager\\Draw_64.gml:222",
+                                          "objects\\obj_menu_manager\\Draw_64.gml:556",
+                                          "objects\\obj_menu_manager\\Draw_64.gml:696",
+                                          "objects\\obj_menu_manager\\Draw_64.gml:963"
                                       ],
                     "Si":  [
-                               "objects\\obj_menu_manager\\Draw_64.gml:45",
-                               "objects\\obj_menu_manager\\Draw_64.gml:296",
-                               "objects\\obj_menu_manager\\Draw_64.gml:427",
-                               "objects\\obj_menu_manager\\Draw_64.gml:628",
-                               "objects\\obj_menu_manager\\Draw_64.gml:683",
-                               "objects\\obj_menu_manager\\Draw_64.gml:684",
+                               "objects\\obj_menu_manager\\Draw_64.gml:224",
+                               "objects\\obj_menu_manager\\Draw_64.gml:558",
+                               "objects\\obj_menu_manager\\Draw_64.gml:698",
+                               "objects\\obj_menu_manager\\Draw_64.gml:965",
+                               "objects\\obj_menu_manager\\Draw_64.gml:1423",
+                               "objects\\obj_menu_manager\\Draw_64.gml:1424",
                                "scripts\\scr_game_text\\scr_game_text.gml:78"
                            ],
                     "No":  [
-                               "objects\\obj_menu_manager\\Draw_64.gml:45",
-                               "objects\\obj_menu_manager\\Draw_64.gml:296",
-                               "objects\\obj_menu_manager\\Draw_64.gml:427",
-                               "objects\\obj_menu_manager\\Draw_64.gml:628",
-                               "objects\\obj_menu_manager\\Draw_64.gml:683",
-                               "objects\\obj_menu_manager\\Draw_64.gml:684",
+                               "objects\\obj_menu_manager\\Draw_64.gml:224",
+                               "objects\\obj_menu_manager\\Draw_64.gml:558",
+                               "objects\\obj_menu_manager\\Draw_64.gml:698",
+                               "objects\\obj_menu_manager\\Draw_64.gml:965",
+                               "objects\\obj_menu_manager\\Draw_64.gml:1423",
+                               "objects\\obj_menu_manager\\Draw_64.gml:1424",
                                "scripts\\scr_game_text\\scr_game_text.gml:79"
                            ],
                     "LV ":  [
-                                "objects\\obj_menu_manager\\Draw_64.gml:75"
+                                "objects\\obj_menu_manager\\Draw_64.gml:254"
                             ],
                     "HP ":  [
-                                "objects\\obj_menu_manager\\Draw_64.gml:76"
+                                "objects\\obj_menu_manager\\Draw_64.gml:255"
                             ],
                     "AT  ":  [
-                                 "objects\\obj_menu_manager\\Draw_64.gml:86"
+                                 "objects\\obj_menu_manager\\Draw_64.gml:268"
                              ],
                     "EXP: ":  [
-                                  "objects\\obj_menu_manager\\Draw_64.gml:87"
+                                  "objects\\obj_menu_manager\\Draw_64.gml:269"
                               ],
                     "DF  ":  [
-                                 "objects\\obj_menu_manager\\Draw_64.gml:96"
+                                 "objects\\obj_menu_manager\\Draw_64.gml:281"
                              ],
                     "LVL SUB: ":  [
-                                      "objects\\obj_menu_manager\\Draw_64.gml:97"
+                                      "objects\\obj_menu_manager\\Draw_64.gml:282"
                                   ],
                     "Arma: ":  [
-                                   "objects\\obj_menu_manager\\Draw_64.gml:104"
+                                   "objects\\obj_menu_manager\\Draw_64.gml:292"
                                ],
                     "Armadura: ":  [
-                                       "objects\\obj_menu_manager\\Draw_64.gml:111"
+                                       "objects\\obj_menu_manager\\Draw_64.gml:302"
                                    ],
                     "Z: Selecc | X: Volver":  [
-                                                  "objects\\obj_menu_manager\\Draw_64.gml:224",
-                                                  "objects\\obj_menu_manager\\Draw_64.gml:412",
-                                                  "objects\\obj_menu_manager\\Draw_64.gml:511"
+                                                  "objects\\obj_menu_manager\\Draw_64.gml:536",
+                                                  "objects\\obj_menu_manager\\Draw_64.gml:683",
+                                                  "objects\\obj_menu_manager\\Draw_64.gml:945"
                                               ],
                     "Espacio vacio.":  [
-                                           "objects\\obj_menu_manager\\Draw_64.gml:317",
-                                           "objects\\obj_menu_manager\\Draw_64.gml:442",
-                                           "objects\\obj_menu_manager\\Draw_64.gml:648"
+                                           "objects\\obj_menu_manager\\Draw_64.gml:582",
+                                           "objects\\obj_menu_manager\\Draw_64.gml:713",
+                                           "objects\\obj_menu_manager\\Draw_64.gml:988",
+                                           "objects\\obj_menu_manager\\Draw_64.gml:1383"
                                        ],
                     "Sin bonificacion":  [
-                                             "objects\\obj_menu_manager\\Draw_64.gml:606"
+                                             "objects\\obj_menu_manager\\Draw_64.gml:858"
                                          ],
+                    "Uso: ":  [
+                                  "objects\\obj_menu_manager\\Draw_64.gml:1361"
+                              ],
                     "General":  [
-                                    "objects\\obj_menu_manager\\Draw_64.gml:670"
+                                    "objects\\obj_menu_manager\\Draw_64.gml:1410"
                                 ],
                     "Controles":  [
-                                      "objects\\obj_menu_manager\\Draw_64.gml:675"
+                                      "objects\\obj_menu_manager\\Draw_64.gml:1415"
                                   ],
                     "Volumen General":  [
-                                            "objects\\obj_menu_manager\\Draw_64.gml:682"
+                                            "objects\\obj_menu_manager\\Draw_64.gml:1422"
                                         ],
                     "Pantalla Comp":  [
-                                          "objects\\obj_menu_manager\\Draw_64.gml:683"
+                                          "objects\\obj_menu_manager\\Draw_64.gml:1423"
                                       ],
                     "Auto-correr":  [
-                                        "objects\\obj_menu_manager\\Draw_64.gml:684"
+                                        "objects\\obj_menu_manager\\Draw_64.gml:1424"
                                     ],
                     "Volver":  [
-                                   "objects\\obj_menu_manager\\Draw_64.gml:685"
+                                   "objects\\obj_menu_manager\\Draw_64.gml:1425"
                                ],
                     "Configuracion de controles":  [
-                                                       "objects\\obj_menu_manager\\Draw_64.gml:701"
+                                                       "objects\\obj_menu_manager\\Draw_64.gml:1441"
                                                    ],
                     "Proximamente...":  [
-                                            "objects\\obj_menu_manager\\Draw_64.gml:702"
+                                            "objects\\obj_menu_manager\\Draw_64.gml:1442"
                                         ],
                     "objeto":  [
-                                   "objects\\obj_menu_manager\\Step_0.gml:319",
+                                   "objects\\obj_menu_manager\\Step_0.gml:522",
                                    "scripts\\scr_cofre\\scr_cofre.gml:228"
                                ],
                     "Has tirado {item}.":  [
-                                               "objects\\obj_menu_manager\\Step_0.gml:325",
-                                               "objects\\obj_menu_manager\\Step_0.gml:473",
-                                               "objects\\obj_menu_manager\\Step_0.gml:626"
+                                               "objects\\obj_menu_manager\\Step_0.gml:528",
+                                               "objects\\obj_menu_manager\\Step_0.gml:676",
+                                               "objects\\obj_menu_manager\\Step_0.gml:831"
                                            ],
                     "Los toys se usan durante una batalla.":  [
-                                                                  "objects\\obj_menu_manager\\Step_0.gml:418"
+                                                                  "objects\\obj_menu_manager\\Step_0.gml:621"
                                                               ],
                     "toy":  [
-                                "objects\\obj_menu_manager\\Step_0.gml:466",
+                                "objects\\obj_menu_manager\\Step_0.gml:669",
                                 "scripts\\scr_cofre\\scr_cofre.gml:231"
                             ],
                     "Se equipo {item}.":  [
-                                              "objects\\obj_menu_manager\\Step_0.gml:585"
+                                              "objects\\obj_menu_manager\\Step_0.gml:790"
                                           ],
                     "equipamiento":  [
-                                         "objects\\obj_menu_manager\\Step_0.gml:619"
+                                         "objects\\obj_menu_manager\\Step_0.gml:824"
                                      ],
                     "Salvar":  [
                                    "objects\\obj_save_menu\\Create_0.gml:12"
@@ -294,7 +305,7 @@
                                     ],
                     "Datos vacios":  [
                                          "objects\\obj_save_menu\\Create_0.gml:149",
-                                         "objects\\obj_save_menu\\Step_0.gml:520"
+                                         "objects\\obj_save_menu\\Step_0.gml:718"
                                      ],
                     "Partida salvada":  [
                                             "objects\\obj_save_menu\\Draw_64.gml:211"
@@ -368,6 +379,10 @@
                     "Equipo":  [
                                    "scripts\\scr_cofre\\scr_cofre.gml:234"
                                ],
+                    "Recibiste una llave.":  [
+                                                 "scripts\\scr_cutscene_core\\scr_cutscene_core.gml:760",
+                                                 "scripts\\scr_textbox_functions\\scr_textbox_functions.gml:105"
+                                             ],
                     "* Escuchaste algo extraño.":  [
                                                        "scripts\\scr_cutscene_data\\scr_cutscene_data.gml:110"
                                                    ],
@@ -638,6 +653,24 @@
                     "Aqui no hay nadie.":  [
                                                "scripts\\scr_game_text\\scr_game_text.gml:87"
                                            ],
+                    "Nombre":  [
+                                   "scripts\\scr_itemclave_data\\scr_itemclave_data.gml:48"
+                               ],
+                    "Descripción.":  [
+                                         "scripts\\scr_itemclave_data\\scr_itemclave_data.gml:51"
+                                     ],
+                    "Para qué sirve.":  [
+                                            "scripts\\scr_itemclave_data\\scr_itemclave_data.gml:54"
+                                        ],
+                    "Llave de prueba":  [
+                                            "scripts\\scr_itemclave_data\\scr_itemclave_data.gml:65"
+                                        ],
+                    "Una llave creada para probar el sistema.":  [
+                                                                     "scripts\\scr_itemclave_data\\scr_itemclave_data.gml:70"
+                                                                 ],
+                    "Abre una cerradura de prueba.":  [
+                                                          "scripts\\scr_itemclave_data\\scr_itemclave_data.gml:75"
+                                                      ],
                     "Vaso de Agua":  [
                                          "scripts\\scr_items_data\\scr_items_data.gml:34"
                                      ],
