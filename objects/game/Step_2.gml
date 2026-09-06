@@ -20,6 +20,111 @@
 
 
 // =========================================================
+// LIMPIEZA FORZADA DE BATALLA PARA GAME OVER
+// =========================================================
+//
+// obj_batalla_ui está configurado como persistente en el
+// proyecto. Si se cambia directamente a game_over por muerte,
+// la salida normal de batalla NO alcanza a destruirlo.
+//
+// Resultado anterior:
+//
+//     game_over
+//     + UI de batalla
+//     + enemigos dibujados por esa UI
+//
+// y podía sobrevivir incluso después de "Despertar".
+//
+// Esta función local limpia todos los objetos propios del
+// runtime de batalla ÚNICAMENTE cuando ya entramos a Game Over.
+//
+// Durante el segundo congelado la batalla sigue visible.
+// =========================================================
+
+var _cleanup_battle_for_gameover = function()
+{
+    // -----------------------------------------------------
+    // UI
+    // -----------------------------------------------------
+
+    if (instance_exists(obj_batalla_ui))
+    {
+        with (obj_batalla_ui)
+        {
+            persistent =
+                false;
+
+            instance_destroy();
+        }
+    }
+
+
+    // -----------------------------------------------------
+    // CONTROLLER
+    // -----------------------------------------------------
+
+    if (instance_exists(obj_batalla_controller))
+    {
+        with (obj_batalla_controller)
+        {
+            // Evitar dejar vivo el DS map si la derrota
+            // interrumpe la salida normal de batalla.
+            if (
+                variable_instance_exists(
+                    id,
+                    "mapa_enemigos_muertos"
+                )
+                &&
+                ds_exists(
+                    mapa_enemigos_muertos,
+                    ds_type_map
+                )
+            )
+            {
+                ds_map_destroy(
+                    mapa_enemigos_muertos
+                );
+            }
+
+
+            persistent =
+                false;
+
+            instance_destroy();
+        }
+    }
+
+
+    // -----------------------------------------------------
+    // TRANSICIONES BBS
+    // -----------------------------------------------------
+
+    if (instance_exists(obj_transicion_bbs))
+    {
+        with (obj_transicion_bbs)
+        {
+            persistent =
+                false;
+
+            instance_destroy();
+        }
+    }
+
+
+    if (instance_exists(obj_transicion_salida_bbs))
+    {
+        with (obj_transicion_salida_bbs)
+        {
+            persistent =
+                false;
+
+            instance_destroy();
+        }
+    }
+};
+
+
+// =========================================================
 // ASEGURAR FLAG
 // =========================================================
 
@@ -46,6 +151,12 @@ if (
 
 if (room == game_over)
 {
+    // Seguridad adicional:
+    // si algún objeto persistente de batalla alcanzó esta room,
+    // eliminarlo en el primer End Step.
+    _cleanup_battle_for_gameover();
+
+
     if (global.gameover_death_freeze_active)
     {
         global.gameover_death_freeze_active =

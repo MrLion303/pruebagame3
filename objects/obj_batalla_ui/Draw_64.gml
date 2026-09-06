@@ -1,6 +1,33 @@
+
 // =========================================================
 // EVENTO: DRAW GUI
 // =========================================================
+// =========================================================
+// NO DIBUJAR BATALLA DENTRO DE GAME OVER
+// =========================================================
+//
+// Durante el segundo congelado seguimos en room bbs y la UI
+// permanece visible.
+//
+// En cuanto room ya ES game_over:
+//
+//     persistent = false
+//     destruir
+//     NO dibujar ni un frame de la batalla.
+//
+// =========================================================
+
+if (room == game_over)
+{
+    persistent =
+        false;
+
+    instance_destroy();
+
+    exit;
+}
+
+
 var _s = 2;
 
 if (!variable_instance_exists(id, "alpha_aparicion")) alpha_aparicion = 0.0;
@@ -79,9 +106,502 @@ for (var i = 0; i < _total_enemigos; i++) {
     }
 }
 
+
+// =========================================================
+// POPUP DE DAÑO / MISS JUNTO AL ENEMIGO
+// =========================================================
+
+if (
+    attack_feedback_active
+    &&
+    attack_target_idx >= 0
+    &&
+    attack_target_idx < array_length(enemigos)
+)
+{
+    var _popup_idx =
+        attack_target_idx;
+
+
+    var _popup_enemy =
+        enemigos[_popup_idx];
+
+
+    var _popup_enemy_x =
+        _centro_pantalla_x;
+
+
+    var _popup_enemy_y =
+        75 * _s;
+
+
+    if (_total_enemigos == 2)
+    {
+        if (_popup_idx == 0)
+        {
+            _popup_enemy_x =
+                _centro_pantalla_x
+                -
+                (50 * _s);
+        }
+        else if (_popup_idx == 1)
+        {
+            _popup_enemy_x =
+                _centro_pantalla_x
+                +
+                (50 * _s);
+        }
+    }
+    else if (_total_enemigos >= 3)
+    {
+        if (_popup_idx == 0)
+        {
+            _popup_enemy_x =
+                _centro_pantalla_x
+                -
+                (75 * _s);
+        }
+        else if (_popup_idx == 1)
+        {
+            _popup_enemy_x =
+                _centro_pantalla_x;
+        }
+        else if (_popup_idx == 2)
+        {
+            _popup_enemy_x =
+                _centro_pantalla_x
+                +
+                (75 * _s);
+        }
+    }
+
+
+    var _popup_enemy_scale =
+        variable_struct_exists(
+            _popup_enemy,
+            "escala_sprite"
+        )
+        ?
+        _popup_enemy.escala_sprite
+        :
+        2.0;
+
+
+    var _enemy_half_w =
+        sprite_get_width(_popup_enemy.sprite)
+        *
+        _popup_enemy_scale
+        *
+        _s
+        *
+        0.5;
+
+
+    var _side =
+        (_popup_enemy_x > _centro_pantalla_x)
+        ?
+        -1
+        :
+        1;
+
+
+    var _popup_x =
+        _popup_enemy_x
+        +
+        (
+            _side
+            *
+            (
+                _enemy_half_w
+                +
+                (10 * _s)
+            )
+        );
+
+
+    // Evitar que se salga de la pantalla.
+    _popup_x =
+        clamp(
+            _popup_x,
+            18 * _s,
+            302 * _s
+        );
+
+
+    // =====================================================
+    // FASES DEL POPUP
+    // =====================================================
+
+    var _popup_timer =
+        attack_feedback_timer;
+
+
+    var _bounce_frames =
+        max(
+            1,
+            attack_feedback_bounce_frames
+        );
+
+
+    var _hold_frames =
+        max(
+            0,
+            attack_feedback_hold_frames
+        );
+
+
+    var _fade_frames =
+        max(
+            1,
+            attack_feedback_fade_frames
+        );
+
+
+    var _bounce_end =
+        _bounce_frames;
+
+
+    var _hold_end =
+        _bounce_end
+        +
+        _hold_frames;
+
+
+    var _fade_end =
+        _hold_end
+        +
+        _fade_frames;
+
+
+    // =====================================================
+    // ALPHA
+    // =====================================================
+    //
+    // Durante salto/rebote y el segundo de espera:
+    //     alpha = 1
+    //
+    // Solo desaparece al FINAL.
+    // =====================================================
+
+    var _popup_alpha =
+        1;
+
+
+    if (_popup_timer >= _hold_end)
+    {
+        var _fade_t =
+            clamp(
+                (_popup_timer - _hold_end)
+                /
+                _fade_frames,
+                0,
+                1
+            );
+
+
+        _popup_alpha =
+            1
+            -
+            _fade_t;
+    }
+
+
+    // Pequeño fade-in de apenas 3 frames al aparecer.
+    if (_popup_timer < 3)
+    {
+        _popup_alpha *=
+            clamp(
+                _popup_timer
+                /
+                3,
+                0,
+                1
+            );
+    }
+
+
+    _popup_alpha *=
+        _alpha_final;
+
+
+    // =====================================================
+    // SALTO + REBOTE
+    // =====================================================
+    //
+    // Primera parte:
+    //     salto grande y aterrizaje.
+    //
+    // Segunda parte:
+    //     rebote pequeño.
+    //
+    // Después:
+    //     queda inmóvil durante 30 frames.
+    // =====================================================
+
+    var _jump_y =
+        0;
+
+
+    if (_popup_timer < _bounce_frames)
+    {
+        var _first_jump_frames =
+            12;
+
+
+        if (_popup_timer < _first_jump_frames)
+        {
+            var _jump_t =
+                clamp(
+                    _popup_timer
+                    /
+                    _first_jump_frames,
+                    0,
+                    1
+                );
+
+
+            // Parábola:
+            // 0 -> arriba -> vuelve a 0.
+            _jump_y =
+                -4
+                *
+                _jump_t
+                *
+                (1 - _jump_t)
+                *
+                (18 * _s);
+        }
+        else
+        {
+            var _rebound_frames =
+                max(
+                    1,
+                    _bounce_frames
+                    -
+                    _first_jump_frames
+                );
+
+
+            var _rebound_t =
+                clamp(
+                    (_popup_timer - _first_jump_frames)
+                    /
+                    _rebound_frames,
+                    0,
+                    1
+                );
+
+
+            // Segundo rebote más pequeño.
+            _jump_y =
+                -4
+                *
+                _rebound_t
+                *
+                (1 - _rebound_t)
+                *
+                (6 * _s);
+        }
+    }
+
+
+    var _popup_y =
+        _popup_enemy_y
+        -
+        (18 * _s)
+        +
+        _jump_y;
+
+
+    // =====================================================
+    // ESCALA FIJA
+    // =====================================================
+    //
+    // Ya NO crece hacia la cámara / "salta al frente".
+    //
+    // La única animación espacial es:
+    //
+    //     salto vertical
+    //     +
+    //     rebote vertical
+    //
+    // El tamaño permanece siempre al 50% configurado.
+    // =====================================================
+
+    var _popup_scale =
+        attack_feedback_scale
+        *
+        _s;
+
+
+    // =====================================================
+    // MISS
+    // =====================================================
+
+    if (attack_feedback_miss)
+    {
+        var _miss_w =
+            sprite_get_width(spr_miss_bbs);
+
+
+        var _miss_h =
+            sprite_get_height(spr_miss_bbs);
+
+
+        var _miss_draw_x =
+            _popup_x
+            +
+            (
+                sprite_get_xoffset(spr_miss_bbs)
+                -
+                (_miss_w * 0.5)
+            )
+            *
+            _popup_scale;
+
+
+        var _miss_draw_y =
+            _popup_y
+            +
+            (
+                sprite_get_yoffset(spr_miss_bbs)
+                -
+                (_miss_h * 0.5)
+            )
+            *
+            _popup_scale;
+
+
+        draw_sprite_ext(
+            spr_miss_bbs,
+            0,
+            _miss_draw_x,
+            _miss_draw_y,
+            _popup_scale,
+            _popup_scale,
+            0,
+            c_white,
+            _popup_alpha
+        );
+    }
+
+
+    // =====================================================
+    // NÚMERO DE DAÑO
+    // =====================================================
+
+    else
+    {
+        var _damage_text =
+            string(attack_feedback_damage);
+
+
+        var _digit_count =
+            string_length(_damage_text);
+
+
+        var _digit_w =
+            sprite_get_width(spr_numeros_bbs)
+            *
+            _popup_scale;
+
+
+        // Un pequeño solape hace que 201, 999, etc. se lean
+        // como un único número y no como sprites separados.
+        var _digit_step =
+            _digit_w
+            *
+            0.82;
+
+
+        var _number_w =
+            (_digit_count <= 1)
+            ?
+            _digit_w
+            :
+            _digit_w
+            +
+            ((_digit_count - 1) * _digit_step);
+
+
+        var _digit_center_start =
+            _popup_x
+            -
+            (_number_w * 0.5)
+            +
+            (_digit_w * 0.5);
+
+
+        for (
+            var _d = 1;
+            _d <= _digit_count;
+            _d++
+        )
+        {
+            var _digit_string =
+                string_char_at(
+                    _damage_text,
+                    _d
+                );
+
+
+            var _digit_frame =
+                clamp(
+                    real(_digit_string),
+                    0,
+                    9
+                );
+
+
+            var _digit_center_x =
+                _digit_center_start
+                +
+                ((_d - 1) * _digit_step);
+
+
+            var _digit_draw_x =
+                _digit_center_x
+                +
+                (
+                    sprite_get_xoffset(spr_numeros_bbs)
+                    -
+                    (sprite_get_width(spr_numeros_bbs) * 0.5)
+                )
+                *
+                _popup_scale;
+
+
+            var _digit_draw_y =
+                _popup_y
+                +
+                (
+                    sprite_get_yoffset(spr_numeros_bbs)
+                    -
+                    (sprite_get_height(spr_numeros_bbs) * 0.5)
+                )
+                *
+                _popup_scale;
+
+
+            draw_sprite_ext(
+                spr_numeros_bbs,
+                _digit_frame,
+                _digit_draw_x,
+                _digit_draw_y,
+                _popup_scale,
+                _popup_scale,
+                0,
+                c_white,
+                _popup_alpha
+            );
+        }
+    }
+}
+
+
 draw_sprite_ext(
     spr_bbs_textbox,
-    scr_ui_box_frame(spr_bbs_textbox),
+    0,
     14 * _s,
     125 * _s,
     5.666667 * _s,
@@ -208,8 +728,173 @@ if ((!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario)
         );
     }
     
+    // =====================================================
+    // TIMING DE ATAQUE
+    // =====================================================
+
+    if (attack_timing_active || attack_timing_stopped)
+    {
+        var _attack_box_left =
+            14 * _s;
+
+
+        var _attack_box_top =
+            125 * _s;
+
+
+        var _attack_box_w =
+            sprite_get_width(spr_bbs_textbox)
+            *
+            5.666667
+            *
+            _s;
+
+
+        var _attack_box_h =
+            sprite_get_height(spr_bbs_textbox)
+            *
+            _s;
+
+
+        var _attack_center_y =
+            _attack_box_top
+            +
+            (_attack_box_h * 0.5);
+
+
+        var _attack_center_x =
+            attack_bar_center_x
+            *
+            _s;
+
+
+        // -------------------------------------------------
+        // TARGET
+        // -------------------------------------------------
+
+        // =================================================
+        // TARGET
+        // =================================================
+        //
+        // Y conserva la altura correcta de V2.
+        // X se extiende hasta los laterales internos del
+        // textbox.
+        // =================================================
+
+        var _target_scale_x =
+            attack_target_xscale_base
+            *
+            _s;
+
+
+        var _target_scale_y =
+            attack_target_yscale_base
+            *
+            _s;
+
+
+        var _target_draw_x =
+            _attack_center_x
+            +
+            (
+                sprite_get_xoffset(spr_target_bbs)
+                -
+                (sprite_get_width(spr_target_bbs) * 0.5)
+            )
+            *
+            _target_scale_x;
+
+
+        var _target_draw_y =
+            _attack_center_y
+            +
+            (
+                sprite_get_yoffset(spr_target_bbs)
+                -
+                (sprite_get_height(spr_target_bbs) * 0.5)
+            )
+            *
+            _target_scale_y;
+
+
+        draw_sprite_ext(
+            spr_target_bbs,
+            0,
+            _target_draw_x,
+            _target_draw_y,
+            _target_scale_x,
+            _target_scale_y,
+            0,
+            c_white,
+            _alpha_final
+        );
+
+
+        // -------------------------------------------------
+        // BARRA
+        // -------------------------------------------------
+
+        // La barra usa exactamente el mismo factor
+        // proporcional que el target.
+        var _bar_scale =
+            attack_bar_scale_base
+            *
+            _s;
+
+
+        var _bar_center_x_gui =
+            attack_bar_x
+            *
+            _s;
+
+
+        var _bar_draw_x =
+            _bar_center_x_gui
+            +
+            (
+                sprite_get_xoffset(spr_barra_bbs)
+                -
+                (sprite_get_width(spr_barra_bbs) * 0.5)
+            )
+            *
+            _bar_scale;
+
+
+        var _bar_draw_y =
+            _attack_center_y
+            +
+            (
+                sprite_get_yoffset(spr_barra_bbs)
+                -
+                (sprite_get_height(spr_barra_bbs) * 0.5)
+            )
+            *
+            _bar_scale;
+
+
+        var _bar_frame =
+            clamp(
+                floor(attack_bar_anim_index),
+                0,
+                sprite_get_number(spr_barra_bbs) - 1
+            );
+
+
+        draw_sprite_ext(
+            spr_barra_bbs,
+            _bar_frame,
+            _bar_draw_x,
+            _bar_draw_y,
+            _bar_scale,
+            _bar_scale,
+            0,
+            c_white,
+            _alpha_final
+        );
+    }
+
     // SELECCIÓN DE ENEMIGO
-    if (en_seleccion_enemigo) {
+    else if (en_seleccion_enemigo) {
         var _texto_seleccion = (toy_selected_key != -1) ? scr_loc("* Elige a quien usar el toy!") : scr_loc("* Elige a quien atacar!");
 
         draw_text_color(
@@ -556,7 +1241,7 @@ draw_set_alpha(_alpha_final);
 
 draw_sprite_ext(
     spr_bbs_textbox,
-    scr_ui_box_frame(spr_bbs_textbox),
+    0,
     6 * _s,
     183 * _s,
     2.27451 * _s,
@@ -582,7 +1267,7 @@ draw_sprite_ext(
 
 draw_sprite_ext(
     spr_bbs_textbox,
-    scr_ui_box_frame(spr_bbs_textbox),
+    0,
     126 * _s,
     183 * _s,
     3.666666 * _s,
@@ -600,7 +1285,7 @@ draw_set_halign(fa_left);
 draw_text_color(
     _info_x,
     _info_y,
-    scr_loc("Maya"),
+    scr_loc("Noelle"),
     c_white,
     c_white,
     c_white,

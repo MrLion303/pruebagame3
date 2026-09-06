@@ -550,6 +550,89 @@ function scr_downslide_rescue_corner(_zone)
 
 
 // =========================================================
+// AUDIO DEL DOWNSLIDE - MAYA
+// =========================================================
+//
+// Maya guarda SU ID de instancia.
+//
+// Nunca detenemos snd_deslizarse por asset, porque eso también
+// apagaría la copia independiente de Silicio.
+// =========================================================
+
+function scr_downslide_sound_start()
+{
+    if (
+        !variable_instance_exists(
+            id,
+            "downslide_sound_instance"
+        )
+    )
+    {
+        downslide_sound_instance =
+            -1;
+    }
+
+
+    if (!audio_exists(snd_deslizarse))
+    {
+        return;
+    }
+
+
+    if (
+        downslide_sound_instance == -1
+        ||
+        !audio_is_playing(
+            downslide_sound_instance
+        )
+    )
+    {
+        downslide_sound_instance =
+            audio_play_sound(
+                snd_deslizarse,
+                10,
+                true
+            );
+    }
+}
+
+
+function scr_downslide_sound_stop()
+{
+    if (
+        !variable_instance_exists(
+            id,
+            "downslide_sound_instance"
+        )
+    )
+    {
+        downslide_sound_instance =
+            -1;
+
+        return;
+    }
+
+
+    if (
+        downslide_sound_instance != -1
+        &&
+        audio_is_playing(
+            downslide_sound_instance
+        )
+    )
+    {
+        audio_stop_sound(
+            downslide_sound_instance
+        );
+    }
+
+
+    downslide_sound_instance =
+        -1;
+}
+
+
+// =========================================================
 // FUNCIÓN PRINCIPAL
 // =========================================================
 //
@@ -563,6 +646,18 @@ function scr_player_downslide_update(
     _key_left
 )
 {
+    if (
+        !variable_instance_exists(
+            id,
+            "downslide_sound_instance"
+        )
+    )
+    {
+        downslide_sound_instance =
+            -1;
+    }
+
+
     var _zone =
         scr_downslide_get_zone();
 
@@ -593,6 +688,9 @@ function scr_player_downslide_update(
                 downslide_exiting =
                     false;
 
+
+                scr_downslide_sound_start();
+
                 downslide_exit_remaining =
                     downslide_exit_extra;
 
@@ -614,11 +712,18 @@ function scr_player_downslide_update(
 
     if (!downslide_active)
     {
+        scr_downslide_sound_stop();
+
+
         downslide_prev_bottom =
             bbox_bottom;
 
         return false;
     }
+
+
+    // Incluye los píxeles de expulsión extra.
+    scr_downslide_sound_start();
 
 
     // =====================================================
@@ -818,6 +923,9 @@ function scr_player_downslide_update(
                 downslide_exiting =
                     false;
 
+
+                scr_downslide_sound_stop();
+
                 break;
             }
         }
@@ -833,3 +941,4 @@ function scr_player_downslide_update(
     // movimiento normal / hielo.
     return true;
 }
+	

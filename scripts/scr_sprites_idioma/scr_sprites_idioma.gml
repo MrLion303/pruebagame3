@@ -23,7 +23,8 @@ function scr_sprites_idioma_registro() {
         // AÑADE AQUÍ TODOS LOS PARES QUE QUIERAS
         // =================================================
 
-        [spr_pruebaidioma, spr_pruebaidioma_english]
+        [spr_pruebaidioma, spr_pruebaidioma_english],
+		[spr_miss_bbs, spr_miss_bbs_english]
 
         // Ejemplos:
         //

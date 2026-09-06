@@ -1,5 +1,25 @@
+
+// =========================================================
+// EVENTO: STEP
+// =========================================================
+// =========================================================
+// GAME OVER - CONGELAR LÓGICA, PERO SEGUIR DIBUJANDO
+// =========================================================
+//
+// Durante el segundo de muerte:
+//
+//     obj_batalla_ui sigue EXISTIENDO;
+//     Draw GUI sigue mostrando batalla/enemigos;
+//     Step no cambia nada.
+//
+// Al entrar a game_over, Draw GUI se autodestruye antes de
+// dibujar.
+// =========================================================
+
 if (
-    variable_global_exists("gameover_death_freeze_active")
+    variable_global_exists(
+        "gameover_death_freeze_active"
+    )
     &&
     global.gameover_death_freeze_active
 )
@@ -8,9 +28,6 @@ if (
 }
 
 
-// =========================================================
-// EVENTO: STEP
-// =========================================================
 accept_key = keyboard_check_pressed(ord("Z")) || keyboard_check_pressed(vk_enter);
 skip_key = keyboard_check_pressed(ord("X")) || keyboard_check_pressed(vk_shift) || keyboard_check_pressed(vk_control);
 var _fast_skip_key = keyboard_check(ord("C")) || keyboard_check_pressed(vk_control);
@@ -52,6 +69,293 @@ for (var i = 0; i < array_length(enemigos); i++) {
         if (!variable_struct_exists(enemigos[i], "anim_index")) enemigos[i].anim_index = 0;
         enemigos[i].anim_index += 0.15;
     }
+}
+
+
+// =========================================================
+// TIMING DE ATAQUE
+// =========================================================
+//
+// Mientras cualquiera de estos estados está activo, la UI
+// normal queda completamente bloqueada.
+// =========================================================
+
+if (attack_timing_active)
+{
+    // -----------------------------------------------------
+    // ANIMACIÓN DEL SPRITE DE LA BARRA
+    // -----------------------------------------------------
+    //
+    // spr_barra_bbs tiene 2 frames y se reproduce usando
+    // el FPS configurado en el propio Sprite Editor.
+    // -----------------------------------------------------
+
+    var _bar_frames =
+        max(
+            1,
+            sprite_get_number(spr_barra_bbs)
+        );
+
+
+    var _bar_sprite_fps =
+        max(
+            0,
+            sprite_get_speed(spr_barra_bbs)
+        );
+
+
+    var _game_fps =
+        max(
+            1,
+            game_get_speed(gamespeed_fps)
+        );
+
+
+    attack_bar_anim_index +=
+        _bar_sprite_fps
+        /
+        _game_fps;
+
+
+    if (attack_bar_anim_index >= _bar_frames)
+    {
+        attack_bar_anim_index =
+            attack_bar_anim_index
+            mod
+            _bar_frames;
+    }
+
+
+    // -----------------------------------------------------
+    // DETENER CON Z / ENTER
+    // -----------------------------------------------------
+
+    if (accept_key)
+    {
+        attack_timing_active = false;
+        attack_timing_stopped = true;
+
+        // Congelar EXACTAMENTE donde se pulsó.
+        attack_stop_timer =
+            attack_stop_hold_frames;
+
+
+        // IMPORTANTE:
+        // Todavía NO aplicamos el daño.
+        //
+        // Durante este segundo:
+        //     - la barra no se mueve;
+        //     - su POSICIÓN no cambia, pero sus frames sí animan;
+        //     - el enemigo todavía no recibe daño;
+        //     - no aparece el popup.
+        //
+        // El golpe se resuelve al terminar el contador.
+        keyboard_clear(ord("Z"));
+        keyboard_clear(vk_enter);
+
+        exit;
+    }
+
+
+    // -----------------------------------------------------
+    // MOVER DE UN EXTREMO AL OTRO
+    // -----------------------------------------------------
+
+    attack_bar_x +=
+        attack_bar_speed
+        *
+        attack_bar_direction;
+
+
+    var _llego_al_final =
+        (
+            attack_bar_direction > 0
+            &&
+            attack_bar_x >= attack_bar_max_x
+        )
+        ||
+        (
+            attack_bar_direction < 0
+            &&
+            attack_bar_x <= attack_bar_min_x
+        );
+
+
+    if (_llego_al_final)
+    {
+        // La barra desaparece inmediatamente y es MISS.
+        attack_bar_x =
+            (attack_bar_direction > 0)
+            ?
+            attack_bar_max_x
+            :
+            attack_bar_min_x;
+
+
+        attack_timing_active = false;
+        attack_timing_stopped = false;
+
+
+        f_resolver_timing_ataque(true);
+
+
+        attack_feedback_active = true;
+        attack_feedback_timer = 0;
+
+        exit;
+    }
+
+
+    exit;
+}
+
+
+// =========================================================
+// BARRA DETENIDA: PEQUEÑA PAUSA VISUAL
+// =========================================================
+
+if (attack_timing_stopped)
+{
+    // =====================================================
+    // LA POSICIÓN QUEDA CONGELADA, PERO EL SPRITE NO
+    // =====================================================
+    //
+    // spr_barra_bbs conserva su animación de 2 frames durante
+    // todo el segundo de espera.
+    //
+    // Únicamente NO modificamos attack_bar_x.
+    // =====================================================
+
+    var _stop_bar_frames =
+        max(
+            1,
+            sprite_get_number(
+                spr_barra_bbs
+            )
+        );
+
+
+    var _stop_bar_sprite_fps =
+        max(
+            0,
+            sprite_get_speed(
+                spr_barra_bbs
+            )
+        );
+
+
+    var _stop_game_fps =
+        max(
+            1,
+            game_get_speed(
+                gamespeed_fps
+            )
+        );
+
+
+    attack_bar_anim_index +=
+        _stop_bar_sprite_fps
+        /
+        _stop_game_fps;
+
+
+    if (
+        attack_bar_anim_index
+        >=
+        _stop_bar_frames
+    )
+    {
+        attack_bar_anim_index =
+            attack_bar_anim_index
+            mod
+            _stop_bar_frames;
+    }
+
+
+    attack_stop_timer--;
+
+
+    if (attack_stop_timer <= 0)
+    {
+        attack_stop_timer = 0;
+        attack_timing_stopped = false;
+
+
+        // Tras 1 segundo, aplicar el golpe según la posición
+        // exacta donde se quedó la barra.
+        f_resolver_timing_ataque(
+            false
+        );
+
+
+        attack_feedback_active = true;
+        attack_feedback_timer = 0;
+    }
+
+
+    exit;
+}
+
+
+// =========================================================
+// POPUP DE DAÑO / MISS
+// =========================================================
+
+if (attack_feedback_active)
+{
+    // =====================================================
+    // ACELERAR POPUP CON C / CTRL
+    // =====================================================
+    //
+    // Mantener C o Ctrl hace que salto, rebote, segundo visible
+    // y fade avancen 4 veces más rápido.
+    //
+    // No lo salta instantáneamente: simplemente acelera toda
+    // la animación de forma consistente.
+    // =====================================================
+
+    var _feedback_fast =
+        keyboard_check(
+            ord("C")
+        )
+        ||
+        keyboard_check(
+            vk_control
+        );
+
+
+    attack_feedback_timer +=
+        _feedback_fast
+        ?
+        4
+        :
+        1;
+
+
+    if (attack_feedback_timer >= attack_feedback_duration)
+    {
+        attack_feedback_active = false;
+
+
+        // Después de la animación se conserva el flujo que ya
+        // tenía tu batalla: aparece el resultado y al confirmar
+        // comienza el turno enemigo / victoria.
+        f_procesar_dialogo(
+            attack_result_text
+        );
+
+
+        en_resultado_ataque = true;
+        en_menu_fight = false;
+        en_seleccion_enemigo = false;
+        en_modo_info = false;
+
+
+        setup = false;
+    }
+
+
+    exit;
 }
 
 // SI ESTAMOS EN CINEMÁTICA, EL CONTROLLER SE ENCARGA DE AVANZAR
@@ -575,129 +879,79 @@ if (draw_char < text_length) {
         } else {
             var _en_actual = enemigos[enemigo_seleccionado_idx];
 
-            if (opcion_fight_seleccionada == 0) {
-                var _atk_base = 0;
+            if (opcion_fight_seleccionada == 0)
+            {
+                // =============================================
+                // ATACAR -> TIMING
+                // =============================================
+                //
+                // Ya NO se aplica daño al seleccionar Atacar.
+                // Primero se abre el minijuego de target/barra.
+                // =============================================
 
-                if (instance_exists(obj_player)) {
-                    _atk_base = obj_player.ataque_base;
+                f_iniciar_timing_ataque(
+                    enemigo_seleccionado_idx
+                );
 
-                    if (variable_global_exists("equip_db")) {
-                        if (is_struct(obj_player.equipo_arma) && variable_struct_exists(obj_player.equipo_arma, "ataque")) {
-                            _atk_base += obj_player.equipo_arma.ataque;
-                        } else if (obj_player.equipo_arma != -1) {
-                            var _arma = global.equip_db[$ obj_player.equipo_arma];
-                            if (_arma != undefined && struct_exists(_arma, "ataque")) {
-                                _atk_base += _arma.ataque;
-                            }
-                        }
-                    }
-                }
 
-                var _def_enemigo = variable_struct_exists(_en_actual, "defensa") ? _en_actual.defensa : 0;
-                var _reduccion_defensa = variable_struct_exists(_en_actual, "defensa_reducida") ? _en_actual.defensa_reducida : 0;
-                var _multiplicador_defensa = max(0, 1 - (_reduccion_defensa * 0.08));
-                var _defensa_real = max(0, round(_def_enemigo * _multiplicador_defensa));
+                audio_play_sound(
+                    snd_menumove,
+                    10,
+                    false
+                );
+            }
+            else
+            {
+                // =============================================
+                // INFO TAMBIÉN CONSUME EL TURNO
+                // =============================================
+                //
+                // La descripción se muestra normalmente.
+                // Cuando el jugador termine de leerla y confirme,
+                // en_resultado_ataque usa el flujo existente para
+                // pasar al turno enemigo.
+                // =============================================
 
-                var _dano = max(1, 10 + (_atk_base * 2) - _defensa_real);
-                _en_actual.vida_actual -= _dano;
-                _en_actual.shake_timer = 15;
-
-                if (audio_is_playing(snd_shake)) audio_stop_sound(snd_shake);
-                audio_play_sound(snd_shake, 10, false);
-
-                var _texto_ataque = "";
-
-                if (_en_actual.vida_actual <= 0) {
-                    _en_actual.vida_actual = 0;
-                    _en_actual.derrotado = true;
-
-                    if (instance_exists(obj_batalla_controller) && variable_instance_exists(obj_batalla_controller, "mapa_enemigos_muertos")) {
-                        scr_marcar_enemigo_muerto(obj_batalla_controller.mapa_enemigos_muertos, enemigo_seleccionado_idx);
-                    }
-
-                    audio_play_sound(snd_enemy_killed, 10, false);
-
-                    _texto_ataque = variable_struct_exists(_en_actual, "texto_muerte")
-                        ? string_replace_all(_en_actual.texto_muerte, "\n", " ")
-                        : scr_locf("* Venciste a {enemy}!", { enemy: scr_loc(_en_actual.nombre) });
-
-                    var _chequear_todos_muertos = true;
-
-                    for (var i = 0; i < array_length(enemigos); i++) {
-                        if (!variable_struct_exists(enemigos[i], "derrotado") || !enemigos[i].derrotado) {
-                            _chequear_todos_muertos = false;
-                            break;
-                        }
-                    }
-
-                    if (_chequear_todos_muertos) {
-                        if (audio_is_playing(snd_bbs_start)) {
-                            audio_stop_sound(snd_bbs_start);
-                        }
-
-                        // Música real del controller.
-                        // Es importante cuando una cinemática interna
-                        // cambió la canción de la batalla.
-                        if (
-                            instance_exists(obj_batalla_controller)
-                            &&
-                            variable_instance_exists(
-                                obj_batalla_controller,
-                                "musica_batalla_actual"
-                            )
-                        )
-                        {
-                            var _musica_real =
-                                obj_batalla_controller.musica_batalla_actual;
-
-                            if (
-                                _musica_real != noone
-                                &&
-                                audio_is_playing(_musica_real)
-                            )
-                            {
-                                audio_stop_sound(_musica_real);
-                            }
-                        }
-
-                        // Fallback de la UI para batallas sin cambio musical.
-                        if (
-                            variable_instance_exists(
-                                id,
-                                "musica_batalla_actual"
-                            )
-                            &&
-                            musica_batalla_actual != noone
-                            &&
-                            audio_is_playing(musica_batalla_actual)
-                        )
-                        {
-                            audio_stop_sound(musica_batalla_actual);
-                        }
-                    }
-
-                } else {
-                    _texto_ataque = scr_locf("* Hiciste {damage} de daño a {enemy}!", { damage: string(_dano), enemy: scr_loc(_en_actual.nombre) });
-                }
-
-                f_procesar_dialogo(_texto_ataque);
-
-                en_resultado_ataque = true;
+                en_modo_info = false;
                 en_menu_fight = false;
                 en_seleccion_enemigo = false;
-                en_modo_info = false;
-                audio_play_sound(snd_menumove, 10, false);
 
-            } else {
-                en_modo_info = true;
-                f_procesar_dialogo(string_replace_all(_en_actual.descripcion, "\n", " "));
-                audio_play_sound(snd_menumove, 10, false);
+
+                f_procesar_dialogo(
+                    string_replace_all(
+                        _en_actual.descripcion,
+                        "\n",
+                        " "
+                    )
+                );
+
+
+                en_resultado_ataque = true;
+
+
+                audio_play_sound(
+                    snd_menumove,
+                    10,
+                    false
+                );
             }
         }
     }
 }
 
-if (skip_key && !en_resultado_ataque && !en_dialogo_victoria_final) {
+if (
+    skip_key
+    &&
+    !en_resultado_ataque
+    &&
+    !en_dialogo_victoria_final
+    &&
+    !attack_timing_active
+    &&
+    !attack_timing_stopped
+    &&
+    !attack_feedback_active
+) {
     if (en_menu_inventario) {
         en_menu_inventario = false;
         audio_play_sound(snd_menumove, 10, false);

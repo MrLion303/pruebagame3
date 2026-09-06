@@ -1,5 +1,30 @@
+// =========================================================
+// DERROTA / GAME OVER
+// =========================================================
+//
+// Durante el segundo congelado:
+//
+//     controller no avanza turnos ni aplica más acciones,
+//     pero NO se destruye todavía.
+//
+// Al entrar a game_over se elimina.
+// =========================================================
+
+if (room == game_over)
+{
+    persistent =
+        false;
+
+    instance_destroy();
+
+    exit;
+}
+
+
 if (
-    variable_global_exists("gameover_death_freeze_active")
+    variable_global_exists(
+        "gameover_death_freeze_active"
+    )
     &&
     global.gameover_death_freeze_active
 )
@@ -8,8 +33,6 @@ if (
 }
 
 
-// =========================================================
-// EVENTO: STEP  (obj_batalla_controller)
 // =========================================================
 // =========================================================
 // DUCKING DE MÚSICA DE BATALLA
@@ -54,8 +77,33 @@ if (fase_actual != FASE_BATALLA.CINEMATICA && fase_actual != FASE_BATALLA.HUIR &
     if (instance_exists(obj_batalla_ui)) {
         var _leyendo_resultado = variable_instance_exists(obj_batalla_ui, "en_resultado_ataque") ? obj_batalla_ui.en_resultado_ataque : false;
         var _leyendo_victoria = variable_instance_exists(obj_batalla_ui, "en_dialogo_victoria_final") ? obj_batalla_ui.en_dialogo_victoria_final : false;
+
+        var _timing_ataque =
+            variable_instance_exists(obj_batalla_ui, "attack_timing_active")
+            &&
+            obj_batalla_ui.attack_timing_active;
+
+        var _timing_detenido =
+            variable_instance_exists(obj_batalla_ui, "attack_timing_stopped")
+            &&
+            obj_batalla_ui.attack_timing_stopped;
+
+        var _feedback_ataque =
+            variable_instance_exists(obj_batalla_ui, "attack_feedback_active")
+            &&
+            obj_batalla_ui.attack_feedback_active;
         
-        if (_leyendo_resultado || _leyendo_victoria) {
+        if (
+            _leyendo_resultado
+            ||
+            _leyendo_victoria
+            ||
+            _timing_ataque
+            ||
+            _timing_detenido
+            ||
+            _feedback_ataque
+        ) {
             _ui_ocupada = true;
         }
     }

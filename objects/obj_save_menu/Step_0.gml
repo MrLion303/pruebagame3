@@ -84,6 +84,183 @@ if (transicion_activa)
             // CARGAMOS LA PARTIDA
             // =============================================
 
+            // =================================================
+            // SLOT VACÍO -> NUEVA PARTIDA REAL
+            // =================================================
+            //
+            // Al seleccionar Cargar sobre un archivo vacío usamos
+            // el mismo fade, pero inicializamos una partida nueva
+            // en vez de simplemente cancelar la carga.
+            // =================================================
+
+            if (transicion_seccion == "__NEW_GAME__")
+            {
+                scr_init_playtime();
+
+
+                global.new_game =
+                    true;
+
+
+                transicion_room =
+                    pasillo_school;
+
+                transicion_x =
+                    668;
+
+                transicion_y =
+                    194;
+
+
+                global.start_room =
+                    transicion_room;
+
+                global.start_x =
+                    transicion_x;
+
+                global.start_y =
+                    transicion_y;
+
+
+                global.player_hp_current =
+                    80;
+
+
+                // =============================================
+                // NIVEL
+                // =============================================
+
+                global.level_data =
+                {
+                    nivel:
+                        1,
+
+                    exp_actual:
+                        0,
+
+                    exp_siguiente:
+                        100,
+
+                    ataque_base:
+                        0,
+
+                    defensa_base:
+                        0,
+
+                    hp_max:
+                        80,
+
+                    nivel_max:
+                        20
+                };
+
+
+                // =============================================
+                // INVENTARIO
+                // =============================================
+
+                global.inventory_data =
+                {
+                    consumibles:
+                    [
+                        "agua",
+                        "manzana",
+
+                        -1,
+                        -1,
+                        -1,
+                        -1,
+                        -1,
+                        -1,
+                        -1,
+                        -1,
+                        -1,
+                        -1
+                    ],
+
+                    toys:
+                        array_create(
+                            30,
+                            -1
+                        ),
+
+                    equipamiento:
+                        array_create(
+                            51,
+                            -1
+                        ),
+
+                    equipado_arma:
+                        -1,
+
+                    equipado_armadura:
+                        -1
+                };
+
+
+                global.inventory_data.toys[0] =
+                    "brillitos";
+
+
+                global.inventory_data.toys[1] =
+                    "pegamento";
+
+
+                global.inventory_data.equipamiento[0] =
+                    "espada_basica";
+
+
+                global.inventory_data.equipamiento[1] =
+                    "armadura_basica";
+
+
+                global.toy_inventory =
+                    global.inventory_data.toys;
+
+
+                global.equipment_inventory =
+                    global.inventory_data.equipamiento;
+
+
+                // =============================================
+                // COFRE
+                // =============================================
+
+                global.chest_data =
+                    array_create(
+                        50,
+                        -1
+                    );
+
+
+                // =============================================
+                // CINEMÁTICAS / PUZZLES
+                // =============================================
+
+                global.cutscene_flags =
+                    {};
+
+
+                // El propio menú cubre y descubre la pantalla.
+                persistent =
+                    true;
+
+                mostrar_interfaz =
+                    false;
+
+                transicion_fase =
+                    2;
+
+
+                room_goto(
+                    transicion_room
+                );
+
+
+                exit;
+            }
+
+
             if (scr_cargar_juego(transicion_seccion))
             {
                 ini_open("save.ini");
@@ -455,8 +632,29 @@ else if (state == 1)
             );
 
 
+            // ¿El slot realmente contiene una partida?
+            ini_open(
+                "save.ini"
+            );
+
+
+            var _slot_tiene_guardado =
+                ini_key_exists(
+                    _seccion_actual,
+                    "room"
+                );
+
+
+            ini_close();
+
+
             transicion_seccion =
-                _seccion_actual;
+                _slot_tiene_guardado
+                ?
+                _seccion_actual
+                :
+                "__NEW_GAME__";
+
 
             transicion_progreso =
                 0;

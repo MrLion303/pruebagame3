@@ -1788,6 +1788,176 @@ function scr_party_actor_overlaps(_actor, _object)
 }
 
 
+
+// =========================================================
+// OVERLAP PROYECTADO DE FOLLOWER
+// =========================================================
+
+function scr_party_actor_projected_overlaps(
+    _actor,
+    _object,
+    _dx,
+    _dy
+)
+{
+    if (
+        _actor == noone
+        ||
+        !instance_exists(_actor)
+    )
+    {
+        return false;
+    }
+
+
+    return
+        collision_rectangle(
+            _actor.bbox_left + _dx,
+            _actor.bbox_top + _dy,
+            _actor.bbox_right + _dx,
+            _actor.bbox_bottom + _dy,
+            _object,
+            false,
+            true
+        )
+        !=
+        noone;
+}
+
+
+// =========================================================
+// COLISIÓN PROYECTADA DE FOLLOWER
+// =========================================================
+
+function scr_party_actor_projected_blocked(
+    _actor,
+    _dx,
+    _dy
+)
+{
+    if (
+        _actor == noone
+        ||
+        !instance_exists(_actor)
+    )
+    {
+        return true;
+    }
+
+
+    return
+        collision_rectangle(
+            _actor.bbox_left + _dx,
+            _actor.bbox_top + _dy,
+            _actor.bbox_right + _dx,
+            _actor.bbox_bottom + _dy,
+            colision,
+            false,
+            true
+        )
+        !=
+        noone;
+}
+
+
+// =========================================================
+// AUDIO INDEPENDIENTE DEL DOWNSLIDE - FOLLOWER
+// =========================================================
+
+function scr_party_downslide_sound_start(_actor)
+{
+    if (
+        _actor == noone
+        ||
+        !instance_exists(_actor)
+    )
+    {
+        return;
+    }
+
+
+    if (
+        !variable_instance_exists(
+            _actor,
+            "party_downslide_sound_instance"
+        )
+    )
+    {
+        _actor.party_downslide_sound_instance =
+            -1;
+    }
+
+
+    if (!audio_exists(snd_deslizarse))
+    {
+        return;
+    }
+
+
+    if (
+        _actor.party_downslide_sound_instance == -1
+        ||
+        !audio_is_playing(
+            _actor.party_downslide_sound_instance
+        )
+    )
+    {
+        _actor.party_downslide_sound_instance =
+            audio_play_sound(
+                snd_deslizarse,
+                10,
+                true
+            );
+    }
+}
+
+
+function scr_party_downslide_sound_stop(_actor)
+{
+    if (
+        _actor == noone
+        ||
+        !instance_exists(_actor)
+    )
+    {
+        return;
+    }
+
+
+    if (
+        !variable_instance_exists(
+            _actor,
+            "party_downslide_sound_instance"
+        )
+    )
+    {
+        _actor.party_downslide_sound_instance =
+            -1;
+
+        return;
+    }
+
+
+    if (
+        _actor.party_downslide_sound_instance != -1
+        &&
+        audio_is_playing(
+            _actor.party_downslide_sound_instance
+        )
+    )
+    {
+        // Detener SOLO la instancia de este actor.
+        audio_stop_sound(
+            _actor.party_downslide_sound_instance
+        );
+    }
+
+
+    _actor.party_downslide_sound_instance =
+        -1;
+}
+
+
 // =========================================================
 // ANIMACIÓN DEL FOLLOWER
 // =========================================================
@@ -3087,6 +3257,23 @@ function scr_party_special_state_init(_actor)
     if (!variable_instance_exists(_actor, "party_ice_has_entered"))
         _actor.party_ice_has_entered = false;
 
+
+    // Hielo azul autónomo.
+    if (!variable_instance_exists(_actor, "party_blueice_dx"))
+        _actor.party_blueice_dx = 0;
+
+    if (!variable_instance_exists(_actor, "party_blueice_dy"))
+        _actor.party_blueice_dy = 0;
+
+    if (!variable_instance_exists(_actor, "party_blueice_has_entered"))
+        _actor.party_blueice_has_entered = false;
+
+
+    // Loop propio del deslizamiento hacia abajo.
+    if (!variable_instance_exists(_actor, "party_downslide_sound_instance"))
+        _actor.party_downslide_sound_instance = -1;
+
+
     if (!variable_instance_exists(_actor, "party_special_post_timer"))
         _actor.party_special_post_timer = 0;
 }
@@ -3376,6 +3563,11 @@ function scr_party_update()
                 instance_exists(_actor)
             )
             {
+                scr_party_downslide_sound_stop(
+                    _actor
+                );
+
+
                 _actor.visible =
                     false;
 
@@ -3555,17 +3747,25 @@ function scr_party_update()
             );
 
 
+        var _actor_on_normal_ice =
+            scr_party_actor_overlaps(
+                _actor,
+                obj_hielo
+            );
+
+
+        var _actor_on_blue_ice =
+            scr_party_actor_overlaps(
+                _actor,
+                obj_hielo_azul
+            );
+
+
         var _actor_on_ice =
             (
-                scr_party_actor_overlaps(
-                    _actor,
-                    obj_hielo
-                )
+                _actor_on_normal_ice
                 ||
-                scr_party_actor_overlaps(
-                    _actor,
-                    obj_hielo_azul
-                )
+                _actor_on_blue_ice
             );
 
 
@@ -3616,6 +3816,8 @@ function scr_party_update()
                 _mode == "downslide_wait_gap"
                 ||
                 _mode == "downslide_rejoin"
+                ||
+                _mode == "blueice_slide"
             );
 
 
@@ -3692,6 +3894,13 @@ function scr_party_update()
                     true;
 
 
+                // Segunda instancia independiente si Maya
+                // todavía está deslizando.
+                scr_party_downslide_sound_start(
+                    _actor
+                );
+
+
                 _actor.party_special_post_timer =
                     0;
 
@@ -3739,6 +3948,10 @@ function scr_party_update()
             "downslide_follow"
         )
         {
+            scr_party_downslide_sound_start(
+                _actor
+            );
+
             // Recalcular zona porque el estado puede haber
             // empezado este mismo frame.
             _actor_downslide_zone =
@@ -3920,6 +4133,10 @@ function scr_party_update()
             "downslide_exit"
         )
         {
+            scr_party_downslide_sound_start(
+                _actor
+            );
+
             if (
                 _actor.party_downslide_exit_remaining
                 >
@@ -3971,6 +4188,12 @@ function scr_party_update()
 
                 _actor.party_special_mode =
                     "downslide_wait_gap";
+
+
+                // Terminó la bajada completa de Silicio.
+                scr_party_downslide_sound_stop(
+                    _actor
+                );
 
 
                 // Empezamos a contar DESDE AQUÍ.
@@ -4377,6 +4600,324 @@ function scr_party_update()
 
 
         // =================================================
+        // HIELO AZUL - SILICIO AUTÓNOMO
+        // =================================================
+        //
+        // Hasta tocar el hielo azul, Silicio sigue el historial.
+        //
+        // En cuanto ÉL entra:
+        //
+        //     blueice_slide
+        //     -> continúa recto solo
+        //     -> no depende de Maya
+        //     -> sale del hielo
+        //     -> downslide_wait_gap
+        //     -> downslide_rejoin
+        //
+        // Así reutilizamos exactamente la reincorporación suave
+        // que ya funciona para el deslizamiento hacia abajo.
+        // =================================================
+
+        _mode =
+            _actor.party_special_mode;
+
+
+        var _blueice_can_start =
+            (
+                _mode == "none"
+                ||
+                _mode == "ice_hold"
+                ||
+                _mode == "ice_recover"
+            );
+
+
+        if (
+            _blueice_can_start
+            &&
+            _actor_on_blue_ice
+        )
+        {
+            var _blue_start_x =
+                scr_party_feet_x(
+                    _actor
+                );
+
+
+            var _blue_start_y =
+                scr_party_feet_y(
+                    _actor
+                );
+
+
+            var _blue_route_dx =
+                _normal_target.x
+                -
+                _blue_start_x;
+
+
+            var _blue_route_dy =
+                _normal_target.y
+                -
+                _blue_start_y;
+
+
+            var _blue_dx =
+                0;
+
+
+            var _blue_dy =
+                0;
+
+
+            // Usar el movimiento real de la ruta al entrar.
+            if (
+                abs(_blue_route_dx)
+                >
+                abs(_blue_route_dy)
+                &&
+                abs(_blue_route_dx) > 0.01
+            )
+            {
+                _blue_dx =
+                    sign(
+                        _blue_route_dx
+                    );
+            }
+            else if (
+                abs(_blue_route_dy) > 0.01
+            )
+            {
+                _blue_dy =
+                    sign(
+                        _blue_route_dy
+                    );
+            }
+            else
+            {
+                // Fallback por dirección visual.
+                switch (_actor.face)
+                {
+                    case RIGHT:
+                        _blue_dx = 1;
+                        break;
+
+                    case LEFT:
+                        _blue_dx = -1;
+                        break;
+
+                    case UP:
+                        _blue_dy = -1;
+                        break;
+
+                    default:
+                        _blue_dy = 1;
+                        break;
+                }
+            }
+
+
+            _actor.party_blueice_dx =
+                _blue_dx;
+
+
+            _actor.party_blueice_dy =
+                _blue_dy;
+
+
+            _actor.party_blueice_has_entered =
+                true;
+
+
+            _actor.party_special_mode =
+                "blueice_slide";
+        }
+
+
+        if (
+            _actor.party_special_mode
+            ==
+            "blueice_slide"
+        )
+        {
+            var _blue_x =
+                scr_party_feet_x(
+                    _actor
+                );
+
+
+            var _blue_y =
+                scr_party_feet_y(
+                    _actor
+                );
+
+
+            var _blue_move_dx =
+                _actor.party_blueice_dx;
+
+
+            var _blue_move_dy =
+                _actor.party_blueice_dy;
+
+
+            var _blue_speed =
+                4;
+
+
+            if (
+                variable_instance_exists(
+                    _player_instance,
+                    "blue_ice_speed"
+                )
+            )
+            {
+                _blue_speed =
+                    max(
+                        1,
+                        round(
+                            _player_instance.blue_ice_speed
+                        )
+                    );
+            }
+
+
+            var _blue_off_x =
+                0;
+
+
+            var _blue_off_y =
+                0;
+
+
+            var _blue_exited =
+                !_actor_on_blue_ice;
+
+
+            if (!_blue_exited)
+            {
+                for (
+                    var _bi = 0;
+                    _bi < _blue_speed;
+                    _bi++
+                )
+                {
+                    var _try_x =
+                        _blue_off_x
+                        +
+                        _blue_move_dx;
+
+
+                    var _try_y =
+                        _blue_off_y
+                        +
+                        _blue_move_dy;
+
+
+                    // No atravesar paredes.
+                    if (
+                        scr_party_actor_projected_blocked(
+                            _actor,
+                            _try_x,
+                            _try_y
+                        )
+                    )
+                    {
+                        break;
+                    }
+
+
+                    _blue_off_x =
+                        _try_x;
+
+
+                    _blue_off_y =
+                        _try_y;
+
+
+                    // Terminó en cuanto su bbox proyectado deja
+                    // de tocar obj_hielo_azul.
+                    if (
+                        !scr_party_actor_projected_overlaps(
+                            _actor,
+                            obj_hielo_azul,
+                            _blue_off_x,
+                            _blue_off_y
+                        )
+                    )
+                    {
+                        _blue_exited =
+                            true;
+
+                        break;
+                    }
+                }
+            }
+
+
+            var _blue_face =
+                _actor.face;
+
+
+            if (_blue_move_dx > 0)
+                _blue_face = RIGHT;
+            else if (_blue_move_dx < 0)
+                _blue_face = LEFT;
+            else if (_blue_move_dy < 0)
+                _blue_face = UP;
+            else if (_blue_move_dy > 0)
+                _blue_face = DOWN;
+
+
+            _target = {
+                x:
+                    _blue_x
+                    +
+                    _blue_off_x,
+
+                y:
+                    _blue_y
+                    +
+                    _blue_off_y,
+
+                face:
+                    _blue_face
+            };
+
+
+            if (_blue_exited)
+            {
+                // Misma salida que el downslide.
+                //
+                // Silicio se queda quieto hasta que Maya cree
+                // de nuevo la separación normal; después camina
+                // suavemente hacia formación.
+                _actor.party_special_mode =
+                    "downslide_wait_gap";
+
+
+                _actor.party_downslide_gap_accum =
+                    0;
+
+
+                _actor.party_downslide_rejoin_current_speed =
+                    0;
+
+
+                _actor.party_special_gap =
+                    0;
+
+
+                _actor.party_special_post_timer =
+                    0;
+
+
+                _actor.party_blueice_has_entered =
+                    false;
+            }
+        }
+
+
+        // =================================================
         // HIELO NORMAL / AZUL
         // =================================================
         //
@@ -4405,13 +4946,15 @@ function scr_party_update()
                 _mode == "downslide_wait_gap"
                 ||
                 _mode == "downslide_rejoin"
+                ||
+                _mode == "blueice_slide"
             );
 
 
         if (
             !_mode_is_downslide
             &&
-            _player_on_ice
+            _player_on_normal_ice
             &&
             _mode != "ice_hold"
         )
@@ -4448,7 +4991,7 @@ function scr_party_update()
             "ice_hold"
         )
         {
-            if (_actor_on_ice)
+            if (_actor_on_normal_ice)
             {
                 _actor.party_ice_has_entered =
                     true;
@@ -4461,7 +5004,7 @@ function scr_party_update()
                 );
 
 
-            if (_player_on_ice)
+            if (_player_on_normal_ice)
             {
                 _actor.party_special_post_timer =
                     0;
@@ -4475,11 +5018,11 @@ function scr_party_update()
             // No recuperar la distancia normal hasta que
             // Silicio también haya pasado y salido del hielo.
             if (
-                !_player_on_ice
+                !_player_on_normal_ice
                 &&
                 _actor.party_ice_has_entered
                 &&
-                !_actor_on_ice
+                !_actor_on_normal_ice
             )
             {
                 _actor.party_special_mode =
@@ -4488,7 +5031,7 @@ function scr_party_update()
 
 
             if (
-                !_player_on_ice
+                !_player_on_normal_ice
                 &&
                 _actor.party_special_post_timer
                 >=
@@ -4513,7 +5056,7 @@ function scr_party_update()
         {
             // Si Maya entra a otro hielo antes de terminar
             // la recuperación, conservar la distancia actual.
-            if (_player_on_ice)
+            if (_player_on_normal_ice)
             {
                 _actor.party_special_mode =
                     "ice_hold";
@@ -4529,7 +5072,7 @@ function scr_party_update()
 
 
                 _actor.party_ice_has_entered =
-                    _actor_on_ice;
+                    _actor_on_normal_ice;
 
 
                 _actor.party_special_post_timer =
@@ -4583,6 +5126,22 @@ function scr_party_update()
                         _normal_target;
                 }
             }
+        }
+
+
+        // =================================================
+        // SEGURIDAD DEL LOOP DE DOWNSLIDE
+        // =================================================
+
+        if (
+            _actor.party_special_mode != "downslide_follow"
+            &&
+            _actor.party_special_mode != "downslide_exit"
+        )
+        {
+            scr_party_downslide_sound_stop(
+                _actor
+            );
         }
 
 
