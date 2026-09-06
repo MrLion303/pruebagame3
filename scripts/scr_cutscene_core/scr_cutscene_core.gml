@@ -715,6 +715,11 @@ function cs_wait_seconds(_seconds)
 //     true = si cierras el cuadro antes de que termine,
 //            también se detiene el sonido largo.
 //     false = el sonido sigue aunque cierres el cuadro.
+//
+// _itemclave:
+//     "" = no entregar nada.
+//     "mi_id" = entregar ese objeto clave cuando aparezca
+//               esta página.
 // ---------------------------------------------------------
 
 function cs_dialog(
@@ -724,7 +729,8 @@ function cs_dialog(
     _color = c_white,
     _extra_sound = noone,
     _stop_extra_with_dialog = true,
-    _extra_gain = 1
+    _extra_gain = 1,
+    _itemclave = ""
 )
 {
     return {
@@ -735,8 +741,46 @@ function cs_dialog(
         snd: _snd,
         extra_sound: _extra_sound,
         stop_extra_with_dialog: _stop_extra_with_dialog,
-        extra_gain: _extra_gain
+        extra_gain: _extra_gain,
+
+        // ID opcional de objeto clave.
+        // Se entrega al comenzar esta página de diálogo.
+        itemclave: _itemclave
     };
+}
+
+
+// ---------------------------------------------------------
+// DIÁLOGO QUE ENTREGA UN OBJETO CLAVE
+// ---------------------------------------------------------
+//
+// Forma corta:
+//
+//     cs_dialog_itemclave(
+//         scr_loc_src("Recibiste una llave."),
+//         "llave_prueba"
+//     )
+//
+// ---------------------------------------------------------
+
+function cs_dialog_itemclave(
+    _text,
+    _itemclave,
+    _head = noone,
+    _snd = snd_text,
+    _color = c_white
+)
+{
+    return cs_dialog(
+        _text,
+        _head,
+        _snd,
+        _color,
+        noone,
+        true,
+        1,
+        _itemclave
+    );
 }
 
 
@@ -1456,3 +1500,5 @@ function scr_cutscene_resume_after_battle()
 
     return true;
 }
+
+

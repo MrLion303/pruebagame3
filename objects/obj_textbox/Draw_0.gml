@@ -1,3 +1,4 @@
+
 /// =========================================================
 /// OBJ_TEXTBOX
 /// DRAW COMPLETO
@@ -630,6 +631,94 @@ if (setup == false)
                 );
 
 
+            // =============================================
+            // SALTO MANUAL CON \n
+            // =============================================
+            //
+            // El salto se aplica a partir del carácter
+            // siguiente. El propio \n se oculta más abajo.
+            // =============================================
+
+            if (_char_current == "\n")
+            {
+                line_break_pos[
+                    line_break_num[p],
+                    p
+                ] =
+                    c + 1;
+
+
+                line_break_num[p]++;
+
+
+                _line_start_char =
+                    c + 1;
+
+
+                _last_space =
+                    -1;
+
+
+                continue;
+            }
+
+
+            // =============================================
+            // ASTERISCO = NUEVO RENGLÓN AUTOMÁTICO
+            // =============================================
+            //
+            // El primer carácter puede ser `*` sin provocar
+            // ningún salto. Cualquier otro `*` comienza una
+            // línea nueva.
+            //
+            // Ejemplo escrito en UNA sola cadena:
+            //
+            //     * Hola * Que tal estas?
+            //
+            // se dibuja como:
+            //
+            //     * Hola
+            //     * Que tal estas?
+            //
+            // Si el `*` ya viene justo después de \n, no
+            // añadimos un salto duplicado.
+            // =============================================
+
+            if (
+                _char_current == "*"
+                &&
+                c > 1
+            )
+            {
+                var _previous_char =
+                    string_char_at(
+                        text[p],
+                        c - 1
+                    );
+
+
+                if (_previous_char != "\n")
+                {
+                    line_break_pos[
+                        line_break_num[p],
+                        p
+                    ] =
+                        c;
+
+
+                    line_break_num[p]++;
+
+
+                    _line_start_char =
+                        c;
+
+
+                    _last_space =
+                        -1;
+                }
+            }
+
+
             if (_char_current == " ")
             {
                 _last_space =
@@ -769,6 +858,23 @@ if (setup == false)
             }
 
 
+            // El carácter de salto manual no se dibuja.
+            if (char[c, p] == "\n")
+            {
+                char_x[c, p] =
+                    -9999;
+
+
+                char_y[c, p] =
+                    -9999;
+
+
+                continue;
+            }
+
+
+            // Si el wrap automático dejó un espacio justo al
+            // inicio de una línea, tampoco lo dibujamos.
             if (
                 _line_start_pos
                 ==
@@ -881,6 +987,92 @@ if (
 {
     text_lenght[page] =
         0;
+}
+
+
+// =========================================================
+// ENTREGAR OBJETO CLAVE ASOCIADO A ESTA PÁGINA
+// =========================================================
+//
+// Funciona tanto para diálogos normales como para páginas
+// creadas por el sistema de cinemáticas.
+// =========================================================
+
+if (!variable_instance_exists(id, "page_itemclave"))
+{
+    page_itemclave =
+        [];
+}
+
+
+if (!variable_instance_exists(id, "page_itemclave_given"))
+{
+    page_itemclave_given =
+        [];
+}
+
+
+if (
+    page < array_length(
+        page_itemclave
+    )
+)
+{
+    var _page_key_item =
+        page_itemclave[page];
+
+
+    var _page_key_given =
+        (
+            page < array_length(
+                page_itemclave_given
+            )
+            &&
+            !is_undefined(
+                page_itemclave_given[page]
+            )
+        )
+        ?
+        page_itemclave_given[page]
+        :
+        false;
+
+
+    if (
+        !_page_key_given
+        &&
+        is_string(
+            _page_key_item
+        )
+        &&
+        _page_key_item != ""
+    )
+    {
+        // Se marca ANTES de llamar a la función para evitar
+        // cualquier repetición si el item no existe.
+        if (
+            array_length(
+                page_itemclave_given
+            )
+            <=
+            page
+        )
+        {
+            array_resize(
+                page_itemclave_given,
+                page + 1
+            );
+        }
+
+
+        page_itemclave_given[page] =
+            true;
+
+
+        scr_itemclave_dar(
+            _page_key_item
+        );
+    }
 }
 
 

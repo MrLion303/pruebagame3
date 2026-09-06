@@ -626,6 +626,11 @@ function scr_cargar_juego(_seccion)
     }
 
 
+    // Añade campos faltantes de inventario en saves antiguos,
+    // incluyendo el nuevo arreglo de objetos CLAVE.
+    scr_inventarios_data();
+
+
     // =====================================================
     // NIVEL
     // =====================================================
@@ -742,6 +747,18 @@ function scr_cargar_juego(_seccion)
     {
         global.equipment_inventory =
             global.inventory_data.equipamiento;
+    }
+
+
+    if (
+        variable_struct_exists(
+            global.inventory_data,
+            "claves"
+        )
+    )
+    {
+        global.itemclave_inventory =
+            global.inventory_data.claves;
     }
 
 
@@ -954,4 +971,3 @@ function scr_aplicar_datos_cargados(_jugador)
         }
     }
 }
-

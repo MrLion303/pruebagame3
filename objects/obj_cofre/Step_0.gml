@@ -1,7 +1,52 @@
+
 // =========================================================
 // OBJ_COFRE
 // STEP
 // =========================================================
+
+
+// =========================================================
+// SINCRONIZAR PROXY DE COLISIÓN
+// =========================================================
+
+if (
+    variable_instance_exists(
+        id,
+        "cofre_collision_proxy"
+    )
+    &&
+    cofre_collision_proxy != noone
+    &&
+    instance_exists(cofre_collision_proxy)
+)
+{
+    cofre_collision_proxy.x =
+        x;
+
+    cofre_collision_proxy.y =
+        y;
+
+    cofre_collision_proxy.sprite_index =
+        sprite_index;
+
+    cofre_collision_proxy.mask_index =
+        sprite_index;
+
+    cofre_collision_proxy.image_index =
+        image_index;
+
+    cofre_collision_proxy.image_xscale =
+        image_xscale;
+
+    cofre_collision_proxy.image_yscale =
+        image_yscale;
+
+    cofre_collision_proxy.image_angle =
+        image_angle;
+
+    cofre_collision_proxy.visible =
+        false;
+}
 
 
 // Ya hay un cofre abierto.
@@ -104,12 +149,34 @@ var _dy =
     _cy - _py;
 
 
+// Distancia real hasta el BORDE del sprite del cofre.
+//
+// Como ahora el cofre sí bloquea físicamente, medir de
+// centro a centro podría impedir abrir sprites grandes.
+// Usamos el punto más cercano de su bbox para conservar la
+// distancia de interacción de 20 px independientemente del
+// tamaño visual del cofre.
+var _nearest_chest_x =
+    clamp(
+        _px,
+        bbox_left,
+        bbox_right
+    );
+
+var _nearest_chest_y =
+    clamp(
+        _py,
+        bbox_top,
+        bbox_bottom
+    );
+
+
 var _dist =
     point_distance(
         _px,
         _py,
-        _cx,
-        _cy
+        _nearest_chest_x,
+        _nearest_chest_y
     );
 
 

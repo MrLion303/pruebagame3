@@ -805,6 +805,26 @@ switch (_action.type)
             );
 
 
+            if (
+                variable_struct_exists(
+                    _action,
+                    "itemclave"
+                )
+                &&
+                is_string(
+                    _action.itemclave
+                )
+                &&
+                _action.itemclave != ""
+            )
+            {
+                scr_text_give_itemclave(
+                    _action.itemclave,
+                    id
+                );
+            }
+
+
             page_extra_sound =
                 [
                     _action.extra_sound
@@ -1822,3 +1842,5 @@ switch (_action.type)
         game_end();
         exit;
 }
+
+

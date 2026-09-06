@@ -151,6 +151,7 @@
     {"id":{"name":"scr_game_text","path":"scripts/scr_game_text/scr_game_text.yy",},},
     {"id":{"name":"scr_ice_system","path":"scripts/scr_ice_system/scr_ice_system.yy",},},
     {"id":{"name":"scr_inventarios_data","path":"scripts/scr_inventarios_data/scr_inventarios_data.yy",},},
+    {"id":{"name":"scr_itemclave_data","path":"scripts/scr_itemclave_data/scr_itemclave_data.yy",},},
     {"id":{"name":"scr_items_data","path":"scripts/scr_items_data/scr_items_data.yy",},},
     {"id":{"name":"scr_level_data","path":"scripts/scr_level_data/scr_level_data.yy",},},
     {"id":{"name":"scr_localizacion","path":"scripts/scr_localizacion/scr_localizacion.yy",},},

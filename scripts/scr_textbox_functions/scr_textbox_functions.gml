@@ -36,6 +36,27 @@ function scr_set_defaults_for_text() {
     line_break_num[page_number] = 0;
     line_break_offset[page_number] = 0;
     speaker_side[page_number] = 1;
+
+
+    // Objeto clave asociado a esta página.
+    if (!variable_instance_exists(id, "page_itemclave")) {
+        page_itemclave = [];
+    }
+
+    if (!variable_instance_exists(id, "page_itemclave_given")) {
+        page_itemclave_given = [];
+    }
+
+    if (array_length(page_itemclave) <= page_number) {
+        array_resize(page_itemclave, page_number + 1);
+    }
+
+    if (array_length(page_itemclave_given) <= page_number) {
+        array_resize(page_itemclave_given, page_number + 1);
+    }
+
+    page_itemclave[page_number] = "";
+    page_itemclave_given[page_number] = false;
 }
 
 /// @param text
@@ -72,6 +93,114 @@ function scr_text(_text, _color = c_white, _speaker_spr = noone, _sound = snd_te
         page_number++;
     }
 }
+
+// =========================================================
+// ASOCIAR UN OBJETO CLAVE A LA ÚLTIMA PÁGINA CREADA
+// =========================================================
+//
+// Usar inmediatamente DESPUÉS de scr_text():
+//
+//     scr_text(
+//         scr_loc(
+//             scr_loc_src("Recibiste una llave.")
+//         )
+//     );
+//
+//     scr_text_give_itemclave(
+//         "llave_prueba"
+//     );
+//
+// El objeto se entrega al comenzar a mostrarse esa página.
+// Si ya se tenía, no se duplica.
+// =========================================================
+
+function scr_text_give_itemclave(_itemclave_id, _textbox = noone)
+{
+    var _target =
+        _textbox;
+
+
+    // En diálogos normales normalmente existe una sola caja.
+    // Si no se especifica una, usamos la primera obj_textbox.
+    if (_target == noone)
+    {
+        if (!instance_exists(obj_textbox))
+        {
+            return false;
+        }
+
+
+        _target =
+            instance_find(
+                obj_textbox,
+                0
+            );
+    }
+
+
+    if (
+        _target == noone
+        ||
+        !instance_exists(_target)
+    )
+    {
+        return false;
+    }
+
+
+    with (_target)
+    {
+        var _target_page =
+            page_number - 1;
+
+
+        if (_target_page >= 0)
+        {
+            if (!variable_instance_exists(id, "page_itemclave"))
+            {
+                page_itemclave =
+                    [];
+            }
+
+
+            if (!variable_instance_exists(id, "page_itemclave_given"))
+            {
+                page_itemclave_given =
+                    [];
+            }
+
+
+            if (array_length(page_itemclave) <= _target_page)
+            {
+                array_resize(
+                    page_itemclave,
+                    _target_page + 1
+                );
+            }
+
+
+            if (array_length(page_itemclave_given) <= _target_page)
+            {
+                array_resize(
+                    page_itemclave_given,
+                    _target_page + 1
+                );
+            }
+
+
+            page_itemclave[_target_page] =
+                _itemclave_id;
+
+
+            page_itemclave_given[_target_page] =
+                false;
+        }
+    }
+
+
+    return true;
+}
+
 
 // -------- TEXT VFX (COLOR) --------
 function scr_text_color(_start, _end, _col1, _col2, _col3, _col4){
@@ -259,6 +388,9 @@ function scr_textbox_clear_content(_textbox)
         page_extra_sound = [];
         page_extra_stop = [];
         page_extra_gain = [];
+
+        page_itemclave = [];
+        page_itemclave_given = [];
 
         page_extra_active_page = -1;
         page_extra_instance = -1;

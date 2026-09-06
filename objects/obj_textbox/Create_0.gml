@@ -46,6 +46,24 @@ option_link_id[0] = -1;
 option_pos = 0;
 option_number = 0;
 
+
+// =========================================================
+// OBJETOS CLAVE ENTREGADOS POR PÁGINA
+// =========================================================
+//
+// page_itemclave[p]:
+//     ID del objeto clave que se entrega al comenzar
+//     a mostrarse esa página.
+//
+// page_itemclave_given[p]:
+//     evita entregar el mismo objeto varias veces mientras
+//     la página permanece abierta.
+// =========================================================
+
+page_itemclave = [];
+page_itemclave_given = [];
+
+
 text_id = "default";
 
 scr_set_defaults_for_text();

@@ -1,3 +1,4 @@
+
 /// =========================================================
 /// SCR_PARTY_SYSTEM
 /// =========================================================
@@ -3257,6 +3258,16 @@ function scr_party_special_state_init(_actor)
     if (!variable_instance_exists(_actor, "party_ice_has_entered"))
         _actor.party_ice_has_entered = false;
 
+    // Distancia NUEVA recorrida por Maya DESPUÉS de que
+    // Silicio termina completamente el hielo normal.
+    // Funciona igual que la espera posterior al downslide.
+    if (!variable_instance_exists(_actor, "party_ice_gap_accum"))
+        _actor.party_ice_gap_accum = 0;
+
+    // Velocidad física actual de la reincorporación tras hielo.
+    if (!variable_instance_exists(_actor, "party_ice_rejoin_current_speed"))
+        _actor.party_ice_rejoin_current_speed = 0;
+
 
     // Hielo azul autónomo.
     if (!variable_instance_exists(_actor, "party_blueice_dx"))
@@ -5015,8 +5026,14 @@ function scr_party_update()
             }
 
 
-            // No recuperar la distancia normal hasta que
-            // Silicio también haya pasado y salido del hielo.
+            // Cuando Maya ya salió y Silicio TAMBIÉN terminó
+            // de atravesar el hielo, dejamos de corregir la
+            // distancia por ruta. Desde aquí usamos el mismo
+            // principio que el downslide:
+            //
+            //     1. Silicio queda quieto.
+            //     2. Maya genera de nuevo la separación.
+            //     3. Silicio se reincorpora físicamente.
             if (
                 !_player_on_normal_ice
                 &&
@@ -5026,11 +5043,34 @@ function scr_party_update()
             )
             {
                 _actor.party_special_mode =
-                    "ice_recover";
+                    "ice_wait_gap";
+
+
+                _actor.party_ice_gap_accum =
+                    0;
+
+
+                _actor.party_ice_rejoin_current_speed =
+                    0;
+
+
+                _actor.party_special_gap =
+                    0;
+
+
+                _actor.party_special_post_timer =
+                    0;
             }
 
 
+            // Failsafe únicamente para casos anómalos en los
+            // que Maya salió pero Silicio nunca consiguió
+            // registrar correctamente su paso por el hielo.
             if (
+                _actor.party_special_mode
+                ==
+                "ice_hold"
+                &&
                 !_player_on_normal_ice
                 &&
                 _actor.party_special_post_timer
@@ -5045,7 +5085,290 @@ function scr_party_update()
 
 
         // -------------------------------------------------
-        // VOLVER SUAVEMENTE A LA DISTANCIA NORMAL
+        // HIELO NORMAL - ESPERAR A QUE MAYA GENERE EL GAP
+        // -------------------------------------------------
+        //
+        // Adaptación directa del comportamiento posterior al
+        // deslizamiento hacia abajo.
+        //
+        // Silicio NO intenta crear distancia por sí mismo.
+        // Al salir del hielo se queda exactamente quieto y
+        // solo cuenta el recorrido NUEVO de Maya.
+        // -------------------------------------------------
+
+        if (
+            _actor.party_special_mode
+            ==
+            "ice_wait_gap"
+        )
+        {
+            var _ice_wait_x =
+                scr_party_feet_x(
+                    _actor
+                );
+
+
+            var _ice_wait_y =
+                scr_party_feet_y(
+                    _actor
+                );
+
+
+            _target = {
+                x:
+                    _ice_wait_x,
+
+                y:
+                    _ice_wait_y,
+
+                face:
+                    _actor.face
+            };
+
+
+            // Igual que el downslide: solo cuenta movimiento
+            // nuevo de Maya DESPUÉS de que Silicio salió.
+            if (_player_actually_moved)
+            {
+                _actor.party_ice_gap_accum +=
+                    max(
+                        0,
+                        _player_move_distance
+                    );
+            }
+
+
+            _actor.party_special_gap =
+                _actor.party_ice_gap_accum;
+
+
+            if (
+                _actor.party_ice_gap_accum
+                >=
+                _normal_gap
+            )
+            {
+                _actor.party_special_mode =
+                    "ice_rejoin";
+
+
+                // No mover en el mismo Step del cambio.
+                _actor.party_special_post_timer =
+                    1;
+
+
+                _actor.party_ice_rejoin_current_speed =
+                    0;
+            }
+        }
+
+
+        // -------------------------------------------------
+        // HIELO NORMAL - REINCORPORACIÓN SUAVE
+        // -------------------------------------------------
+        //
+        // Usa exactamente el mismo perfil de aceleración que
+        // la reincorporación del downslide, pero conserva sus
+        // propias variables para no mezclar ambos terrenos.
+        // -------------------------------------------------
+
+        if (
+            _actor.party_special_mode
+            ==
+            "ice_rejoin"
+        )
+        {
+            var _ice_rejoin_x =
+                scr_party_feet_x(
+                    _actor
+                );
+
+
+            var _ice_rejoin_y =
+                scr_party_feet_y(
+                    _actor
+                );
+
+
+            // Primer frame de la reincorporación: quieto.
+            if (_actor.party_special_post_timer > 0)
+            {
+                _actor.party_special_post_timer--;
+
+
+                _target = {
+                    x:
+                        _ice_rejoin_x,
+
+                    y:
+                        _ice_rejoin_y,
+
+                    face:
+                        _actor.face
+                };
+            }
+            else
+            {
+                var _ice_rejoin_target =
+                    _normal_target;
+
+
+                var _ice_rejoin_dx =
+                    _ice_rejoin_target.x
+                    -
+                    _ice_rejoin_x;
+
+
+                var _ice_rejoin_dy =
+                    _ice_rejoin_target.y
+                    -
+                    _ice_rejoin_y;
+
+
+                var _ice_rejoin_distance =
+                    point_distance(
+                        _ice_rejoin_x,
+                        _ice_rejoin_y,
+                        _ice_rejoin_target.x,
+                        _ice_rejoin_target.y
+                    );
+
+
+                if (
+                    _actor.party_ice_rejoin_current_speed
+                    <=
+                    0
+                )
+                {
+                    _actor.party_ice_rejoin_current_speed =
+                        global.party_downslide_rejoin_start_speed;
+                }
+                else
+                {
+                    _actor.party_ice_rejoin_current_speed =
+                        min(
+                            global.party_downslide_rejoin_speed,
+                            _actor.party_ice_rejoin_current_speed
+                            +
+                            global.party_downslide_rejoin_accel
+                        );
+                }
+
+
+                var _ice_rejoin_speed =
+                    max(
+                        0.1,
+                        _actor.party_ice_rejoin_current_speed
+                    );
+
+
+                var _ice_rejoin_face =
+                    _ice_rejoin_target.face;
+
+
+                if (abs(_ice_rejoin_dx) > abs(_ice_rejoin_dy))
+                {
+                    if (_ice_rejoin_dx > 0)
+                        _ice_rejoin_face = RIGHT;
+                    else if (_ice_rejoin_dx < 0)
+                        _ice_rejoin_face = LEFT;
+                }
+                else
+                {
+                    if (_ice_rejoin_dy > 0)
+                        _ice_rejoin_face = DOWN;
+                    else if (_ice_rejoin_dy < 0)
+                        _ice_rejoin_face = UP;
+                }
+
+
+                if (_ice_rejoin_distance <= 0.25)
+                {
+                    _target = {
+                        x:
+                            _ice_rejoin_x,
+
+                        y:
+                            _ice_rejoin_y,
+
+                        face:
+                            _ice_rejoin_face
+                    };
+
+
+                    _actor.party_special_mode =
+                        "none";
+
+
+                    _actor.party_ice_has_entered =
+                        false;
+
+
+                    _actor.party_ice_gap_accum =
+                        0;
+
+
+                    _actor.party_ice_rejoin_current_speed =
+                        0;
+
+
+                    _actor.party_special_gap =
+                        0;
+
+
+                    _actor.party_special_post_timer =
+                        0;
+                }
+                else
+                {
+                    var _ice_step_distance =
+                        min(
+                            _ice_rejoin_speed,
+                            _ice_rejoin_distance
+                        );
+
+
+                    var _ice_rejoin_direction =
+                        point_direction(
+                            _ice_rejoin_x,
+                            _ice_rejoin_y,
+                            _ice_rejoin_target.x,
+                            _ice_rejoin_target.y
+                        );
+
+
+                    _target = {
+                        x:
+                            _ice_rejoin_x
+                            +
+                            lengthdir_x(
+                                _ice_step_distance,
+                                _ice_rejoin_direction
+                            ),
+
+                        y:
+                            _ice_rejoin_y
+                            +
+                            lengthdir_y(
+                                _ice_step_distance,
+                                _ice_rejoin_direction
+                            ),
+
+                        face:
+                            _ice_rejoin_face
+                    };
+                }
+            }
+        }
+
+
+        // -------------------------------------------------
+        // RECUPERACIÓN DE SEGURIDAD DEL HIELO NORMAL
+        // -------------------------------------------------
+        //
+        // Se conserva como failsafe para rutas anómalas.
+        // En una salida normal ahora se usan ice_wait_gap e
+        // ice_rejoin.
         // -------------------------------------------------
 
         if (
@@ -5116,6 +5439,14 @@ function scr_party_update()
 
                     _actor.party_ice_has_entered =
                         false;
+
+
+                    _actor.party_ice_gap_accum =
+                        0;
+
+
+                    _actor.party_ice_rejoin_current_speed =
+                        0;
 
 
                     _actor.party_special_post_timer =
@@ -5303,3 +5634,5 @@ function scr_party_update()
         );
     }
 }
+
+

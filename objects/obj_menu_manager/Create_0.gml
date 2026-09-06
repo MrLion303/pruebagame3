@@ -1,4 +1,5 @@
-main_options = [scr_loc_src("INV"), scr_loc_src("TOYS"), scr_loc_src("EQUIP"), scr_loc_src("STAD"), scr_loc_src("CONFIG"), scr_loc_src("CERRAR")];
+
+main_options = [scr_loc_src("INV"), scr_loc_src("TOYS"), scr_loc_src("STAD"), scr_loc_src("CONFIG"), scr_loc_src("CERRAR")];
 main_index = 0;
 
 enum MENU_STATE {
@@ -18,6 +19,8 @@ enum MENU_STATE {
     EQUIP_ACTION,
     EQUIP_INFO,
     EQUIP_DROP_CONFIRM,
+
+    CLAVE_MENU,
     
     INFO_MENU,
     CONFIG_MENU,
@@ -66,6 +69,10 @@ if (!variable_global_exists("item_db")) {
     scr_item_db();
 }
 
+if (!variable_global_exists("itemclave_db")) {
+    src_itemclave_data();
+}
+
 // =========================================================
 // SINCRONIZAR INVENTARIO CON PLAYER
 // =========================================================
@@ -97,6 +104,42 @@ if (instance_exists(obj_player)) {
 inv_x = 0;
 inv_y = 0;
 inv_scroll = 0;
+
+
+// =========================================================
+// PESTAÑAS DE INVENTARIO
+// =========================================================
+//
+// 0 = INV
+// 1 = EQUIP
+// 2 = CLAVE
+//
+// inventory_tab_focus = true:
+// las flechas izquierda/derecha cambian de pestaña.
+//
+// inventory_tab_focus = false:
+// las flechas controlan la cuadrícula del inventario.
+// =========================================================
+
+inventory_tab = 0;
+inventory_tab_focus = false;
+
+
+// =========================================================
+// INVENTARIO DE OBJETOS CLAVE
+// =========================================================
+
+scr_inventarios_data();
+
+if (!variable_global_exists("itemclave_inventory"))
+{
+    global.itemclave_inventory =
+        global.inventory_data.claves;
+}
+
+clave_x = 0;
+clave_y = 0;
+clave_scroll = 0;
 
 // =========================================================
 // INVENTARIO DE EQUIPAMIENTO PERSISTENTE
@@ -223,3 +266,21 @@ equip_action_index = 0;
 
 drop_confirm_index = 1;
 close_confirm_index = 1;
+
+
+// =========================================================
+// ANIMACIÓN DE LA VENTANA EXTRA DE INFO
+// =========================================================
+//
+// 0 = completamente escondida detrás del panel grande.
+// 1 = posición final debajo del inventario/equipamiento.
+//
+// A 30 FPS, 1/12 dura aproximadamente 0.4 segundos.
+// =========================================================
+
+info_stat_slide =
+    0;
+
+info_stat_slide_speed =
+    1 / 12;
+
