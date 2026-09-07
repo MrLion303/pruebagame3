@@ -416,7 +416,7 @@ var _tab_text_offset_x =
     3,
     7,
     5,
-    5
+    11
 ];
 
 
@@ -451,7 +451,11 @@ for (
         top_index;
 
 
-    if (state == SHOP_BUY)
+    if (
+        state == SHOP_BUY
+        ||
+        state == SHOP_BUY_CONFIRM
+    )
     {
         _active_tab =
             0;
@@ -520,7 +524,11 @@ var _money_space_entry =
     undefined;
 
 if (
-    state == SHOP_BUY
+    (
+        state == SHOP_BUY
+        ||
+        state == SHOP_BUY_CONFIRM
+    )
     &&
     array_length(shop_data.items_venta) > 0
 )
@@ -728,6 +736,24 @@ if (shop_message != "")
 
 
 // ---------------------------------------------------------
+// CONFIRMACIÓN DE COMPRA
+// ---------------------------------------------------------
+
+if (state == SHOP_BUY_CONFIRM)
+{
+    _left_dialog_text =
+        scr_loc(
+            scr_loc_src(
+                "¿Comprar?"
+            )
+        );
+
+    _left_dialog_color =
+        c_yellow;
+}
+
+
+// ---------------------------------------------------------
 // DESPEDIDA
 // ---------------------------------------------------------
 
@@ -852,6 +878,56 @@ draw_text_ext_transformed(
 );
 
 
+// ---------------------------------------------------------
+// SÍ / NO DE COMPRA
+// ---------------------------------------------------------
+
+if (state == SHOP_BUY_CONFIRM)
+{
+    var _buy_confirm_options =
+    [
+        scr_loc_src("Sí"),
+        scr_loc_src("No")
+    ];
+
+
+    draw_set_halign(
+        fa_center
+    );
+
+
+    for (var _bc = 0; _bc < 2; _bc++)
+    {
+        draw_set_color(
+            (buy_confirm_index == _bc)
+            ?
+            c_yellow
+            :
+            c_white
+        );
+
+
+        draw_text_transformed(
+            _left_x
+            +
+            (_left_w * 0.5)
+            +
+            ((_bc - 0.5) * 72),
+            _dialog_y + 98,
+            scr_loc(_buy_confirm_options[_bc]),
+            0.38 * _text_mul,
+            0.38 * _text_mul,
+            0
+        );
+    }
+
+
+    draw_set_halign(
+        fa_left
+    );
+}
+
+
 // =========================================================
 // CONTENIDO DERECHO
 // =========================================================
@@ -891,6 +967,8 @@ var _preview_talk =
 var _show_buy =
     (
         state == SHOP_BUY
+        ||
+        state == SHOP_BUY_CONFIRM
         ||
         _preview_buy
     );
@@ -1009,7 +1087,11 @@ if (_show_buy)
 
             var _is_selected =
                 (
-                    state == SHOP_BUY
+                    (
+                        state == SHOP_BUY
+                        ||
+                        state == SHOP_BUY_CONFIRM
+                    )
                     &&
                     _idx == buy_index
                 );

@@ -5,6 +5,48 @@
 
 
 // =========================================================
+// SINCRONIZAR COLISIÓN CON EL SPRITE
+// =========================================================
+
+if (
+    collision_proxy == noone
+    ||
+    !instance_exists(
+        collision_proxy
+    )
+)
+{
+    collision_proxy =
+        scr_puzzle_collision_proxy_create(
+            id
+        );
+}
+
+
+scr_puzzle_collision_proxy_sync(
+    id,
+    collision_proxy
+);
+
+
+// `scr_puzzle_collision_proxy_sync` respeta mask_index del
+// dueño. Para obj_save queremos específicamente el tamaño y
+// máscara de SU SPRITE visible.
+if (
+    collision_proxy != noone
+    &&
+    instance_exists(collision_proxy)
+)
+{
+    collision_proxy.sprite_index =
+        sprite_index;
+
+    collision_proxy.mask_index =
+        sprite_index;
+}
+
+
+// =========================================================
 // PLAYER
 // =========================================================
 
@@ -144,6 +186,37 @@ if (
     obj_menu_manager.state
     !=
     MENU_STATE.CLOSED
+)
+{
+    exit;
+}
+
+
+// =========================================================
+// BLOQUEO DE LA MISMA PULSACIÓN QUE CERRÓ EL MENÚ
+// =========================================================
+//
+// Al usar un consumible, el menú de pausa puede cerrarse en
+// el mismo frame en que Z/Enter fue pulsado. Sin este bloqueo,
+// el punto de guardado podía reutilizar ESA MISMA pulsación.
+// =========================================================
+
+var _pause_menu =
+    instance_find(
+        obj_menu_manager,
+        0
+    );
+
+
+if (
+    _pause_menu != noone
+    &&
+    variable_instance_exists(
+        _pause_menu,
+        "interaction_release_block"
+    )
+    &&
+    _pause_menu.interaction_release_block > 0
 )
 {
     exit;

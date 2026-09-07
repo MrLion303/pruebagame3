@@ -1,4 +1,3 @@
-
 /// =========================================================
 /// OBJ_SHOP_CONTROLLER
 /// CREATE COMPLETO
@@ -62,6 +61,10 @@ SHOP_EXIT_DIALOG =
 SHOP_SELL_TYPE =
     6;
 
+// Confirmación antes de comprar un objeto.
+SHOP_BUY_CONFIRM =
+    7;
+
 
 state =
     SHOP_TOP;
@@ -98,6 +101,12 @@ buy_index =
 
 buy_scroll =
     0;
+
+// 0 = Sí
+// 1 = No
+// Por seguridad empieza en No.
+buy_confirm_index =
+    1;
 
 
 // =========================================================

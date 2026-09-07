@@ -80,6 +80,41 @@ save_dialogue_textbox =
 
 
 // =========================================================
+// COLISIÓN DEL TAMAÑO DEL SPRITE
+// =========================================================
+//
+// obj_save sigue siendo un objeto independiente, pero crea
+// una instancia invisible de `colision` con exactamente su
+// mismo sprite/máscara, escala y ángulo.
+//
+// Así el sistema normal de movimiento del player lo trata
+// como obstáculo sin tener que cambiar Parent.
+// =========================================================
+
+collision_proxy =
+    scr_puzzle_collision_proxy_create(
+        id
+    );
+
+
+// Forzar que la máscara física sea exactamente la del sprite
+// visible de obj_save, aunque el objeto tuviera un mask_index
+// personalizado configurado en el editor.
+if (
+    collision_proxy != noone
+    &&
+    instance_exists(collision_proxy)
+)
+{
+    collision_proxy.sprite_index =
+        sprite_index;
+
+    collision_proxy.mask_index =
+        sprite_index;
+}
+
+
+// =========================================================
 // DEPTH SORT
 // =========================================================
 

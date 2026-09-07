@@ -100,13 +100,61 @@ var _show_inventory_tabs =
 );
 
 
+// =========================================================
+// ANIMACIÓN HACIA ARRIBA
+// =========================================================
+//
+// Igual que la ventana HP / AT / DEF:
+// ease-out cúbico durante 12 frames.
+//
+// La caja se dibuja ANTES del panel grande. Su posición
+// inicial queda detrás de él; al subir parece salir de la
+// propia interfaz.
+// =========================================================
+
+if (_show_inventory_tabs)
+{
+    inventory_tab_slide =
+        min(
+            1,
+            inventory_tab_slide
+            +
+            inventory_tab_slide_speed
+        );
+}
+else
+{
+    inventory_tab_slide =
+        0;
+}
+
+
+var _inventory_tab_t =
+    1
+    -
+    power(
+        1 - inventory_tab_slide,
+        3
+    );
+
+
 if (_show_inventory_tabs)
 {
     var _tab_box_x =
         m_x + m_w + 12;
 
-    var _tab_box_y =
+    var _tab_box_final_y =
         m_y - 52;
+
+    var _tab_box_hidden_y =
+        m_y + 8;
+
+    var _tab_box_y =
+        lerp(
+            _tab_box_hidden_y,
+            _tab_box_final_y,
+            _inventory_tab_t
+        );
 
     var _tab_box_w =
         346;
@@ -153,19 +201,22 @@ if (_show_inventory_tabs)
     ];
 
 
+    // Tres zonas exactamente iguales.
     var _tab_slot_w =
-        104;
-
-    var _tab_start_x =
-        _tab_box_x + 16;
+        _tab_box_w / 3;
 
 
     for (var _tab_i = 0; _tab_i < 3; _tab_i++)
     {
-        var _tab_x =
-            _tab_start_x
+        var _slot_left =
+            _tab_box_x
             +
             (_tab_i * _tab_slot_w);
+
+        var _slot_right =
+            _slot_left
+            +
+            _tab_slot_w;
 
 
         if (
@@ -179,9 +230,9 @@ if (_show_inventory_tabs)
             );
 
             draw_rectangle(
-                _tab_x - 6,
+                _slot_left + 6,
                 _tab_box_y + 7,
-                _tab_x + 82,
+                _slot_right - 6,
                 _tab_box_y + 36,
                 true
             );
@@ -197,14 +248,31 @@ if (_show_inventory_tabs)
         );
 
 
+        // =================================================
+        // TEXTO CENTRADO DENTRO DE CADA TERCIO
+        // =================================================
+        //
+        // Cada pestaña ocupa exactamente 1/3 de la caja.
+        // INV, EQUIP y CLAVE se dibujan en el centro real de
+        // su propia zona para que queden simétricos.
+        // =================================================
+
+        draw_set_halign(
+            fa_center
+        );
+
+
         draw_text(
-            _tab_x,
+            (_slot_left + _slot_right) * 0.5,
             _tab_box_y + 11,
-            scr_loc(
-                _tab_names[_tab_i]
-            )
+            scr_loc(_tab_names[_tab_i])
         );
     }
+
+
+    draw_set_halign(
+        fa_left
+    );
 }
 
 
@@ -567,7 +635,7 @@ else if (state >= MENU_STATE.INVENTORY && state <= MENU_STATE.ITEM_DROP_CONFIRM)
         }
         draw_set_halign(fa_left);
     }
-    else {
+    else if (!inventory_tab_focus) {
         if (instance_exists(obj_player)) {
             var inv_index = min((inv_y + inv_scroll) * 3 + inv_x, array_length(obj_player.inventory) - 1);
             var selected_item_key = obj_player.inventory[inv_index];
@@ -974,7 +1042,7 @@ else if (state >= MENU_STATE.EQUIP_MENU && state <= MENU_STATE.EQUIP_DROP_CONFIR
         }
         draw_set_halign(fa_left);
     }
-    else {
+    else if (!inventory_tab_focus) {
         var eq_index = min((equip_y + equip_scroll) * 3 + equip_x, array_length(equipment) - 1);
         var selected_eq_key = equipment[eq_index];
         draw_set_color(c_white);
@@ -1287,6 +1355,8 @@ else if (state == MENU_STATE.CLAVE_MENU)
 
 
     if (
+        !inventory_tab_focus
+        &&
         _selected_key_id != -1
         &&
         !is_undefined(_selected_key_id)

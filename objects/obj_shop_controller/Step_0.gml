@@ -67,20 +67,15 @@ keyboard_clear(
 
 
 // =========================================================
-// MENSAJE TEMPORAL
+// MENSAJE DE COMPRA / VENTA
+// =========================================================
+//
+// Se mantiene hasta otra acción o hasta cambiar de pestaña.
+// No desaparece automáticamente por tiempo.
 // =========================================================
 
-if (shop_message_timer > 0)
-{
-    shop_message_timer--;
-
-
-    if (shop_message_timer <= 0)
-    {
-        shop_message =
-            "";
-    }
-}
+shop_message_timer =
+    0;
 
 
 // =========================================================
@@ -401,6 +396,24 @@ if (state == SHOP_TOP)
 
 if (_back)
 {
+    if (state == SHOP_BUY_CONFIRM)
+    {
+        state =
+            SHOP_BUY;
+
+        buy_confirm_index =
+            1;
+
+        audio_play_sound(
+            snd_menumove,
+            10,
+            false
+        );
+
+        exit;
+    }
+
+
     if (state == SHOP_SELL)
     {
         state =
@@ -458,7 +471,7 @@ if (_back)
 
 
 // =========================================================
-// COMPRAR
+// COMPRAR - LISTA
 // =========================================================
 
 if (state == SHOP_BUY)
@@ -504,6 +517,9 @@ if (state == SHOP_BUY)
                 buy_index - 1
             );
 
+        shop_message =
+            "";
+
         audio_play_sound(
             snd_menumove,
             10,
@@ -519,6 +535,9 @@ if (state == SHOP_BUY)
                 _count - 1,
                 buy_index + 1
             );
+
+        shop_message =
+            "";
 
         audio_play_sound(
             snd_menumove,
@@ -551,15 +570,13 @@ if (state == SHOP_BUY)
 
 
     // -----------------------------------------------------
-    // COMPRAR
+    // SELECCIONAR OBJETO -> PREGUNTAR ¿COMPRAR?
     // -----------------------------------------------------
 
     if (_confirm)
     {
         var _entry =
-            _stock[
-                buy_index
-            ];
+            _stock[buy_index];
 
 
         var _data =
@@ -583,6 +600,128 @@ if (state == SHOP_BUY)
                 10,
                 false
             );
+
+            exit;
+        }
+
+
+        shop_message =
+            "";
+
+        buy_confirm_index =
+            1;
+
+        state =
+            SHOP_BUY_CONFIRM;
+
+
+        audio_play_sound(
+            snd_menumove,
+            10,
+            false
+        );
+    }
+
+
+    exit;
+}
+
+
+// =========================================================
+// COMPRAR - CONFIRMACIÓN SÍ / NO
+// =========================================================
+
+if (state == SHOP_BUY_CONFIRM)
+{
+    var _stock =
+        shop_data.items_venta;
+
+    var _count =
+        array_length(_stock);
+
+
+    // Si la lista cambió inesperadamente, volver.
+    if (
+        _count <= 0
+        ||
+        buy_index < 0
+        ||
+        buy_index >= _count
+    )
+    {
+        state =
+            SHOP_BUY;
+
+        exit;
+    }
+
+
+    if (_left || _right)
+    {
+        buy_confirm_index =
+            1 - buy_confirm_index;
+
+        audio_play_sound(
+            snd_menumove,
+            10,
+            false
+        );
+    }
+
+
+    if (_confirm)
+    {
+        // -------------------------------------------------
+        // NO
+        // -------------------------------------------------
+
+        if (buy_confirm_index == 1)
+        {
+            state =
+                SHOP_BUY;
+
+            audio_play_sound(
+                snd_menumove,
+                10,
+                false
+            );
+
+            exit;
+        }
+
+
+        // -------------------------------------------------
+        // SÍ -> COMPRAR
+        // -------------------------------------------------
+
+        var _entry =
+            _stock[buy_index];
+
+
+        var _data =
+            scr_shop_get_object_data(
+                _entry.tipo,
+                _entry.id
+            );
+
+
+        if (is_undefined(_data))
+        {
+            if (audio_is_playing(snd_error))
+            {
+                audio_stop_sound(
+                    snd_error
+                );
+            }
+
+            audio_play_sound(
+                snd_error,
+                10,
+                false
+            );
+
+            state =
+                SHOP_BUY;
 
             exit;
         }
@@ -626,8 +765,8 @@ if (state == SHOP_BUY)
                     )
                 );
 
-            shop_message_timer =
-                120;
+            state =
+                SHOP_BUY;
 
             exit;
         }
@@ -665,8 +804,8 @@ if (state == SHOP_BUY)
                     )
                 );
 
-            shop_message_timer =
-                120;
+            state =
+                SHOP_BUY;
 
             exit;
         }
@@ -699,9 +838,12 @@ if (state == SHOP_BUY)
                 }
             );
 
-        // 30 frames = 1 segundo a 30 FPS.
-        shop_message_timer =
-            30;
+
+        state =
+            SHOP_BUY;
+
+        buy_confirm_index =
+            1;
     }
 
 

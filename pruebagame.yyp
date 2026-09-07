@@ -135,6 +135,7 @@
     {"id":{"name":"test","path":"rooms/test/test.yy",},},
     {"id":{"name":"toriel_salon","path":"rooms/toriel_salon/toriel_salon.yy",},},
     {"id":{"name":"NOTA_CAPAS","path":"scripts/NOTA_CAPAS/NOTA_CAPAS.yy",},},
+    {"id":{"name":"NOTA_MEMORIA_NPC","path":"scripts/NOTA_MEMORIA_NPC/NOTA_MEMORIA_NPC.yy",},},
     {"id":{"name":"NOTA_PUZLE_CAJAS","path":"scripts/NOTA_PUZLE_CAJAS/NOTA_PUZLE_CAJAS.yy",},},
     {"id":{"name":"scr_bosses_cinematica_bbs","path":"scripts/scr_bosses_cinematica_bbs/scr_bosses_cinematica_bbs.yy",},},
     {"id":{"name":"scr_cofre","path":"scripts/scr_cofre/scr_cofre.yy",},},

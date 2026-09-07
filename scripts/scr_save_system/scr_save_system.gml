@@ -182,6 +182,279 @@ function scr_save_restore_music(_music_name)
 
 
 // =========================================================
+// MEMORIA PERSISTENTE DE NPCS
+// =========================================================
+//
+// Estructura guardada:
+//
+// global.npc_memory =
+// {
+//     npc_id:
+//     {
+//         talk_count: 0,
+//         flags: {}
+//     }
+// };
+//
+// `talk_count` permite diálogo distinto en 1ra/2da/3ra visita.
+// `flags` permite guardar decisiones arbitrarias del NPC.
+//
+// Ejemplos para una decisión:
+//
+//     scr_npc_memory_set_flag(
+//         "gerson",
+//         "acepto_mision",
+//         true
+//     );
+//
+//     if (scr_npc_memory_get_flag(
+//         "gerson",
+//         "acepto_mision",
+//         false
+//     ))
+//     {
+//         ...
+//     }
+// =========================================================
+
+function scr_npc_memory_init()
+{
+    if (
+        !variable_global_exists("npc_memory")
+        ||
+        !is_struct(global.npc_memory)
+    )
+    {
+        global.npc_memory =
+            {};
+    }
+
+
+    return global.npc_memory;
+}
+
+
+function scr_npc_memory_get_entry(_npc_id)
+{
+    scr_npc_memory_init();
+
+
+    if (!is_string(_npc_id))
+    {
+        _npc_id =
+            string(_npc_id);
+    }
+
+
+    if (_npc_id == "")
+    {
+        _npc_id =
+            "npc_sin_id";
+    }
+
+
+    if (
+        !variable_struct_exists(
+            global.npc_memory,
+            _npc_id
+        )
+    )
+    {
+        variable_struct_set(
+            global.npc_memory,
+            _npc_id,
+            {
+                talk_count: 0,
+                flags: {}
+            }
+        );
+    }
+
+
+    var _entry =
+        variable_struct_get(
+            global.npc_memory,
+            _npc_id
+        );
+
+
+    if (!is_struct(_entry))
+    {
+        _entry =
+        {
+            talk_count: 0,
+            flags: {}
+        };
+
+
+        variable_struct_set(
+            global.npc_memory,
+            _npc_id,
+            _entry
+        );
+    }
+
+
+    if (
+        !variable_struct_exists(
+            _entry,
+            "talk_count"
+        )
+    )
+    {
+        _entry.talk_count =
+            0;
+    }
+
+
+    if (
+        !variable_struct_exists(
+            _entry,
+            "flags"
+        )
+        ||
+        !is_struct(_entry.flags)
+    )
+    {
+        _entry.flags =
+            {};
+    }
+
+
+    return _entry;
+}
+
+
+function scr_npc_memory_get_talk_count(_npc_id)
+{
+    var _entry =
+        scr_npc_memory_get_entry(
+            _npc_id
+        );
+
+
+    return max(
+        0,
+        floor(_entry.talk_count)
+    );
+}
+
+
+function scr_npc_memory_has_talked(_npc_id)
+{
+    return
+        scr_npc_memory_get_talk_count(
+            _npc_id
+        )
+        >
+        0;
+}
+
+
+function scr_npc_memory_mark_talk(_npc_id)
+{
+    var _entry =
+        scr_npc_memory_get_entry(
+            _npc_id
+        );
+
+
+    _entry.talk_count =
+        max(
+            0,
+            floor(_entry.talk_count)
+        )
+        +
+        1;
+
+
+    return _entry.talk_count;
+}
+
+
+function scr_npc_memory_set_flag(
+    _npc_id,
+    _flag,
+    _value
+)
+{
+    var _entry =
+        scr_npc_memory_get_entry(
+            _npc_id
+        );
+
+
+    if (!is_string(_flag))
+    {
+        _flag =
+            string(_flag);
+    }
+
+
+    if (_flag == "")
+    {
+        return false;
+    }
+
+
+    variable_struct_set(
+        _entry.flags,
+        _flag,
+        _value
+    );
+
+
+    return true;
+}
+
+
+function scr_npc_memory_get_flag(
+    _npc_id,
+    _flag,
+    _default = false
+)
+{
+    var _entry =
+        scr_npc_memory_get_entry(
+            _npc_id
+        );
+
+
+    if (!is_string(_flag))
+    {
+        _flag =
+            string(_flag);
+    }
+
+
+    if (
+        _flag == ""
+        ||
+        !variable_struct_exists(
+            _entry.flags,
+            _flag
+        )
+    )
+    {
+        return _default;
+    }
+
+
+    return variable_struct_get(
+        _entry.flags,
+        _flag
+    );
+}
+
+
+function scr_npc_memory_clear()
+{
+    global.npc_memory =
+        {};
+}
+
+
+// =========================================================
 // GUARDAR
 // =========================================================
 
@@ -200,6 +473,8 @@ function scr_guardar_juego(_seccion)
     scr_cofre_init();
 
     scr_cutscene_flags_init();
+
+    scr_npc_memory_init();
 
 
     // =====================================================
@@ -363,6 +638,9 @@ function scr_guardar_juego(_seccion)
 
         cutscene_flags:
             global.cutscene_flags,
+
+        npc_memory:
+            global.npc_memory,
 
         music:
             _music
@@ -581,6 +859,8 @@ function scr_cargar_juego(_seccion)
 
     scr_cutscene_flags_init();
 
+    scr_npc_memory_init();
+
 
     // =====================================================
     // CONFIG
@@ -720,6 +1000,37 @@ function scr_cargar_juego(_seccion)
         global.cutscene_flags =
             _save_data.cutscene_flags;
     }
+
+
+    // =====================================================
+    // MEMORIA DE NPCS
+    // =====================================================
+    //
+    // Saves antiguos no tienen este campo: en ese caso
+    // comienzan con memoria vacía, sin romper compatibilidad.
+    // =====================================================
+
+    global.npc_memory =
+        {};
+
+
+    if (
+        variable_struct_exists(
+            _save_data,
+            "npc_memory"
+        )
+        &&
+        is_struct(
+            _save_data.npc_memory
+        )
+    )
+    {
+        global.npc_memory =
+            _save_data.npc_memory;
+    }
+
+
+    scr_npc_memory_init();
 
 
     // =====================================================

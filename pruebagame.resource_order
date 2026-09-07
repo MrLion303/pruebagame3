@@ -95,6 +95,7 @@
     {"name":"rm_noelle","order":11,"path":"rooms/rm_noelle/rm_noelle.yy",},
     {"name":"rm_title","order":5,"path":"rooms/rm_title/rm_title.yy",},
     {"name":"test","order":6,"path":"rooms/test/test.yy",},
+    {"name":"NOTA_MEMORIA_NPC","order":2,"path":"scripts/NOTA_MEMORIA_NPC/NOTA_MEMORIA_NPC.yy",},
     {"name":"NOTA_PUZLE_CAJAS","order":1,"path":"scripts/NOTA_PUZLE_CAJAS/NOTA_PUZLE_CAJAS.yy",},
     {"name":"scr_bosses_cinematica_bbs","order":5,"path":"scripts/scr_bosses_cinematica_bbs/scr_bosses_cinematica_bbs.yy",},
     {"name":"scr_cofre","order":2,"path":"scripts/scr_cofre/scr_cofre.yy",},

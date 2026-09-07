@@ -95,6 +95,21 @@ if (transicion_activa)
 
             if (transicion_seccion == "__NEW_GAME__")
             {
+                // =============================================
+                // DETENER AUDIO DE LA PANTALLA / PARTIDA ANTERIOR
+                // =============================================
+                //
+                // Cargar un slot vacío inicia una Nueva Partida.
+                // La música anterior no debe sobrevivir a ese
+                // cambio de habitación.
+                //
+                // Se detiene aquí, cuando el fade ya cubrió toda
+                // la pantalla.
+                // =============================================
+
+                audio_stop_all();
+
+
                 scr_init_playtime();
 
 

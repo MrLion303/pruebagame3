@@ -1,4 +1,14 @@
 // =========================================================
+// BLOQUEO BREVE DE INTERACCIÓN CON EL MUNDO
+// =========================================================
+
+if (interaction_release_block > 0)
+{
+    interaction_release_block--;
+}
+
+
+// =========================================================
 // OBJ_MENU_MANAGER
 // BLOQUEO DE GAME OVER
 // =========================================================
@@ -482,6 +492,13 @@ switch (state) {
                             variable_struct_exists(item_data, "efecto")) {
                             item_data.efecto();
                             obj_player.inventory[slot_index] = -1;
+
+                            // La misma Z/Enter no puede caer
+                            // después sobre un save/NPC/cofre.
+                            interaction_release_block = 2;
+                            keyboard_clear(ord("Z"));
+                            keyboard_clear(vk_enter);
+
                             state = MENU_STATE.CLOSED;
                         } else {
                             if (audio_is_playing(snd_error)) audio_stop_sound(snd_error);

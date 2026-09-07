@@ -126,6 +126,36 @@ inventory_tab_focus = false;
 
 
 // =========================================================
+// ANIMACIÓN DE LA VENTANA DE PESTAÑAS
+// =========================================================
+//
+// 0 = escondida detrás del panel de INV / EQUIP / CLAVE.
+// 1 = posición final, arriba del panel.
+//
+// Usa la misma duración y ease-out que la ventana de
+// estadísticas HP / AT / DEF.
+// =========================================================
+
+inventory_tab_slide =
+    0;
+
+inventory_tab_slide_speed =
+    1 / 12;
+
+
+// =========================================================
+// BLOQUEO DE INTERACCIÓN AL CERRAR EL MENÚ CON Z / ENTER
+// =========================================================
+//
+// Evita que la misma pulsación usada para consumir un item
+// se reutilice inmediatamente en un objeto del mundo.
+// =========================================================
+
+interaction_release_block =
+    0;
+
+
+// =========================================================
 // INVENTARIO DE OBJETOS CLAVE
 // =========================================================
 
@@ -283,4 +313,3 @@ info_stat_slide =
 
 info_stat_slide_speed =
     1 / 12;
-
