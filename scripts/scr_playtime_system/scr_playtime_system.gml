@@ -8,8 +8,10 @@ function scr_init_playtime() {
 /// @description Convierte los frames totales a formato H:MM:SS
 /// @param {real} _frames Cantidad de frames transcurridos
 function scr_format_playtime(_frames) {
-    // Convertimos frames a segundos (asumiendo 60 FPS)
-    var _total_seconds = floor(_frames / 60); 
+    // Convertimos usando los FPS configurados en el juego (30 actualmente).
+    // Los saves existentes ya contienen frames: no hay que convertirlos.
+    var _fps = max(1, game_get_speed(gamespeed_fps));
+    var _total_seconds = floor(max(0, _frames) / _fps);
     
     var _hours = floor(_total_seconds / 3600);
     var _minutes = floor((_total_seconds % 3600) / 60);

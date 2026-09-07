@@ -2100,51 +2100,25 @@ function scr_party_apply_walk_animation(_actor, _moving)
 
 
     // =====================================================
-    // HIELO AZUL - PARTY
+    // HIELO NORMAL + HIELO AZUL - PARTY
     // =====================================================
     //
-    // Silicio se desliza visualmente en idle igual que Maya.
-    // =====================================================
-
-    if (
-        scr_party_actor_overlaps(
-            _actor,
-            obj_hielo_azul
-        )
-    )
-    {
-        _actor.image_index =
-            0;
-
-        _actor.party_anim_accum =
-            0;
-
-        _actor.party_anim_hold =
-            0;
-
-        _actor.party_anim_was_moving =
-            false;
-
-        _actor.party_ice_tap_timer =
-            0;
-
-        return;
-    }
-
-
-    // =====================================================
-    // HIELO NORMAL - PARTY
-    // =====================================================
+    // Ambos usan EXACTAMENTE la misma animación del hielo
+    // normal. El azul ya no tiene un sistema visual aparte.
     //
-    // Igual que Maya:
-    // una nueva pulsación produce una pequeña reacción,
-    // mantener la tecla NO mantiene la caminata.
+    // Una nueva dirección de impulso del follower produce una
+    // pequeña reacción; resbalar no mantiene la caminata.
     // =====================================================
 
     if (
         scr_party_actor_overlaps(
             _actor,
             obj_hielo
+        )
+        ||
+        scr_party_actor_overlaps(
+            _actor,
+            obj_hielo_azul
         )
     )
     {
@@ -2173,14 +2147,10 @@ function scr_party_apply_walk_animation(_actor, _moving)
         }
 
 
+        // Reacción al impulso propio del follower, no al teclado de Maya.
         var _ice_tap =
-            keyboard_check_pressed(vk_right)
-            ||
-            keyboard_check_pressed(vk_left)
-            ||
-            keyboard_check_pressed(vk_up)
-            ||
-            keyboard_check_pressed(vk_down);
+            variable_instance_exists(_actor, "party_normal_ice_push")
+            && _actor.party_normal_ice_push;
 
 
         if (
@@ -3208,6 +3178,259 @@ function scr_party_approach_value(
 // ESTADO ESPECIAL DEL FOLLOWER
 // =========================================================
 
+// =========================================================
+// REINICIAR TERRENOS AL CAMBIAR DE HABITACIÓN / TELETRANSPORTARSE
+// =========================================================
+function scr_party_reset_surface_state(_actor)
+{
+    scr_party_downslide_sound_stop(_actor);
+    _actor.party_special_mode = "none";
+    _actor.party_special_gap = 0;
+    _actor.party_special_post_timer = 0;
+    _actor.party_downslide_wait_timer = 0;
+    _actor.party_downslide_has_entered = false;
+    _actor.party_downslide_exit_remaining = 0;
+    _actor.party_downslide_gap_accum = 0;
+    _actor.party_downslide_rejoin_current_speed = 0;
+    _actor.party_downslide_prev_bottom = _actor.bbox_bottom;
+    _actor.party_blueice_dx = 0;
+    _actor.party_blueice_dy = 0;
+    _actor.party_blueice_has_entered = false;
+    _actor.party_blueice_waiting = false;
+    _actor.party_blueice_entry = undefined;
+    _actor.party_blueice_align_stage = 0;
+    _actor.party_ice_has_entered = false;
+    _actor.party_normal_ice_vx = 0;
+    _actor.party_normal_ice_vy = 0;
+    _actor.party_normal_ice_dir_x = 0;
+    _actor.party_normal_ice_dir_y = 0;
+    _actor.party_normal_ice_push = false;
+    _actor.party_last_move_x = 0;
+    _actor.party_last_move_y = 0;
+    _actor.party_ice_tap_timer = 0;
+    _actor.party_anim_accum = 0;
+    _actor.party_anim_hold = 0;
+    _actor.party_anim_was_moving = false;
+    _actor.image_speed = 0;
+    _actor.image_index = 0;
+}
+
+// Movimiento con comprobaciones de colisión de hasta un píxel.
+// Devuelve un destino en coordenadas de PIES; no mueve la instancia.
+function scr_party_normal_ice_move(_actor, _dx, _dy, _face)
+{
+    var _ox = 0;
+    var _oy = 0;
+    var _blocked_x = false;
+    var _blocked_y = false;
+    var _steps = max(1, ceil(max(abs(_dx), abs(_dy))));
+    var _sx = _dx / _steps;
+    var _sy = _dy / _steps;
+
+    for (var _n = 0; _n < _steps; _n++)
+    {
+        if (!_blocked_x && abs(_sx) > 0.0001)
+        {
+            if (scr_party_actor_projected_blocked(_actor, _ox + _sx, _oy))
+                _blocked_x = true;
+            else
+                _ox += _sx;
+        }
+        if (!_blocked_y && abs(_sy) > 0.0001)
+        {
+            if (scr_party_actor_projected_blocked(_actor, _ox, _oy + _sy))
+                _blocked_y = true;
+            else
+                _oy += _sy;
+        }
+
+        // Al abandonar CUALQUIERA de los dos hielos, no aplicar
+        // más inercia este frame.
+        //
+        // Hielo normal y azul comparten exactamente este motor.
+        var _projected_on_any_ice =
+            scr_party_actor_projected_overlaps(
+                _actor,
+                obj_hielo,
+                _ox,
+                _oy
+            )
+            ||
+            scr_party_actor_projected_overlaps(
+                _actor,
+                obj_hielo_azul,
+                _ox,
+                _oy
+            );
+
+
+        if (
+            !_projected_on_any_ice
+            &&
+            _actor.party_special_mode == "ice_hold"
+        )
+        {
+            break;
+        }
+    }
+
+    if (_blocked_x) _actor.party_normal_ice_vx = 0;
+    if (_blocked_y) _actor.party_normal_ice_vy = 0;
+
+    // La mirada depende del desplazamiento realizado, no de un error
+    // diminuto respecto al destino. Quieto o bloqueado, conserva su mirada.
+    _face = _actor.face;
+    if (abs(_ox) > abs(_oy) && abs(_ox) > 0.01)
+        _face = (_ox > 0) ? RIGHT : LEFT;
+    else if (abs(_oy) > 0.01)
+        _face = (_oy > 0) ? DOWN : UP;
+
+    return {
+        x: scr_party_feet_x(_actor) + _ox,
+        y: scr_party_feet_y(_actor) + _oy,
+        face: _face
+    };
+}
+
+// Hielo autónomo de party para obj_hielo Y obj_hielo_azul:
+// el destino procede del historial, pero la velocidad pertenece
+// al follower y tiene aceleración/fricción.
+function scr_party_normal_ice_target(_actor, _destination)
+{
+    var _dx = _destination.x - scr_party_feet_x(_actor);
+    var _dy = _destination.y - scr_party_feet_y(_actor);
+    var _desired_x = clamp(_dx * 0.35, -6, 6);
+    var _desired_y = clamp(_dy * 0.35, -6, 6);
+    var _dir_x = (abs(_dx) > 0.25) ? sign(_dx) : 0;
+    var _dir_y = (abs(_dy) > 0.25) ? sign(_dy) : 0;
+
+    _actor.party_normal_ice_push =
+        (_dir_x != _actor.party_normal_ice_dir_x
+        || _dir_y != _actor.party_normal_ice_dir_y)
+        && (_dir_x != 0 || _dir_y != 0);
+    _actor.party_normal_ice_dir_x = _dir_x;
+    _actor.party_normal_ice_dir_y = _dir_y;
+
+    // Misma aceleración/fricción base que el hielo normal del jugador.
+    // No se consultan teclas ni si Maya está sobre el hielo.
+    _actor.party_normal_ice_vx = scr_party_approach_value(
+        _actor.party_normal_ice_vx, _desired_x,
+        (abs(_desired_x) < abs(_actor.party_normal_ice_vx)) ? 0.32 : 0.75
+    );
+    _actor.party_normal_ice_vy = scr_party_approach_value(
+        _actor.party_normal_ice_vy, _desired_y,
+        (abs(_desired_y) < abs(_actor.party_normal_ice_vy)) ? 0.32 : 0.75
+    );
+
+    // Frenada de llegada: nunca cruzar el punto de formación por inercia.
+    // Si lo cruzase, el siguiente frame intentaría volver atrás y giraría
+    // el sprite. Cada eje se detiene exactamente al alcanzar su destino.
+    var _move_x = _actor.party_normal_ice_vx;
+    var _move_y = _actor.party_normal_ice_vy;
+
+    if (abs(_dx) <= 0.001)
+    {
+        _move_x = 0;
+        _actor.party_normal_ice_vx = 0;
+    }
+    else if (sign(_move_x) == sign(_dx) && abs(_move_x) >= abs(_dx))
+    {
+        _move_x = _dx;
+        _actor.party_normal_ice_vx = 0;
+    }
+
+    if (abs(_dy) <= 0.001)
+    {
+        _move_y = 0;
+        _actor.party_normal_ice_vy = 0;
+    }
+    else if (sign(_move_y) == sign(_dy) && abs(_move_y) >= abs(_dy))
+    {
+        _move_y = _dy;
+        _actor.party_normal_ice_vy = 0;
+    }
+
+    return scr_party_normal_ice_move(_actor, _move_x, _move_y, _actor.face);
+}
+
+// Entrada del hielo azul tomada de los PIES REALES registrados de Maya.
+// Se fija al comenzar a alinearse: no persigue la posición actual de Maya.
+function scr_party_blueice_entry(_actor, _zone, _fallback)
+{
+    var _p = instance_find(obj_player, 0);
+    var _entry = _fallback;
+    var _best = 1000000000;
+    var _previous_inside = false;
+    var _previous = undefined;
+    for (var _i = 0; _i < array_length(global.party_history); _i++)
+    {
+        var _point = global.party_history[_i];
+        var _inside = scr_party_actor_projected_overlaps(
+            _p, _zone, _point.x - scr_party_feet_x(_p), _point.y - scr_party_feet_y(_p));
+        if (_inside && !_previous_inside)
+        {
+            var _distance = point_distance(scr_party_feet_x(_actor), scr_party_feet_y(_actor), _point.x, _point.y);
+            if (_distance <= _best)
+            {
+                var _face = _point.face;
+                if (is_struct(_previous))
+                {
+                    var _dx = _point.x - _previous.x;
+                    var _dy = _point.y - _previous.y;
+                    if (abs(_dx) > abs(_dy) && abs(_dx) > 0.01)
+                        _face = (_dx > 0) ? RIGHT : LEFT;
+                    else if (abs(_dy) > 0.01)
+                        _face = (_dy > 0) ? DOWN : UP;
+                }
+                _entry = { x: _point.x, y: _point.y, face: _face };
+                _best = _distance;
+            }
+        }
+        _previous_inside = _inside;
+        _previous = _point;
+    }
+
+    var _dir_x = (_entry.face == RIGHT) ? 1 : ((_entry.face == LEFT) ? -1 : 0);
+    var _dir_y = (_entry.face == DOWN) ? 1 : ((_entry.face == UP) ? -1 : 0);
+    var _pre_x = _entry.x;
+    var _pre_y = _entry.y;
+    // Punto previo fuera del hielo, considerando la máscara de Silicio.
+    if (_dir_x > 0) _pre_x = _zone.bbox_left - (_actor.bbox_right - scr_party_feet_x(_actor)) - 1;
+    else if (_dir_x < 0) _pre_x = _zone.bbox_right - (_actor.bbox_left - scr_party_feet_x(_actor)) + 1;
+    else if (_dir_y > 0) _pre_y = _zone.bbox_top - 1;
+    else _pre_y = _zone.bbox_bottom - (_actor.bbox_top - scr_party_feet_y(_actor)) + 1;
+
+    return { x: _entry.x, y: _entry.y, pre_x: _pre_x, pre_y: _pre_y,
+        dx: _dir_x, dy: _dir_y, face: _entry.face };
+}
+
+// Caminar hasta la alineación. Nunca recolocar mediante un salto.
+function scr_party_blueice_align_move(_actor, _x, _y, _allow_ice)
+{
+    var _fx = scr_party_feet_x(_actor);
+    var _fy = scr_party_feet_y(_actor);
+    var _distance = point_distance(_fx, _fy, _x, _y);
+    var _ratio = min(1, 4 / max(0.0001, _distance));
+    var _dx = (_x - _fx) * _ratio;
+    var _dy = (_y - _fy) * _ratio;
+    var _steps = max(1, ceil(max(abs(_dx), abs(_dy))));
+    var _ox = 0;
+    var _oy = 0;
+    for (var _i = 0; _i < _steps; _i++)
+    {
+        var _nx = _ox + _dx / _steps;
+        var _ny = _oy + _dy / _steps;
+        if (scr_party_actor_projected_blocked(_actor, _nx, _ny)) break;
+        if (!_allow_ice && scr_party_actor_projected_overlaps(_actor, obj_hielo_azul, _nx, _ny)) break;
+        _ox = _nx;
+        _oy = _ny;
+    }
+    var _face = _actor.face;
+    if (abs(_ox) > abs(_oy) && abs(_ox) > 0.01) _face = (_ox > 0) ? RIGHT : LEFT;
+    else if (abs(_oy) > 0.01) _face = (_oy > 0) ? DOWN : UP;
+    return { x: _fx + _ox, y: _fy + _oy, face: _face };
+}
+
 function scr_party_special_state_init(_actor)
 {
     if (
@@ -3257,6 +3480,21 @@ function scr_party_special_state_init(_actor)
     if (!variable_instance_exists(_actor, "party_ice_has_entered"))
         _actor.party_ice_has_entered = false;
 
+    if (!variable_instance_exists(_actor, "party_normal_ice_vx"))
+        _actor.party_normal_ice_vx = 0;
+    if (!variable_instance_exists(_actor, "party_normal_ice_vy"))
+        _actor.party_normal_ice_vy = 0;
+    if (!variable_instance_exists(_actor, "party_normal_ice_dir_x"))
+        _actor.party_normal_ice_dir_x = 0;
+    if (!variable_instance_exists(_actor, "party_normal_ice_dir_y"))
+        _actor.party_normal_ice_dir_y = 0;
+    if (!variable_instance_exists(_actor, "party_normal_ice_push"))
+        _actor.party_normal_ice_push = false;
+    if (!variable_instance_exists(_actor, "party_last_move_x"))
+        _actor.party_last_move_x = 0;
+    if (!variable_instance_exists(_actor, "party_last_move_y"))
+        _actor.party_last_move_y = 0;
+
 
     // Hielo azul autónomo.
     if (!variable_instance_exists(_actor, "party_blueice_dx"))
@@ -3268,6 +3506,14 @@ function scr_party_special_state_init(_actor)
     if (!variable_instance_exists(_actor, "party_blueice_has_entered"))
         _actor.party_blueice_has_entered = false;
 
+
+    if (!variable_instance_exists(_actor, "party_blueice_waiting"))
+        _actor.party_blueice_waiting = false;
+
+    if (!variable_instance_exists(_actor, "party_blueice_entry"))
+        _actor.party_blueice_entry = undefined;
+    if (!variable_instance_exists(_actor, "party_blueice_align_stage"))
+        _actor.party_blueice_align_stage = 0;
 
     // Loop propio del deslizamiento hacia abajo.
     if (!variable_instance_exists(_actor, "party_downslide_sound_instance"))
@@ -3398,6 +3644,21 @@ function scr_party_update()
         -
         global.party_last_player_y;
 
+
+    // Detectar un historial nuevo ANTES de que record_player lo reinicie.
+    // El desplazamiento entre dos rooms nunca cuenta como caminar.
+    var _party_reset_frame = global.party_room_dirty
+        || global.party_history_room != room
+        || array_length(global.party_history) <= 0
+        || abs(_player_dx_now) > 16
+        || abs(_player_dy_now) > 16;
+
+    if (_party_reset_frame)
+    {
+        _player_dx_now = 0;
+        _player_dy_now = 0;
+        global.party_follow_delay_current = global.party_follow_delay_walk;
+    }
 
     var _player_move_distance =
         point_distance(
@@ -3702,6 +3963,17 @@ function scr_party_update()
             );
 
 
+        // Los followers persistentes aún pueden tener coordenadas y modos
+        // de la room anterior. Colocarlos ANTES de detectar los terrenos.
+        if (_party_reset_frame)
+        {
+            scr_party_apply_direction(_actor, _normal_target.face);
+            scr_party_place_feet(_actor, _normal_target.x, _normal_target.y);
+            scr_party_reset_surface_state(_actor);
+            _actor.movimiento = false;
+            continue;
+        }
+
         var _normal_gap =
             max(
                 scr_party_history_gap_for_delay(
@@ -3816,8 +4088,6 @@ function scr_party_update()
                 _mode == "downslide_wait_gap"
                 ||
                 _mode == "downslide_rejoin"
-                ||
-                _mode == "blueice_slide"
             );
 
 
@@ -4600,532 +4870,331 @@ function scr_party_update()
 
 
         // =================================================
-        // HIELO AZUL - SILICIO AUTÓNOMO
+        // HIELO NORMAL + HIELO AZUL
         // =================================================
         //
-        // Hasta tocar el hielo azul, Silicio sigue el historial.
+        // IMPORTANTE:
         //
-        // En cuanto ÉL entra:
+        // EL HIELO AZUL YA NO TIENE UNA LÓGICA PROPIA.
         //
-        //     blueice_slide
-        //     -> continúa recto solo
-        //     -> no depende de Maya
-        //     -> sale del hielo
-        //     -> downslide_wait_gap
-        //     -> downslide_rejoin
+        // A partir de aquí:
         //
-        // Así reutilizamos exactamente la reincorporación suave
-        // que ya funciona para el deslizamiento hacia abajo.
+        //     obj_hielo
+        //     obj_hielo_azul
+        //
+        // usan EXACTAMENTE el mismo sistema.
+        //
+        // Eso significa:
+        //
+        // - Silicio sigue normalmente mientras todavía esté fuera.
+        // - El efecto comienza únicamente cuando SILICIO pisa
+        //   físicamente cualquiera de los dos hielos.
+        // - Conserva el movimiento propio con el que entró.
+        // - Usa la misma aceleración, fricción e inercia.
+        // - Puede entrar caminando recto o diagonal.
+        // - No existe blueice_align.
+        // - No existe blueice_slide.
+        // - No intenta acomodarse antes de entrar.
+        // - Maya puede salir primero: mientras Silicio siga sobre
+        //   cualquiera de los hielos, SU efecto continúa.
+        // - Al salir, recupera la formación caminando exactamente
+        //   como ya lo hacía el hielo normal.
+        //
+        // En otras palabras:
+        //
+        //     AZUL = NORMAL
+        //
+        // para el sistema de party.
         // =================================================
 
         _mode =
             _actor.party_special_mode;
 
 
-        var _blueice_can_start =
+        // -------------------------------------------------
+        // COMPATIBILIDAD CON UN ESTADO AZUL ANTIGUO
+        // -------------------------------------------------
+        //
+        // Si cambias el script mientras el juego ya estaba
+        // ejecutándose y Silicio quedó en un modo azul viejo,
+        // limpiarlo una sola vez para entrar al sistema común.
+        // -------------------------------------------------
+
+        if (
+            _mode == "blueice_slide"
+            ||
+            _mode == "blueice_align"
+            ||
+            _mode == "blueice_recover"
+        )
+        {
+            _actor.party_special_mode =
+                "none";
+
+
+            _actor.party_blueice_dx =
+                0;
+
+
+            _actor.party_blueice_dy =
+                0;
+
+
+            _actor.party_blueice_has_entered =
+                false;
+
+
+            _actor.party_blueice_waiting =
+                false;
+
+
+            _actor.party_blueice_entry =
+                undefined;
+
+
+            _actor.party_blueice_align_stage =
+                0;
+
+
+            _mode =
+                "none";
+        }
+
+
+        // -------------------------------------------------
+        // ¿SILICIO ESTÁ SOBRE ALGÚN HIELO?
+        // -------------------------------------------------
+
+        var _party_on_any_ice =
+            (
+                _actor_on_normal_ice
+                ||
+                _actor_on_blue_ice
+            );
+
+
+        var _party_ice_allowed =
             (
                 _mode == "none"
                 ||
                 _mode == "ice_hold"
                 ||
                 _mode == "ice_recover"
-            );
-
-
-        if (
-            _blueice_can_start
-            &&
-            _actor_on_blue_ice
-        )
-        {
-            var _blue_start_x =
-                scr_party_feet_x(
-                    _actor
-                );
-
-
-            var _blue_start_y =
-                scr_party_feet_y(
-                    _actor
-                );
-
-
-            var _blue_route_dx =
-                _normal_target.x
-                -
-                _blue_start_x;
-
-
-            var _blue_route_dy =
-                _normal_target.y
-                -
-                _blue_start_y;
-
-
-            var _blue_dx =
-                0;
-
-
-            var _blue_dy =
-                0;
-
-
-            // Usar el movimiento real de la ruta al entrar.
-            if (
-                abs(_blue_route_dx)
-                >
-                abs(_blue_route_dy)
-                &&
-                abs(_blue_route_dx) > 0.01
-            )
-            {
-                _blue_dx =
-                    sign(
-                        _blue_route_dx
-                    );
-            }
-            else if (
-                abs(_blue_route_dy) > 0.01
-            )
-            {
-                _blue_dy =
-                    sign(
-                        _blue_route_dy
-                    );
-            }
-            else
-            {
-                // Fallback por dirección visual.
-                switch (_actor.face)
-                {
-                    case RIGHT:
-                        _blue_dx = 1;
-                        break;
-
-                    case LEFT:
-                        _blue_dx = -1;
-                        break;
-
-                    case UP:
-                        _blue_dy = -1;
-                        break;
-
-                    default:
-                        _blue_dy = 1;
-                        break;
-                }
-            }
-
-
-            _actor.party_blueice_dx =
-                _blue_dx;
-
-
-            _actor.party_blueice_dy =
-                _blue_dy;
-
-
-            _actor.party_blueice_has_entered =
-                true;
-
-
-            _actor.party_special_mode =
-                "blueice_slide";
-        }
-
-
-        if (
-            _actor.party_special_mode
-            ==
-            "blueice_slide"
-        )
-        {
-            var _blue_x =
-                scr_party_feet_x(
-                    _actor
-                );
-
-
-            var _blue_y =
-                scr_party_feet_y(
-                    _actor
-                );
-
-
-            var _blue_move_dx =
-                _actor.party_blueice_dx;
-
-
-            var _blue_move_dy =
-                _actor.party_blueice_dy;
-
-
-            var _blue_speed =
-                4;
-
-
-            if (
-                variable_instance_exists(
-                    _player_instance,
-                    "blue_ice_speed"
-                )
-            )
-            {
-                _blue_speed =
-                    max(
-                        1,
-                        round(
-                            _player_instance.blue_ice_speed
-                        )
-                    );
-            }
-
-
-            var _blue_off_x =
-                0;
-
-
-            var _blue_off_y =
-                0;
-
-
-            var _blue_exited =
-                !_actor_on_blue_ice;
-
-
-            if (!_blue_exited)
-            {
-                for (
-                    var _bi = 0;
-                    _bi < _blue_speed;
-                    _bi++
-                )
-                {
-                    var _try_x =
-                        _blue_off_x
-                        +
-                        _blue_move_dx;
-
-
-                    var _try_y =
-                        _blue_off_y
-                        +
-                        _blue_move_dy;
-
-
-                    // No atravesar paredes.
-                    if (
-                        scr_party_actor_projected_blocked(
-                            _actor,
-                            _try_x,
-                            _try_y
-                        )
-                    )
-                    {
-                        break;
-                    }
-
-
-                    _blue_off_x =
-                        _try_x;
-
-
-                    _blue_off_y =
-                        _try_y;
-
-
-                    // Terminó en cuanto su bbox proyectado deja
-                    // de tocar obj_hielo_azul.
-                    if (
-                        !scr_party_actor_projected_overlaps(
-                            _actor,
-                            obj_hielo_azul,
-                            _blue_off_x,
-                            _blue_off_y
-                        )
-                    )
-                    {
-                        _blue_exited =
-                            true;
-
-                        break;
-                    }
-                }
-            }
-
-
-            var _blue_face =
-                _actor.face;
-
-
-            if (_blue_move_dx > 0)
-                _blue_face = RIGHT;
-            else if (_blue_move_dx < 0)
-                _blue_face = LEFT;
-            else if (_blue_move_dy < 0)
-                _blue_face = UP;
-            else if (_blue_move_dy > 0)
-                _blue_face = DOWN;
-
-
-            _target = {
-                x:
-                    _blue_x
-                    +
-                    _blue_off_x,
-
-                y:
-                    _blue_y
-                    +
-                    _blue_off_y,
-
-                face:
-                    _blue_face
-            };
-
-
-            if (_blue_exited)
-            {
-                // Misma salida que el downslide.
-                //
-                // Silicio se queda quieto hasta que Maya cree
-                // de nuevo la separación normal; después camina
-                // suavemente hacia formación.
-                _actor.party_special_mode =
-                    "downslide_wait_gap";
-
-
-                _actor.party_downslide_gap_accum =
-                    0;
-
-
-                _actor.party_downslide_rejoin_current_speed =
-                    0;
-
-
-                _actor.party_special_gap =
-                    0;
-
-
-                _actor.party_special_post_timer =
-                    0;
-
-
-                _actor.party_blueice_has_entered =
-                    false;
-            }
-        }
-
-
-        // =================================================
-        // HIELO NORMAL / AZUL
-        // =================================================
-        //
-        // Al entrar al hielo capturamos la distancia FÍSICA
-        // actual de Silicio sobre la ruta y la conservamos.
-        //
-        // Esto arregla:
-        //
-        // - hielo normal: que se acerque demasiado cuando
-        //   Maya pierde velocidad;
-        //
-        // - hielo azul: que al entrar corriendo se reajuste
-        //   de golpe a la distancia de caminar.
-        // =================================================
-
-        _mode =
-            _actor.party_special_mode;
-
-
-        _mode_is_downslide =
-            (
-                _mode == "downslide_follow"
-                ||
-                _mode == "downslide_exit"
                 ||
                 _mode == "downslide_wait_gap"
                 ||
                 _mode == "downslide_rejoin"
-                ||
-                _mode == "blueice_slide"
             );
 
 
-        if (
-            !_mode_is_downslide
-            &&
-            _player_on_normal_ice
-            &&
-            _mode != "ice_hold"
-        )
-        {
-            _actor.party_special_mode =
-                "ice_hold";
-
-
-            _actor.party_special_gap =
-                max(
-                    _normal_gap,
-                    scr_party_path_gap_to_actor(
-                        _actor
-                    )
-                );
-
-
-            _actor.party_ice_has_entered =
-                _actor_on_ice;
-
-
-            _actor.party_special_post_timer =
-                0;
-        }
-
-
-        // -------------------------------------------------
-        // CONSERVAR DISTANCIA EN HIELO
-        // -------------------------------------------------
+        // =================================================
+        // EFECTO DE HIELO
+        // =================================================
 
         if (
-            _actor.party_special_mode
-            ==
-            "ice_hold"
+            _party_ice_allowed
+            &&
+            _party_on_any_ice
         )
         {
-            if (_actor_on_normal_ice)
+            if (_mode != "ice_hold")
             {
+                // =========================================
+                // ENTRADA
+                // =========================================
+                //
+                // MISMO código que el hielo normal:
+                // conservar el desplazamiento físico propio
+                // con el que Silicio llegó al terreno.
+                //
+                // Esto soporta diagonales naturalmente porque
+                // conserva X e Y, sin elegir un eje artificial.
+                // =========================================
+
+                _actor.party_normal_ice_vx =
+                    clamp(
+                        _actor.party_last_move_x,
+                        -6,
+                        6
+                    );
+
+
+                _actor.party_normal_ice_vy =
+                    clamp(
+                        _actor.party_last_move_y,
+                        -6,
+                        6
+                    );
+
+
+                _actor.party_special_mode =
+                    "ice_hold";
+
+
                 _actor.party_ice_has_entered =
                     true;
             }
 
 
+            // EXACTAMENTE el mismo target / física que usaba
+            // únicamente obj_hielo.
             _target =
-                scr_party_get_position_by_path_gap(
-                    _actor.party_special_gap
+                scr_party_normal_ice_target(
+                    _actor,
+                    _normal_target
+                );
+        }
+
+
+        // =================================================
+        // SALIÓ DEL HIELO
+        // =================================================
+
+        else if (
+            _mode == "ice_hold"
+            ||
+            _mode == "ice_recover"
+        )
+        {
+            // Suelo normal: ya no hay inercia.
+            //
+            // Recuperar la formación caminando, sin saltar
+            // directamente al punto histórico.
+            _actor.party_special_mode =
+                "ice_recover";
+
+
+            _actor.party_ice_has_entered =
+                false;
+
+
+            _actor.party_normal_ice_vx =
+                0;
+
+
+            _actor.party_normal_ice_vy =
+                0;
+
+
+            _actor.party_normal_ice_push =
+                false;
+
+
+            var _recover_x =
+                scr_party_feet_x(
+                    _actor
                 );
 
 
-            if (_player_on_normal_ice)
-            {
-                _actor.party_special_post_timer =
-                    0;
-            }
-            else
-            {
-                _actor.party_special_post_timer++;
-            }
+            var _recover_y =
+                scr_party_feet_y(
+                    _actor
+                );
 
 
-            // No recuperar la distancia normal hasta que
-            // Silicio también haya pasado y salido del hielo.
+            var _recover_dx =
+                _normal_target.x
+                -
+                _recover_x;
+
+
+            var _recover_dy =
+                _normal_target.y
+                -
+                _recover_y;
+
+
+            var _recover_distance =
+                point_distance(
+                    _recover_x,
+                    _recover_y,
+                    _normal_target.x,
+                    _normal_target.y
+                );
+
+
+            var _recover_ratio =
+                min(
+                    1,
+                    6
+                    /
+                    max(
+                        0.0001,
+                        _recover_distance
+                    )
+                );
+
+
+            var _recover_face =
+                _actor.face;
+
+
             if (
-                !_player_on_normal_ice
+                abs(_recover_dx)
+                >
+                abs(_recover_dy)
                 &&
-                _actor.party_ice_has_entered
-                &&
-                !_actor_on_normal_ice
+                abs(_recover_dx) > 0.01
+            )
+            {
+                _recover_face =
+                    (_recover_dx > 0)
+                    ?
+                    RIGHT
+                    :
+                    LEFT;
+            }
+            else if (
+                abs(_recover_dy) > 0.01
+            )
+            {
+                _recover_face =
+                    (_recover_dy > 0)
+                    ?
+                    DOWN
+                    :
+                    UP;
+            }
+
+
+            _target =
+                scr_party_normal_ice_move(
+                    _actor,
+                    _recover_dx * _recover_ratio,
+                    _recover_dy * _recover_ratio,
+                    _recover_face
+                );
+
+
+            if (
+                point_distance(
+                    _target.x,
+                    _target.y,
+                    _normal_target.x,
+                    _normal_target.y
+                )
+                <=
+                0.01
             )
             {
                 _actor.party_special_mode =
-                    "ice_recover";
-            }
-
-
-            if (
-                !_player_on_normal_ice
-                &&
-                _actor.party_special_post_timer
-                >=
-                global.party_special_failsafe_frames
-            )
-            {
-                _actor.party_special_mode =
-                    "ice_recover";
+                    "none";
             }
         }
 
 
-        // -------------------------------------------------
-        // VOLVER SUAVEMENTE A LA DISTANCIA NORMAL
-        // -------------------------------------------------
-
-        if (
-            _actor.party_special_mode
-            ==
-            "ice_recover"
-        )
+        else
         {
-            // Si Maya entra a otro hielo antes de terminar
-            // la recuperación, conservar la distancia actual.
-            if (_player_on_normal_ice)
-            {
-                _actor.party_special_mode =
-                    "ice_hold";
+            _actor.party_normal_ice_vx =
+                0;
 
 
-                _actor.party_special_gap =
-                    max(
-                        1,
-                        scr_party_path_gap_to_actor(
-                            _actor
-                        )
-                    );
+            _actor.party_normal_ice_vy =
+                0;
 
 
-                _actor.party_ice_has_entered =
-                    _actor_on_normal_ice;
-
-
-                _actor.party_special_post_timer =
-                    0;
-
-
-                _target =
-                    scr_party_get_position_by_path_gap(
-                        _actor.party_special_gap
-                    );
-            }
-            else
-            {
-                _actor.party_special_gap =
-                    scr_party_approach_value(
-                        _actor.party_special_gap,
-                        _normal_gap,
-                        global.party_ice_recover_rate
-                    );
-
-
-                _target =
-                    scr_party_get_position_by_path_gap(
-                        _actor.party_special_gap
-                    );
-
-
-                if (
-                    abs(
-                        _actor.party_special_gap
-                        -
-                        _normal_gap
-                    )
-                    <=
-                    0.5
-                )
-                {
-                    _actor.party_special_mode =
-                        "none";
-
-
-                    _actor.party_ice_has_entered =
-                        false;
-
-
-                    _actor.party_special_post_timer =
-                        0;
-
-
-                    _target =
-                        _normal_target;
-                }
-            }
+            _actor.party_normal_ice_push =
+                false;
         }
 
 
@@ -5198,6 +5267,9 @@ function scr_party_update()
                 _actor
             );
 
+
+        _actor.party_last_move_x = _new_feet_x - _old_feet_x;
+        _actor.party_last_move_y = _new_feet_y - _old_feet_y;
 
         // =================================================
         // ORDEN DE DIBUJO MAYA <-> FOLLOWER

@@ -642,6 +642,9 @@ function scr_guardar_juego(_seccion)
         npc_memory:
             global.npc_memory,
 
+        party:
+            scr_party_export(),
+
         music:
             _music
     };
@@ -1031,6 +1034,29 @@ function scr_cargar_juego(_seccion)
 
 
     scr_npc_memory_init();
+
+
+    // =====================================================
+    // RESTAURAR PARTY DEL SLOT CARGADO
+    // =====================================================
+    // Los saves anteriores no contenían la party.
+    // En ese caso se carga un grupo vacío, sin conservar
+    // compañeros de otra partida o del estado anterior.
+
+    var _party_guardada = { members: [] };
+
+    if (
+        variable_struct_exists(_save_data, "party")
+        && is_struct(_save_data.party)
+    )
+    {
+        _party_guardada = _save_data.party;
+    }
+
+    // Limpia las instancias anteriores y restaura los miembros.
+    // obj_settings ya recrea y coloca los seguidores al entrar
+    // en la habitación y actualizar el sistema de party.
+    scr_party_load(_party_guardada);
 
 
     // =====================================================
