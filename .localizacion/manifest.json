@@ -1,5 +1,5 @@
 {
-    "total":  254,
+    "total":  258,
     "fuentes":  {
                     "Jugador X: ":  [
                                         "objects\\game\\Draw_64.gml:36"
@@ -49,11 +49,15 @@
                                                                                    "objects\\game\\Draw_64.gml:1070"
                                                                                ],
                     "* {enemy} está aturdido y no puede atacar!":  [
-                                                                       "objects\\obj_batalla_controller\\Step_0.gml:200"
+                                                                       "objects\\obj_batalla_controller\\Step_0.gml:413"
                                                                    ],
                     "* {enemy} ataca y te causa {damage} de daño!":  [
-                                                                         "objects\\obj_batalla_controller\\Step_0.gml:220"
+                                                                         "objects\\obj_batalla_controller\\Step_0.gml:552",
+                                                                         "objects\\obj_batalla_controller\\Step_0.gml:919"
                                                                      ],
+                    "* ¡Hiciste parry al ataque de {enemy}!":  [
+                                                                   "objects\\obj_batalla_controller\\Step_0.gml:869"
+                                                               ],
                     "* Fallaste el ataque.":  [
                                                   "objects\\obj_batalla_ui\\Create_0.gml:494"
                                               ],
@@ -89,7 +93,8 @@
                                    "objects\\obj_batalla_ui\\Draw_64.gml:1288"
                                ],
                     "HP":  [
-                               "objects\\obj_batalla_ui\\Draw_64.gml:1303"
+                               "objects\\obj_batalla_ui\\Draw_64.gml:1303",
+                               "objects\\obj_mapa_combate_fx\\Draw_64.gml:649"
                            ],
                     "¡Subiste de nivel!":  [
                                                "objects\\obj_batalla_ui\\Step_0.gml:447"
@@ -142,6 +147,9 @@
                     "Y de pronto... sientes\ntodo desvanecerse...":  [
                                                                          "objects\\obj_game_over_texto\\Create_0.gml:184"
                                                                      ],
+                    "Maya":  [
+                                 "objects\\obj_mapa_combate_fx\\Draw_64.gml:616"
+                             ],
                     "INV":  [
                                 "objects\\obj_menu_manager\\Create_0.gml:2",
                                 "objects\\obj_menu_manager\\Draw_64.gml:198"
@@ -459,122 +467,122 @@
                                      "scripts\\scr_cutscene_data\\scr_cutscene_data.gml:844"
                                  ],
                     "El... keke? Oh! Claro que me gusta!":  [
-                                                                "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:47",
-                                                                "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:68",
+                                                                "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:92",
+                                                                "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:113",
                                                                 "scripts\\scr_game_text\\scr_game_text.gml:45",
                                                                 "scripts\\scr_game_text\\scr_game_text.gml:146"
                                                             ],
                     "* El viento sopla con fuerza en este lugar.":  [
-                                                                        "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:48"
+                                                                        "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:93"
                                                                     ],
                     "* El enemigo te mira fijamente y sonríe.":  [
-                                                                     "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:49"
+                                                                     "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:94"
                                                                  ],
                     "* Toby acomoda su postura de combate.":  [
-                                                                  "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:69"
+                                                                  "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:114"
                                                               ],
                     "* Toby bosteza aburrido.":  [
-                                                     "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:70"
+                                                     "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:115"
                                                  ],
                     "Toby":  [
-                                 "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:74"
+                                 "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:119"
                              ],
                     "Hola, esta es mi descripcion":  [
-                                                         "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:81"
+                                                         "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:126"
                                                      ],
                     "* Un Toby salvaje aparece de su escondite!":  [
-                                                                       "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:82"
+                                                                       "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:127"
                                                                    ],
                     "* Acabaste con Toby.":  [
-                                                 "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:83"
+                                                 "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:128"
                                              ],
                     "¡Cuidado con este viscoso amigo!":  [
-                                                             "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:102"
+                                                             "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:147"
                                                          ],
                     "* El Slime gotea líquido viscoso.":  [
-                                                              "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:103"
+                                                              "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:148"
                                                           ],
                     "* Burbujas de aire estallan en el cuerpo del Slime.":  [
-                                                                                "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:104"
+                                                                                "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:149"
                                                                             ],
                     "Slime Verdoso":  [
-                                          "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:108",
-                                          "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:226"
+                                          "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:153",
+                                          "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:293"
                                       ],
                     "Un pequeño monstruo gelatinoso.":  [
-                                                            "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:115",
-                                                            "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:233"
+                                                            "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:160",
+                                                            "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:300"
                                                         ],
                     "Un Slime gelatinoso bloquea el paso!":  [
-                                                                 "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:116"
+                                                                 "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:161"
                                                              ],
                     "* Derrotaste al Slime Verdoso.":  [
-                                                           "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:117",
-                                                           "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:234"
+                                                           "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:162",
+                                                           "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:301"
                                                        ],
                     "¡Cuidado! Este enemigo no parece estar jugando.":  [
-                                                                            "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:173"
+                                                                            "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:240"
                                                                         ],
                     "* Jevil se mueve de forma impredecible.":  [
-                                                                    "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:174"
+                                                                    "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:241"
                                                                 ],
                     "* Una sonrisa extraña aparece en su rostro.":  [
-                                                                        "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:175"
+                                                                        "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:242"
                                                                     ],
                     "Jevil":  [
-                                  "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:179"
+                                  "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:246"
                               ],
                     "Un enemigo impredecible que parece disfrutar el combate.":  [
-                                                                                     "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:186"
+                                                                                     "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:253"
                                                                                  ],
                     "* Jevil aparece frente a ti!":  [
-                                                         "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:187"
+                                                         "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:254"
                                                      ],
                     "* Derrotaste a Jevil.":  [
-                                                  "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:188"
+                                                  "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:255"
                                               ],
                     "¿Estás seguro de que podemos con todos?":  [
-                                                                    "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:207"
+                                                                    "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:274"
                                                                 ],
                     "* Los enemigos se coordinan para rodearte.":  [
-                                                                       "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:208"
+                                                                       "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:275"
                                                                    ],
                     "¡Mira cómo se mueven!":  [
-                                                  "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:209"
+                                                  "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:276"
                                               ],
                     "Toby A":  [
-                                   "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:213"
+                                   "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:280"
                                ],
                     "El primer Toby de la banda.":  [
-                                                        "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:220"
+                                                        "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:287"
                                                     ],
                     "Una pandilla de monstruos salvajes aparece!":  [
-                                                                        "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:221"
+                                                                        "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:288"
                                                                     ],
                     "* Acabaste con Toby A.":  [
-                                                   "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:222"
+                                                   "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:289"
                                                ],
                     "Toby B":  [
-                                   "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:238"
+                                   "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:305"
                                ],
                     "El segundo Toby de refuerzo.":  [
-                                                         "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:245"
+                                                         "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:312"
                                                      ],
                     "* Acabaste con Toby B.":  [
-                                                   "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:246"
+                                                   "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:313"
                                                ],
                     "Desconocido":  [
-                                        "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:265",
+                                        "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:332",
                                         "scripts\\scr_save_room_names\\scr_save_room_names.gml:117"
                                     ],
                     "Un error en la matrix.":  [
-                                                   "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:272"
+                                                   "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:339"
                                                ],
                     "Algo extraño emerge de la oscuridad...":  [
-                                                                   "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:273"
+                                                                   "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:340"
                                                                ],
                     "* El enemigo desconocido se desvanece.":  [
-                                                                   "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:274"
+                                                                   "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:341"
                                                                ],
                     "Palo":  [
                                  "scripts\\scr_equips_data\\scr_equips_data.gml:23"
@@ -582,23 +590,29 @@
                     "Un palo de madera sencillo.":  [
                                                         "scripts\\scr_equips_data\\scr_equips_data.gml:37"
                                                     ],
+                    "Raqueta Tenis":  [
+                                          "scripts\\scr_equips_data\\scr_equips_data.gml:68"
+                                      ],
+                    "Una raqueta ligera. Permite hacer parry a los ataques enemigos.":  [
+                                                                                            "scripts\\scr_equips_data\\scr_equips_data.gml:85"
+                                                                                        ],
                     "Cuchillo":  [
-                                     "scripts\\scr_equips_data\\scr_equips_data.gml:63"
+                                     "scripts\\scr_equips_data\\scr_equips_data.gml:111"
                                  ],
                     "Un cuchillo afilado.":  [
-                                                 "scripts\\scr_equips_data\\scr_equips_data.gml:77"
+                                                 "scripts\\scr_equips_data\\scr_equips_data.gml:125"
                                              ],
                     "Cutter":  [
-                                   "scripts\\scr_equips_data\\scr_equips_data.gml:103"
+                                   "scripts\\scr_equips_data\\scr_equips_data.gml:151"
                                ],
                     "Una herramienta con una hoja retráctil.":  [
-                                                                    "scripts\\scr_equips_data\\scr_equips_data.gml:117"
+                                                                    "scripts\\scr_equips_data\\scr_equips_data.gml:165"
                                                                 ],
                     "Pijama":  [
-                                   "scripts\\scr_equips_data\\scr_equips_data.gml:147"
+                                   "scripts\\scr_equips_data\\scr_equips_data.gml:195"
                                ],
                     "Un pijama cómodo.":  [
-                                              "scripts\\scr_equips_data\\scr_equips_data.gml:161"
+                                              "scripts\\scr_equips_data\\scr_equips_data.gml:209"
                                           ],
                     "VIVAAAAAAAAAAA!!!":  [
                                               "scripts\\scr_game_text\\scr_game_text.gml:72",
@@ -775,43 +789,43 @@
                                                                    "scripts\\scr_shop_data\\scr_shop_data.gml:174"
                                                                ],
                     "Saludos":  [
-                                    "scripts\\scr_shop_data\\scr_shop_data.gml:260"
+                                    "scripts\\scr_shop_data\\scr_shop_data.gml:265"
                                 ],
                     "* ¡Hola! Bienvenido a la tienda.":  [
-                                                             "scripts\\scr_shop_data\\scr_shop_data.gml:266"
+                                                             "scripts\\scr_shop_data\\scr_shop_data.gml:271"
                                                          ],
                     "* Mira todo lo que quieras.":  [
-                                                        "scripts\\scr_shop_data\\scr_shop_data.gml:272"
+                                                        "scripts\\scr_shop_data\\scr_shop_data.gml:277"
                                                     ],
                     "Sobre esta tienda":  [
-                                              "scripts\\scr_shop_data\\scr_shop_data.gml:285"
+                                              "scripts\\scr_shop_data\\scr_shop_data.gml:290"
                                           ],
                     "* Aquí vendo algunas cosas que podrían serte útiles.":  [
-                                                                                 "scripts\\scr_shop_data\\scr_shop_data.gml:291"
+                                                                                 "scripts\\scr_shop_data\\scr_shop_data.gml:296"
                                                                              ],
                     "* También puedo comprarte objetos que ya no necesites.":  [
-                                                                                   "scripts\\scr_shop_data\\scr_shop_data.gml:297"
+                                                                                   "scripts\\scr_shop_data\\scr_shop_data.gml:302"
                                                                                ],
                     "¿Qué son los Sueños?":  [
-                                                 "scripts\\scr_shop_data\\scr_shop_data.gml:310"
+                                                 "scripts\\scr_shop_data\\scr_shop_data.gml:315"
                                              ],
                     "* Los Sueños son la moneda que usamos por aquí.":  [
-                                                                            "scripts\\scr_shop_data\\scr_shop_data.gml:316"
+                                                                            "scripts\\scr_shop_data\\scr_shop_data.gml:321"
                                                                         ],
                     "* Puedes conseguirlos en tus aventuras y gastarlos en tiendas.":  [
-                                                                                           "scripts\\scr_shop_data\\scr_shop_data.gml:325"
+                                                                                           "scripts\\scr_shop_data\\scr_shop_data.gml:330"
                                                                                        ],
                     "* Gracias por venir. Vuelve pronto.":  [
-                                                                "scripts\\scr_shop_data\\scr_shop_data.gml:348"
+                                                                "scripts\\scr_shop_data\\scr_shop_data.gml:353"
                                                             ],
                     "Tienda sin configurar":  [
-                                                  "scripts\\scr_shop_data\\scr_shop_data.gml:393"
+                                                  "scripts\\scr_shop_data\\scr_shop_data.gml:398"
                                               ],
                     "* Esta tienda todavía no está configurada.":  [
-                                                                       "scripts\\scr_shop_data\\scr_shop_data.gml:413"
+                                                                       "scripts\\scr_shop_data\\scr_shop_data.gml:418"
                                                                    ],
                     "* Hasta luego.":  [
-                                           "scripts\\scr_shop_data\\scr_shop_data.gml:426"
+                                           "scripts\\scr_shop_data\\scr_shop_data.gml:431"
                                        ],
                     "Brillitos":  [
                                       "scripts\\scr_toys_data\\scr_toys_data.gml:13"

@@ -1,7 +1,7 @@
 REPORTE DE LOCALIZACION
 =======================
-Textos detectados: 254
-Traducciones inglesas pendientes: 251
+Textos detectados: 258
+Traducciones inglesas pendientes: 255
 Entradas inglesas obsoletas archivadas: 0
 
 JSON escritos en UTF-8 SIN BOM.
