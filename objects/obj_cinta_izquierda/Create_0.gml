@@ -31,7 +31,7 @@ image_yscale =
 
 
 conveyor_speed =
-    2;
+    4.5;
 
 
 conveyor_enabled =

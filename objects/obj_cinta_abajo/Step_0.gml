@@ -326,121 +326,150 @@ if (!_belt_hit)
 
 
 // =========================================================
-// MOVIMIENTO FIJO
-// =========================================================
-
-var _move_x =
-    0;
-
-
-var _move_y =
-    conveyor_speed;
-
-
-// =========================================================
-// MOVER EN PASOS PEQUEÑOS
+// MOVIMIENTO DESDE EL CONTEXTO DE MAYA
 // =========================================================
 //
-// Se comprueba la colisión normal del jugador píxel por
-// píxel para no atravesar paredes.
+// ESTE ERA EL FALLO REAL.
 //
-// NO modifica:
-//     face
-//     facing_direction
-//     direccion
+// Antes hacíamos:
 //
-// Maya puede seguir mirando hacia donde quiera mientras
-// la cinta la transporta.
+//     place_meeting(
+//         _p.x + desplazamiento,
+//         _p.y,
+//         colision
+//     );
+//
+// PERO ese código se ejecutaba desde el Step de la CINTA.
+//
+// En GameMaker, place_meeting() usa la máscara de la
+// INSTANCIA QUE EJECUTA EL CÓDIGO.
+//
+// Por tanto, estaba comprobando:
+//
+//     hitbox de la CINTA
+//
+// desplazada a las coordenadas de Maya.
+//
+// No estaba comprobando la hitbox de Maya.
+//
+// Eso hacía que el resultado dependiera del tamaño y
+// orientación de cada cinta.
+//
+// Ahora todo este bloque se ejecuta:
+//
+//     with (_p)
+//
+// por lo que:
+//
+//     place_meeting()
+//
+// usa realmente la máscara de obj_player, exactamente como
+// ocurre en el sistema de deslizamiento.
 // =========================================================
 
-var _steps =
-    max(
-        1,
-        ceil(
-            max(
-                abs(_move_x),
-                abs(_move_y)
-            )
-        )
-    );
-
-
-var _step_x =
-    _move_x
-    /
-    _steps;
-
-
-var _step_y =
-    _move_y
-    /
-    _steps;
-
-
-for (
-    var _i = 0;
-    _i < _steps;
-    _i++
-)
+with (_p)
 {
-    // -----------------------------------------------------
-    // X
-    // -----------------------------------------------------
+    var _move_x =
+        0;
 
-    if (abs(_step_x) > 0.0001)
+
+    var _move_y =
+        other.conveyor_speed;
+
+
+    // =====================================================
+    // MOVER EN PASOS PEQUEÑOS
+    // =====================================================
+
+    var _steps =
+        max(
+            1,
+            ceil(
+                max(
+                    abs(_move_x),
+                    abs(_move_y)
+                )
+            )
+        );
+
+
+    var _step_x =
+        _move_x
+        /
+        _steps;
+
+
+    var _step_y =
+        _move_y
+        /
+        _steps;
+
+
+    for (
+        var _i = 0;
+        _i < _steps;
+        _i++
+    )
     {
-        var _can_x =
-            true;
+        // -------------------------------------------------
+        // X
+        // -------------------------------------------------
 
-
-        if (conveyor_respect_collisions)
+        if (abs(_step_x) > 0.0001)
         {
-            _can_x =
-                !place_meeting(
-                    _p.x
-                    +
-                    _step_x,
-                    _p.y,
-                    colision
-                );
+            var _can_x =
+                true;
+
+
+            if (other.conveyor_respect_collisions)
+            {
+                _can_x =
+                    !place_meeting(
+                        x
+                        +
+                        _step_x,
+                        y,
+                        colision
+                    );
+            }
+
+
+            if (_can_x)
+            {
+                x +=
+                    _step_x;
+            }
         }
 
 
-        if (_can_x)
+        // -------------------------------------------------
+        // Y
+        // -------------------------------------------------
+
+        if (abs(_step_y) > 0.0001)
         {
-            _p.x +=
-                _step_x;
-        }
-    }
+            var _can_y =
+                true;
 
 
-    // -----------------------------------------------------
-    // Y
-    // -----------------------------------------------------
-
-    if (abs(_step_y) > 0.0001)
-    {
-        var _can_y =
-            true;
-
-
-        if (conveyor_respect_collisions)
-        {
-            _can_y =
-                !place_meeting(
-                    _p.x,
-                    _p.y
-                    +
-                    _step_y,
-                    colision
-                );
-        }
+            if (other.conveyor_respect_collisions)
+            {
+                _can_y =
+                    !place_meeting(
+                        x,
+                        y
+                        +
+                        _step_y,
+                        colision
+                    );
+            }
 
 
-        if (_can_y)
-        {
-            _p.y +=
-                _step_y;
+            if (_can_y)
+            {
+                y +=
+                    _step_y;
+            }
         }
     }
 }

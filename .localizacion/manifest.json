@@ -52,11 +52,11 @@
                                                                        "objects\\obj_batalla_controller\\Step_0.gml:413"
                                                                    ],
                     "* {enemy} ataca y te causa {damage} de daño!":  [
-                                                                         "objects\\obj_batalla_controller\\Step_0.gml:552",
-                                                                         "objects\\obj_batalla_controller\\Step_0.gml:919"
+                                                                         "objects\\obj_batalla_controller\\Step_0.gml:562",
+                                                                         "objects\\obj_batalla_controller\\Step_0.gml:939"
                                                                      ],
                     "* ¡Hiciste parry al ataque de {enemy}!":  [
-                                                                   "objects\\obj_batalla_controller\\Step_0.gml:869"
+                                                                   "objects\\obj_batalla_controller\\Step_0.gml:879"
                                                                ],
                     "* Fallaste el ataque.":  [
                                                   "objects\\obj_batalla_ui\\Create_0.gml:494"
