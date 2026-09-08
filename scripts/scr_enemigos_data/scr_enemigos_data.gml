@@ -25,11 +25,56 @@ function scr_enemigos_data(_id_enemigo) {
         // 1 = segundo enemigo
         // 2 = tercer enemigo
         //
+        // ---------------------------------------------------------
+        // ACTIVAR POR VIDA
+        // ---------------------------------------------------------
+        //
+        // vida:
+        // 10 = se activa con 10 HP o menos.
+        //
         // porcentaje_vida:
         // 0.20 = 20%
         // 0.50 = 50%
         // 0.05 = 5%
         //
+        // ---------------------------------------------------------
+        // ACTIVAR POR TURNO
+        // ---------------------------------------------------------
+        //
+        // turno:
+        // 1 = primer turno del jugador
+        // 2 = segundo turno del jugador
+        // 3 = tercer turno del jugador
+        //
+        // Puedes usar vida, porcentaje_vida o turno.
+        //
+        // Si escribes varios campos, cualquiera de ellos puede
+        // activar la cinemática.
+        //
+        // ---------------------------------------------------------
+        // CAMBIAR SPRITE AL ACTIVARSE
+        // ---------------------------------------------------------
+        //
+        // nuevo_sprite:
+        //     sprite que tomará el enemigo justo antes de que
+        //     empiece la cinemática.
+        //
+        // nueva_escala_sprite:
+        //     opcional. Permite cambiar también su escala visual.
+        //
+        // Ejemplo:
+        //
+        // array_push(_datos_batalla.cinematicas, {
+        //     enemigo: 0,
+        //     turno: 3,
+        //     nuevo_sprite: spr_enemigo_2,
+        //     nueva_escala_sprite: 2.0,
+        //     id: "boss_prueba_20",
+        //     terminar_batalla: false,
+        //     activada: false
+        // });
+        //
+        // ---------------------------------------------------------
         // id:
         // ID de la cinematica dentro de
         // scr_bosses_cinematica_bbs
@@ -138,7 +183,7 @@ function scr_enemigos_data(_id_enemigo) {
             // Puedes agregar tantas como quieras.
             //
             // Esta primera se activa cuando Jevil llegue al
-            // 20% de vida o menos y, al terminar, la batalla sigue.
+            // 70% de vida o menos y, al terminar, la batalla sigue.
             // -----------------------------------------------------
             
             array_push(_datos_batalla.cinematicas, {
@@ -150,16 +195,38 @@ function scr_enemigos_data(_id_enemigo) {
             });
             
             // -----------------------------------------------------
-            // EJEMPLO DE UNA SEGUNDA CINEMATICA
-            //
-            // Está preparada pero comentada.
-            //
-            // Puedes activarla quitando los comentarios cuando
-            // agreguemos "boss_1_05" en
-            // scr_bosses_cinematica_bbs.
+            // EJEMPLO DE CINEMÁTICA POR TURNO + CAMBIO DE SPRITE
             // -----------------------------------------------------
-            
-            
+            //
+            // Descomenta y cambia el sprite/ID cuando quieras
+            // utilizarlo en un boss real:
+            //
+            // array_push(_datos_batalla.cinematicas, {
+            //     enemigo: 0,
+            //     turno: 3,
+            //     nuevo_sprite: spr_enemigo_2,
+            //     nueva_escala_sprite: 2.0,
+            //     id: "boss_prueba_20_1",
+            //     terminar_batalla: false,
+            //     activada: false
+            // });
+            // -----------------------------------------------------
+
+            // -----------------------------------------------------
+            // EJEMPLO POR HP ABSOLUTO + CAMBIO DE SPRITE
+            // -----------------------------------------------------
+            //
+            // array_push(_datos_batalla.cinematicas, {
+            //     enemigo: 0,
+            //     vida: 10,
+            //     nuevo_sprite: spr_enemigo_2,
+            //     id: "boss_prueba_20_1",
+            //     terminar_batalla: false,
+            //     activada: false
+            // });
+            // -----------------------------------------------------
+
+
             array_push(_datos_batalla.cinematicas, {
                 enemigo: 0,
                 porcentaje_vida: 0.20,

@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"scr_enemigos_mapa_data",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"scr_enemigos_mapa_data",
+  "parent":{
+    "name":"Enemigos",
+    "path":"folders/Enemigos.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

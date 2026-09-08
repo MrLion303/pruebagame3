@@ -34,8 +34,8 @@
   "nineSlice":null,
   "origin":4,
   "parent":{
-    "name":"MSistema de Batallas",
-    "path":"folders/MSistema de Batallas.yy",
+    "name":"Sprites",
+    "path":"folders/MSistema de Batallas/Sprites.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",

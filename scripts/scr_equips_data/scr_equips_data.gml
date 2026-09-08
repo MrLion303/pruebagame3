@@ -54,6 +54,54 @@ function scr_equips_data()
 
 
         // =================================================
+        // RAQUETA TENIS
+        // =================================================
+        //
+        // permite_parry:
+        //     activa el minijuego defensivo durante los
+        //     ataques enemigos.
+        // =================================================
+
+        raqueta_tenis:
+        {
+            nombre:
+                scr_loc_src(
+                    "Raqueta Tenis"
+                ),
+
+            tipo:
+                "arma",
+
+            ataque:
+                4,
+
+            defensa:
+                0,
+
+            permite_parry:
+                true,
+
+            descripcion:
+                scr_loc_src(
+                    "Una raqueta ligera. Permite hacer parry a los ataques enemigos."
+                ),
+
+            precio_compra:
+                140,
+
+            precio_venta:
+                70,
+
+            icono_tienda:
+                -1,
+
+            // noone = color normal. Ej.: c_aqua, c_red, etc.
+            color_tienda:
+                noone
+        },
+
+
+        // =================================================
         // CUCHILLO
         // =================================================
 

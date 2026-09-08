@@ -229,6 +229,11 @@ function scr_shop_data(_shop_id)
 
                     scr_shop_stock(
                         "equip",
+                        "raqueta_tenis"
+                    ),
+
+                    scr_shop_stock(
+                        "equip",
                         "cuchillo"
                     ),
 
