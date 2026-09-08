@@ -195,11 +195,6 @@ if (
 // =========================================================
 // BLOQUEO DE LA MISMA PULSACIÓN QUE CERRÓ EL MENÚ
 // =========================================================
-//
-// Al usar un consumible, el menú de pausa puede cerrarse en
-// el mismo frame en que Z/Enter fue pulsado. Sin este bloqueo,
-// el punto de guardado podía reutilizar ESA MISMA pulsación.
-// =========================================================
 
 var _pause_menu =
     instance_find(
@@ -244,10 +239,135 @@ if (!_confirm)
 
 
 // =========================================================
-// DISTANCIA
+// INTERACCIÓN DIRECCIONAL ESTRICTA
+// =========================================================
+//
+// El punto de guardado debe estar LITERALMENTE en la línea
+// hacia la que mira el sprite de Maya.
+//
+// No usamos:
+//     distance_to_object()
+//     rectángulos amplios
+//     proximidad lateral
+//
+// Usamos una línea recta muy corta desde el centro de la
+// hitbox del player.
+//
+// Ejemplo:
+//
+//     SAVE debajo de Maya
+//     Maya mirando derecha
+//
+//     -> la línea sale a la derecha
+//     -> NO toca el save
+//     -> NO hay interacción.
+//
+// facing_direction:
+//
+//     0 = derecha
+//     1 = izquierda
+//     2 = abajo
+//     3 = arriba
 // =========================================================
 
-if (distance_to_object(obj_player) >= 8)
+var _look =
+    variable_instance_exists(
+        _p,
+        "facing_direction"
+    )
+    ?
+    _p.facing_direction
+    :
+    2;
+
+
+// Centro físico del player.
+var _look_start_x =
+    (
+        _p.bbox_left
+        +
+        _p.bbox_right
+    )
+    *
+    0.5;
+
+
+var _look_start_y =
+    (
+        _p.bbox_top
+        +
+        _p.bbox_bottom
+    )
+    *
+    0.5;
+
+
+// Alcance corto de interacción.
+//
+// Como obj_save es una colisión/obstáculo, Maya queda
+// pegada a él y esta distancia es suficiente sin permitir
+// interacción desde lados incorrectos.
+var _look_reach =
+    18;
+
+
+var _look_dx =
+    0;
+
+
+var _look_dy =
+    0;
+
+
+switch (_look)
+{
+    // DERECHA
+    case 0:
+        _look_dx =
+            _look_reach;
+        break;
+
+
+    // IZQUIERDA
+    case 1:
+        _look_dx =
+            -_look_reach;
+        break;
+
+
+    // ABAJO
+    case 2:
+        _look_dy =
+            _look_reach;
+        break;
+
+
+    // ARRIBA
+    case 3:
+        _look_dy =
+            -_look_reach;
+        break;
+}
+
+
+// La línea solo comprueba ESTA instancia concreta de obj_save.
+var _save_mirado =
+    collision_line(
+        _look_start_x,
+        _look_start_y,
+        _look_start_x
+        +
+        _look_dx,
+        _look_start_y
+        +
+        _look_dy,
+        id,
+        true,
+        false
+    );
+
+
+if (_save_mirado == noone)
 {
     exit;
 }
@@ -307,15 +427,6 @@ var _dialogue =
 // =========================================================
 // ID ÚNICA DEL PUNTO
 // =========================================================
-//
-// Solo importa para diálogos NO repetibles.
-//
-// Se genera automáticamente:
-//
-//     save_intro_<room>_<x>_<y>
-//
-// No necesitas asignar IDs manualmente.
-// =========================================================
 
 var _once_id =
     save_dialogue_once_id;
@@ -344,16 +455,6 @@ if (
 
 // =========================================================
 // DECIDIR SI HAY QUE MOSTRAR EL DIÁLOGO
-// =========================================================
-//
-// REPETIBLE:
-//
-//     siempre true
-//
-// NO REPETIBLE:
-//
-//     solamente si todavía no está marcado
-//
 // =========================================================
 
 var _show_dialogue =
@@ -489,12 +590,6 @@ if (
     // =========================================
     // MARCAR COMO VISTO
     // =========================================
-    //
-    // SOLO si el diálogo es NO repetible.
-    //
-    // Los repetibles jamás se marcan, por lo que vuelven
-    // a mostrarse en cada interacción.
-    // =========================================
 
     if (!_repeatable)
     {
@@ -559,13 +654,6 @@ if (
 // =========================================================
 // SIN DIÁLOGO PENDIENTE
 // -> ABRIR SAVE DIRECTAMENTE
-// =========================================================
-//
-// Esto ocurre cuando:
-//
-// - el diálogo NO repetible ya fue visto;
-// - o por seguridad el diálogo no tiene páginas.
-//
 // =========================================================
 
 if (!instance_exists(obj_save_menu))

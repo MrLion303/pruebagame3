@@ -262,7 +262,24 @@ if (
 
 
 // =========================================================
-// COLISIÓN CON MAYA
+// COLISIÓN DE DAÑO CON MAYA
+// =========================================================
+//
+// IMPORTANTE:
+//
+// Esto NO modifica la máscara de colisión normal de
+// obj_player.
+//
+// Para recibir daño usamos una hitbox independiente que
+// ocupa TODO el rectángulo visual del sprite actual de Maya.
+//
+// Así:
+//
+//     movimiento / paredes:
+//         siguen usando la colisión normal del player.
+//
+//     proyectiles de mapa:
+//         pueden golpear cualquier parte visible del sprite.
 // =========================================================
 
 if (
@@ -278,14 +295,165 @@ if (
 
 
 var _p =
-    instance_place(
-        x,
-        y,
-        obj_player
+    instance_find(
+        obj_player,
+        0
     );
 
 
-if (_p == noone)
+if (
+    _p == noone
+    ||
+    _p.sprite_index == -1
+)
+{
+    exit;
+}
+
+
+// =========================================================
+// RECTÁNGULO VISUAL COMPLETO DEL SPRITE DEL PLAYER
+// =========================================================
+//
+// Consideramos:
+//
+//     - ancho completo del sprite
+//     - alto completo del sprite
+//     - origen del sprite
+//     - image_xscale
+//     - image_yscale
+//
+// Maya normalmente no rota en el mapa, por eso no es
+// necesario alterar su colisión normal ni generar una máscara.
+// =========================================================
+
+var _p_sprite_w =
+    sprite_get_width(
+        _p.sprite_index
+    );
+
+
+var _p_sprite_h =
+    sprite_get_height(
+        _p.sprite_index
+    );
+
+
+var _p_origin_x =
+    sprite_get_xoffset(
+        _p.sprite_index
+    );
+
+
+var _p_origin_y =
+    sprite_get_yoffset(
+        _p.sprite_index
+    );
+
+
+var _p_x1 =
+    _p.x
+    -
+    (
+        _p_origin_x
+        *
+        _p.image_xscale
+    );
+
+
+var _p_y1 =
+    _p.y
+    -
+    (
+        _p_origin_y
+        *
+        _p.image_yscale
+    );
+
+
+var _p_x2 =
+    _p_x1
+    +
+    (
+        _p_sprite_w
+        *
+        _p.image_xscale
+    );
+
+
+var _p_y2 =
+    _p_y1
+    +
+    (
+        _p_sprite_h
+        *
+        _p.image_yscale
+    );
+
+
+// Soporte por si algún sprite se dibuja invertido.
+var _p_left =
+    min(
+        _p_x1,
+        _p_x2
+    );
+
+
+var _p_right =
+    max(
+        _p_x1,
+        _p_x2
+    );
+
+
+var _p_top =
+    min(
+        _p_y1,
+        _p_y2
+    );
+
+
+var _p_bottom =
+    max(
+        _p_y1,
+        _p_y2
+    );
+
+
+// =========================================================
+// HITBOX DEL PROYECTIL
+// =========================================================
+//
+// Aquí conservamos la hitbox/máscara normal de la bala.
+// Solo estamos ampliando el lado del PLAYER.
+//
+// bbox_* pertenece al proyectil actual.
+// =========================================================
+
+var _impacta_player =
+(
+    bbox_right
+    >=
+    _p_left
+
+    &&
+    bbox_left
+    <=
+    _p_right
+
+    &&
+    bbox_bottom
+    >=
+    _p_top
+
+    &&
+    bbox_top
+    <=
+    _p_bottom
+);
+
+
+if (!_impacta_player)
 {
     exit;
 }
@@ -374,6 +542,21 @@ if (_puede_recibir)
             1,
             invulnerabilidad_frames
         );
+
+
+    // =====================================================
+    // SCREEN SHAKE UNIVERSAL
+    // =====================================================
+    //
+    // Solo llegamos aquí si ESTA bala realmente consiguió
+    // aplicar daño; los impactos bloqueados por i-frames no
+    // reinician la sacudida.
+    // =====================================================
+
+    scr_screen_shake_start(
+        3,
+        8
+    );
 
 
     global.player_hp_current =

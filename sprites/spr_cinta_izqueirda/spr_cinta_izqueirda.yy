@@ -1,6 +1,6 @@
 {
   "$GMSprite":"v2",
-  "%Name":"spr_barra_transportadora_lado",
+  "%Name":"spr_cinta_izqueirda",
   "bboxMode":0,
   "bbox_bottom":19,
   "bbox_left":0,
@@ -25,8 +25,27 @@
   "layers":[
     {"$GMImageLayer":"","%Name":"73d0390e-ea7d-4381-ad3e-2e0d9f70bd7d","blendMode":0,"displayName":"default","isLocked":false,"name":"73d0390e-ea7d-4381-ad3e-2e0d9f70bd7d","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
   ],
-  "name":"spr_barra_transportadora_lado",
-  "nineSlice":null,
+  "name":"spr_cinta_izqueirda",
+  "nineSlice":{
+    "$GMNineSliceData":"",
+    "bottom":1,
+    "enabled":true,
+    "guideColour":[4294902015,4294902015,4294902015,4294902015,],
+    "highlightColour":1728023040,
+    "highlightStyle":0,
+    "left":0,
+    "resourceType":"GMNineSliceData",
+    "resourceVersion":"2.0",
+    "right":0,
+    "tileMode":[
+      0,
+      0,
+      0,
+      0,
+      1,
+    ],
+    "top":1,
+  },
   "origin":4,
   "parent":{
     "name":"Sprites",
@@ -37,7 +56,7 @@
   "resourceVersion":"2.0",
   "sequence":{
     "$GMSequence":"v1",
-    "%Name":"spr_barra_transportadora_lado",
+    "%Name":"spr_cinta_izqueirda",
     "autoRecord":true,
     "backdropHeight":768,
     "backdropImageOpacity":0.5,
@@ -61,7 +80,7 @@
       "resourceType":"KeyframeStore<MomentsEventKeyframe>",
       "resourceVersion":"2.0",
     },
-    "name":"spr_barra_transportadora_lado",
+    "name":"spr_cinta_izqueirda",
     "playback":1,
     "playbackSpeed":10.0,
     "playbackSpeedType":0,
@@ -73,19 +92,19 @@
     "tracks":[
       {"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[
             {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
-                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"c0b87c5d-e04d-4c51-9571-4fe70ad1de71","path":"sprites/spr_barra_transportadora_lado/spr_barra_transportadora_lado.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"c0b87c5d-e04d-4c51-9571-4fe70ad1de71","path":"sprites/spr_cinta_izqueirda/spr_cinta_izqueirda.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
               },"Disabled":false,"id":"15b8338c-7d78-4bd9-8eb6-b0304c321f0b","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
             {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
-                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"a6e3a86b-ee0c-44ed-852e-878f8ff86109","path":"sprites/spr_barra_transportadora_lado/spr_barra_transportadora_lado.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"a6e3a86b-ee0c-44ed-852e-878f8ff86109","path":"sprites/spr_cinta_izqueirda/spr_cinta_izqueirda.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
               },"Disabled":false,"id":"40c60f8e-d006-4f67-8cfb-d471eeb0cfc1","IsCreationKey":false,"Key":1.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
             {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
-                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"296b19c8-6f17-4445-8443-37a78feeaaf8","path":"sprites/spr_barra_transportadora_lado/spr_barra_transportadora_lado.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"296b19c8-6f17-4445-8443-37a78feeaaf8","path":"sprites/spr_cinta_izqueirda/spr_cinta_izqueirda.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
               },"Disabled":false,"id":"c39531c1-30d8-40b1-8faf-1984416e0de2","IsCreationKey":false,"Key":2.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
             {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
-                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"c3da2f90-b544-4b46-8c03-110b300e0e98","path":"sprites/spr_barra_transportadora_lado/spr_barra_transportadora_lado.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"c3da2f90-b544-4b46-8c03-110b300e0e98","path":"sprites/spr_cinta_izqueirda/spr_cinta_izqueirda.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
               },"Disabled":false,"id":"12285118-a150-40be-9c5f-bbdc46a8f911","IsCreationKey":false,"Key":3.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
             {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
-                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"191536e0-efce-4ccd-a754-57fb180154e6","path":"sprites/spr_barra_transportadora_lado/spr_barra_transportadora_lado.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"191536e0-efce-4ccd-a754-57fb180154e6","path":"sprites/spr_cinta_izqueirda/spr_cinta_izqueirda.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
               },"Disabled":false,"id":"bdf7b3b1-8049-472a-af86-2bae4ecd6f67","IsCreationKey":false,"Key":4.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
           ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],

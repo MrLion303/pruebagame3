@@ -8,8 +8,8 @@
   "name":"obj_enemigo_mapa_directo",
   "overriddenProperties":[],
   "parent":{
-    "name":"Enemigos",
-    "path":"folders/Enemigos.yy",
+    "name":"Batalla en el mapa",
+    "path":"folders/MSistema de Batallas/Batalla en el mapa.yy",
   },
   "parentObjectId":null,
   "persistent":false,

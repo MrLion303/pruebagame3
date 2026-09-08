@@ -528,6 +528,16 @@ switch (fase_actual)
         }
 
 
+        // Screen shake universal.
+        if (_dano_enemigo > 0)
+        {
+            scr_screen_shake_start(
+                3,
+                8
+            );
+        }
+
+
         if (audio_is_playing(snd_atacado))
         {
             audio_stop_sound(
@@ -895,6 +905,16 @@ switch (fase_actual)
                             -
                             parry_pending_damage
                         );
+                }
+
+
+                // Screen shake también cuando fallas el parry.
+                if (parry_pending_damage > 0)
+                {
+                    scr_screen_shake_start(
+                        3,
+                        8
+                    );
                 }
 
 

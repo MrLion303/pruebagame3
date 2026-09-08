@@ -122,91 +122,219 @@ var _puede_actualizar_movimiento =
 if (_puede_actualizar_movimiento)
 {
     // -----------------------------------------------------
-    // IZQUIERDA <-> DERECHA
+    // IDA Y VUELTA CON EASE-IN-OUT REAL
+    // -----------------------------------------------------
+    //
+    // Presets:
+    //
+    //     "izquierda_derecha"
+    //     "arriba_abajo"
+    //     "diagonal"
+    //
+    // Usamos SMOOTHERSTEP:
+    //
+    //     6t^5 - 15t^4 + 10t^3
+    //
+    // Ventaja:
+    //
+    //     - velocidad 0 en ambos extremos;
+    //     - aceleración también 0 justo en los extremos;
+    //     - frenado mucho más perceptible;
+    //     - regreso sin rebote.
     // -----------------------------------------------------
 
-    if (movimiento_preset == "izquierda_derecha")
+    if (
+        movimiento_preset == "izquierda_derecha"
+        ||
+        movimiento_preset == "arriba_abajo"
+        ||
+        movimiento_preset == "diagonal"
+    )
     {
-        x +=
+        var _distancia_recorrido =
+            max(
+                1,
+                movimiento_distancia
+            );
+
+
+        // -------------------------------------------------
+        // CALIBRAR movimiento_velocidad
+        // -------------------------------------------------
+        //
+        // El trayecto completo va de:
+        //
+        //     -distancia  ->  +distancia
+        //
+        // La derivada máxima de smootherstep es 1.875.
+        //
+        // Por eso usamos:
+        //
+        //     paso_t = velocidad /
+        //              (3.75 * distancia)
+        //
+        // Así movimiento_velocidad sigue siendo
+        // aproximadamente la VELOCIDAD MÁXIMA.
+        // -------------------------------------------------
+
+        var _paso_t =
             movimiento_velocidad
+            /
+            (
+                3.75
+                *
+                _distancia_recorrido
+            );
+
+
+        movimiento_trayecto_t +=
+            _paso_t
             *
-            movimiento_signo;
+            movimiento_trayecto_sentido;
 
 
-        var _limite_izquierdo =
-            movimiento_origen_x
-            -
-            movimiento_distancia;
+        // -------------------------------------------------
+        // EXTREMO POSITIVO
+        // -------------------------------------------------
 
-
-        var _limite_derecho =
-            movimiento_origen_x
-            +
-            movimiento_distancia;
-
-
-        if (x >= _limite_derecho)
+        if (movimiento_trayecto_t >= 1)
         {
-            x =
-                _limite_derecho;
+            movimiento_trayecto_t =
+                1;
 
 
-            movimiento_signo =
+            movimiento_trayecto_sentido =
                 -1;
         }
-        else if (x <= _limite_izquierdo)
+
+
+        // -------------------------------------------------
+        // EXTREMO NEGATIVO
+        // -------------------------------------------------
+
+        else if (movimiento_trayecto_t <= 0)
+        {
+            movimiento_trayecto_t =
+                0;
+
+
+            movimiento_trayecto_sentido =
+                1;
+        }
+
+
+        var _t =
+            clamp(
+                movimiento_trayecto_t,
+                0,
+                1
+            );
+
+
+        // smootherstep:
+        // 6t^5 - 15t^4 + 10t^3
+        var _ease =
+            (
+                6
+                *
+                power(
+                    _t,
+                    5
+                )
+            )
+            -
+            (
+                15
+                *
+                power(
+                    _t,
+                    4
+                )
+            )
+            +
+            (
+                10
+                *
+                power(
+                    _t,
+                    3
+                )
+            );
+
+
+        // Convertir 0..1 a -distancia..+distancia.
+        var _offset =
+            lerp(
+                -_distancia_recorrido,
+                _distancia_recorrido,
+                _ease
+            );
+
+
+        // ---------------------------------------------
+        // HORIZONTAL
+        // ---------------------------------------------
+
+        if (
+            movimiento_preset
+            ==
+            "izquierda_derecha"
+        )
         {
             x =
-                _limite_izquierdo;
+                movimiento_origen_x
+                +
+                _offset;
 
 
-            movimiento_signo =
-                1;
-        }
-    }
-
-
-    // -----------------------------------------------------
-    // ARRIBA <-> ABAJO
-    // -----------------------------------------------------
-
-    else if (movimiento_preset == "arriba_abajo")
-    {
-        y +=
-            movimiento_velocidad
-            *
-            movimiento_signo;
-
-
-        var _limite_arriba =
-            movimiento_origen_y
-            -
-            movimiento_distancia;
-
-
-        var _limite_abajo =
-            movimiento_origen_y
-            +
-            movimiento_distancia;
-
-
-        if (y >= _limite_abajo)
-        {
             y =
-                _limite_abajo;
-
-
-            movimiento_signo =
-                -1;
+                movimiento_origen_y;
         }
-        else if (y <= _limite_arriba)
+
+
+        // ---------------------------------------------
+        // VERTICAL
+        // ---------------------------------------------
+
+        else if (
+            movimiento_preset
+            ==
+            "arriba_abajo"
+        )
         {
+            x =
+                movimiento_origen_x;
+
+
             y =
-                _limite_arriba;
+                movimiento_origen_y
+                +
+                _offset;
+        }
 
 
-            movimiento_signo =
-                1;
+        // ---------------------------------------------
+        // DIAGONAL
+        // ---------------------------------------------
+
+        else
+        {
+            x =
+                movimiento_origen_x
+                +
+                lengthdir_x(
+                    _offset,
+                    movimiento_diagonal_angulo
+                );
+
+
+            y =
+                movimiento_origen_y
+                +
+                lengthdir_y(
+                    _offset,
+                    movimiento_diagonal_angulo
+                );
         }
     }
 

@@ -1,6 +1,6 @@
 {
   "$GMSprite":"v2",
-  "%Name":"spr_barra_transportadora_arriba",
+  "%Name":"spr_cinta_arriba",
   "bboxMode":0,
   "bbox_bottom":19,
   "bbox_left":0,
@@ -25,8 +25,27 @@
   "layers":[
     {"$GMImageLayer":"","%Name":"07dd5d3d-11f8-4643-834f-bac8ed721c76","blendMode":0,"displayName":"default","isLocked":false,"name":"07dd5d3d-11f8-4643-834f-bac8ed721c76","opacity":100.0,"resourceType":"GMImageLayer","resourceVersion":"2.0","visible":true,},
   ],
-  "name":"spr_barra_transportadora_arriba",
-  "nineSlice":null,
+  "name":"spr_cinta_arriba",
+  "nineSlice":{
+    "$GMNineSliceData":"",
+    "bottom":0,
+    "enabled":true,
+    "guideColour":[4294902015,4294902015,4294902015,4294902015,],
+    "highlightColour":1728023040,
+    "highlightStyle":0,
+    "left":1,
+    "resourceType":"GMNineSliceData",
+    "resourceVersion":"2.0",
+    "right":1,
+    "tileMode":[
+      0,
+      0,
+      0,
+      0,
+      1,
+    ],
+    "top":0,
+  },
   "origin":4,
   "parent":{
     "name":"Sprites",
@@ -37,7 +56,7 @@
   "resourceVersion":"2.0",
   "sequence":{
     "$GMSequence":"v1",
-    "%Name":"spr_barra_transportadora_arriba",
+    "%Name":"spr_cinta_arriba",
     "autoRecord":true,
     "backdropHeight":768,
     "backdropImageOpacity":0.5,
@@ -61,7 +80,7 @@
       "resourceType":"KeyframeStore<MomentsEventKeyframe>",
       "resourceVersion":"2.0",
     },
-    "name":"spr_barra_transportadora_arriba",
+    "name":"spr_cinta_arriba",
     "playback":1,
     "playbackSpeed":10.0,
     "playbackSpeedType":0,
@@ -73,19 +92,19 @@
     "tracks":[
       {"$GMSpriteFramesTrack":"","builtinName":0,"events":[],"inheritsTrackColour":true,"interpolation":1,"isCreationTrack":false,"keyframes":{"$KeyframeStore<SpriteFrameKeyframe>":"","Keyframes":[
             {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
-                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"aa23905f-bf97-426b-998b-7d8b225b7569","path":"sprites/spr_barra_transportadora_arriba/spr_barra_transportadora_arriba.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"aa23905f-bf97-426b-998b-7d8b225b7569","path":"sprites/spr_cinta_arriba/spr_cinta_arriba.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
               },"Disabled":false,"id":"62e590b3-4f29-4f1f-8fa1-a012d8de0b56","IsCreationKey":false,"Key":0.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
             {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
-                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"3178a102-126e-48c2-bb3c-d0be666f7ca7","path":"sprites/spr_barra_transportadora_arriba/spr_barra_transportadora_arriba.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"3178a102-126e-48c2-bb3c-d0be666f7ca7","path":"sprites/spr_cinta_arriba/spr_cinta_arriba.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
               },"Disabled":false,"id":"fc55015c-f8a9-452a-8a4b-a85d3ccf9cff","IsCreationKey":false,"Key":1.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
             {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
-                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"73863820-d368-44dc-885d-c6b50dc6ae90","path":"sprites/spr_barra_transportadora_arriba/spr_barra_transportadora_arriba.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"73863820-d368-44dc-885d-c6b50dc6ae90","path":"sprites/spr_cinta_arriba/spr_cinta_arriba.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
               },"Disabled":false,"id":"5e1cb4d3-5ad7-4653-8c8a-4f7fc4491c6c","IsCreationKey":false,"Key":2.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
             {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
-                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"6b5851f6-f6f2-4b2c-871d-aca1a6cc8444","path":"sprites/spr_barra_transportadora_arriba/spr_barra_transportadora_arriba.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"6b5851f6-f6f2-4b2c-871d-aca1a6cc8444","path":"sprites/spr_cinta_arriba/spr_cinta_arriba.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
               },"Disabled":false,"id":"fa71e2a9-28f4-45ee-b891-1337e7b3619e","IsCreationKey":false,"Key":3.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
             {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
-                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"b28141eb-450d-48d2-b97e-02c50f9a574f","path":"sprites/spr_barra_transportadora_arriba/spr_barra_transportadora_arriba.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"b28141eb-450d-48d2-b97e-02c50f9a574f","path":"sprites/spr_cinta_arriba/spr_cinta_arriba.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
               },"Disabled":false,"id":"cbdb1f07-405f-448c-9ca6-579b3cb36d4a","IsCreationKey":false,"Key":4.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
           ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],

@@ -79,6 +79,63 @@ with (obj_enemigo_mapa_parent)
 
 
 // =========================================================
+// BLOQUEAR MENÚ DE PAUSA DURANTE PELIGRO
+// =========================================================
+//
+// Mientras cualquier enemigo de mapa tenga:
+//
+//     en_alerta = true
+//
+// C y Ctrl quedan anulados.
+//
+// Si por cualquier razón el menú ya estaba abierto cuando
+// un enemigo entra en alerta (por ejemplo, porque el enemigo
+// se movió hacia Maya), también lo cerramos inmediatamente.
+// =========================================================
+
+if (danger_active)
+{
+    keyboard_clear(
+        ord("C")
+    );
+
+
+    keyboard_clear(
+        vk_control
+    );
+
+
+    if (instance_exists(obj_menu_manager))
+    {
+        var _menu =
+            instance_find(
+                obj_menu_manager,
+                0
+            );
+
+
+        if (_menu != noone)
+        {
+            _menu.state =
+                MENU_STATE.CLOSED;
+
+
+            if (
+                variable_instance_exists(
+                    _menu,
+                    "inventory_tab_focus"
+                )
+            )
+            {
+                _menu.inventory_tab_focus =
+                    false;
+            }
+        }
+    }
+}
+
+
+// =========================================================
 // FADE DEL EFECTO DE PELIGRO
 // =========================================================
 //

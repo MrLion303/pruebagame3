@@ -95,6 +95,58 @@ hud_timer_dolor =
     0;
 
 
+
+
+// =========================================================
+// SCREEN SHAKE POR DAÑO DE PROYECTILES DE MAPA
+// =========================================================
+//
+// Se aplica sobre la cámara normal de la room.
+// NO modifica el seguimiento permanente de obj_player.
+//
+// Valores por defecto:
+//     7 frames
+//     3 píxeles de fuerza inicial
+// =========================================================
+
+map_shake_timer =
+    0;
+
+
+map_shake_duration =
+    7;
+
+
+map_shake_strength =
+    3;
+
+
+// Offset realmente aplicado el frame anterior.
+// Sirve para evitar cualquier deriva acumulativa.
+map_shake_prev_x =
+    0;
+
+
+map_shake_prev_y =
+    0;
+
+
+// Última posición final de cámara a la que nosotros
+// aplicamos shake. Si el seguimiento automático de la room
+// ya cambió la cámara antes del próximo End Step,
+// no intentamos "deshacer" un offset que ya no existe.
+map_shake_last_cam_x =
+    0;
+
+
+map_shake_last_cam_y =
+    0;
+
+
+map_shake_was_applied =
+    false;
+
+
 if (
     !variable_global_exists(
         "gameover_death_freeze_active"

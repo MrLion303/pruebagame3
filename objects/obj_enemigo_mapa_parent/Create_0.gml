@@ -260,9 +260,47 @@ movimiento_origen_y =
     y;
 
 
-// Dirección inicial para los presets de vaivén.
-movimiento_signo =
+// =========================================================
+// IDA Y VUELTA CON EASE-IN-OUT REAL
+// =========================================================
+//
+// Para los presets:
+//
+//     "izquierda_derecha"
+//     "arriba_abajo"
+//     "diagonal"
+//
+// usamos un progreso 0..1 por cada recorrido completo.
+//
+// En cada extremo:
+//     velocidad = 0
+//
+// Después invierte el sentido y vuelve a acelerar.
+//
+// Empezamos en el CENTRO de la trayectoria, porque ese es
+// exactamente el punto donde colocaste el objeto en la room.
+// =========================================================
+
+movimiento_trayecto_t =
+    0.5;
+
+
+// 1  = avanzando hacia el extremo positivo.
+// -1 = volviendo hacia el extremo negativo.
+movimiento_trayecto_sentido =
     1;
+
+
+// Ángulo usado por el preset "diagonal".
+movimiento_diagonal_angulo =
+    variable_struct_exists(
+        datos_mapa,
+        "movimiento_diagonal_angulo"
+    )
+    ?
+    datos_mapa.movimiento_diagonal_angulo
+    :
+    45;
 
 
 // El punto colocado en la room es el punto inicial
