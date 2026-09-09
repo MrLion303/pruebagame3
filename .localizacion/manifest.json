@@ -152,7 +152,8 @@
                              ],
                     "INV":  [
                                 "objects\\obj_menu_manager\\Create_0.gml:2",
-                                "objects\\obj_menu_manager\\Draw_64.gml:198"
+                                "objects\\obj_menu_manager\\Draw_64.gml:198",
+                                "objects\\obj_menu_manager\\Draw_75.gml:129"
                             ],
                     "TOYS":  [
                                  "objects\\obj_menu_manager\\Create_0.gml:2"
@@ -182,10 +183,12 @@
                              ],
                     "Equip":  [
                                   "objects\\obj_menu_manager\\Create_0.gml:290",
-                                  "objects\\obj_menu_manager\\Draw_64.gml:199"
+                                  "objects\\obj_menu_manager\\Draw_64.gml:199",
+                                  "objects\\obj_menu_manager\\Draw_75.gml:130"
                               ],
                     "CLAVE":  [
-                                  "objects\\obj_menu_manager\\Draw_64.gml:200"
+                                  "objects\\obj_menu_manager\\Draw_64.gml:200",
+                                  "objects\\obj_menu_manager\\Draw_75.gml:131"
                               ],
                     "Estas seguro?":  [
                                           "objects\\obj_menu_manager\\Draw_64.gml:290",
@@ -200,6 +203,8 @@
                                "objects\\obj_menu_manager\\Draw_64.gml:1033",
                                "objects\\obj_menu_manager\\Draw_64.gml:1493",
                                "objects\\obj_menu_manager\\Draw_64.gml:1494",
+                               "objects\\obj_menu_manager\\Draw_75.gml:709",
+                               "objects\\obj_menu_manager\\Draw_75.gml:715",
                                "scripts\\scr_game_text\\scr_game_text.gml:366"
                            ],
                     "No":  [
@@ -209,6 +214,8 @@
                                "objects\\obj_menu_manager\\Draw_64.gml:1033",
                                "objects\\obj_menu_manager\\Draw_64.gml:1493",
                                "objects\\obj_menu_manager\\Draw_64.gml:1494",
+                               "objects\\obj_menu_manager\\Draw_75.gml:711",
+                               "objects\\obj_menu_manager\\Draw_75.gml:717",
                                "objects\\obj_shop_controller\\Draw_64.gml:890",
                                "scripts\\scr_game_text\\scr_game_text.gml:367"
                            ],
@@ -248,7 +255,9 @@
                                            "objects\\obj_menu_manager\\Draw_64.gml:1453"
                                        ],
                     "Sin bonificacion":  [
-                                             "objects\\obj_menu_manager\\Draw_64.gml:926"
+                                             "objects\\obj_menu_manager\\Draw_64.gml:926",
+                                             "objects\\obj_menu_manager\\Draw_74.gml:267",
+                                             "objects\\obj_menu_manager\\Draw_75.gml:1322"
                                          ],
                     "Uso: ":  [
                                   "objects\\obj_menu_manager\\Draw_64.gml:1431"
@@ -271,12 +280,12 @@
                     "Volver":  [
                                    "objects\\obj_menu_manager\\Draw_64.gml:1495"
                                ],
-                    "Configuracion de controles":  [
-                                                       "objects\\obj_menu_manager\\Draw_64.gml:1511"
-                                                   ],
-                    "Proximamente...":  [
-                                            "objects\\obj_menu_manager\\Draw_64.gml:1512"
-                                        ],
+                    "easter":  [
+                                   "objects\\obj_menu_manager\\Draw_64.gml:1511"
+                               ],
+                    "egg":  [
+                                "objects\\obj_menu_manager\\Draw_64.gml:1512"
+                            ],
                     "objeto":  [
                                    "objects\\obj_menu_manager\\Step_0.gml:539",
                                    "scripts\\scr_cofre\\scr_cofre.gml:228"

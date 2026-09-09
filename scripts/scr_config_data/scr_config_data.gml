@@ -1,12 +1,13 @@
 /// =========================================================
 /// SCR_CONFIG_DATA
 ///
-/// Maneja la configuración persistente de cada partida.
+/// Maneja la configuracion persistente de cada partida.
 ///
 /// Guarda:
 /// - Volumen general
 /// - Pantalla completa
 /// - Auto-correr
+/// - Controles personalizados
 /// =========================================================
 
 
@@ -50,17 +51,16 @@ function scr_config_data()
                 window_get_fullscreen(),
 
             autocorrer_enabled:
-                _autocorrer_inicial
+                _autocorrer_inicial,
+
+            controls:
+                scr_controls_defaults()
         };
     }
 
 
     // =====================================================
     // COMPATIBILIDAD CON GUARDADOS ANTIGUOS
-    // =====================================================
-    //
-    // Si cargas un save creado antes de agregar alguna
-    // de estas opciones, se crea automáticamente.
     // =====================================================
 
     if (
@@ -99,6 +99,108 @@ function scr_config_data()
     }
 
 
+    if (
+        !variable_struct_exists(
+            global.config_data,
+            "controls"
+        )
+        ||
+        !is_struct(
+            global.config_data.controls
+        )
+    )
+    {
+        global.config_data.controls =
+            scr_controls_defaults();
+    }
+
+
+    // Añadir / reparar campos de controles de saves viejos.
+    var _defaults =
+        scr_controls_defaults();
+
+
+    var _controls =
+        global.config_data.controls;
+
+
+    if (
+        !variable_struct_exists(_controls, "down")
+        ||
+        !scr_controls_key_valid(_controls.down)
+    )
+    {
+        _controls.down =
+            _defaults.down;
+    }
+
+
+    if (
+        !variable_struct_exists(_controls, "right")
+        ||
+        !scr_controls_key_valid(_controls.right)
+    )
+    {
+        _controls.right =
+            _defaults.right;
+    }
+
+
+    if (
+        !variable_struct_exists(_controls, "up")
+        ||
+        !scr_controls_key_valid(_controls.up)
+    )
+    {
+        _controls.up =
+            _defaults.up;
+    }
+
+
+    if (
+        !variable_struct_exists(_controls, "left")
+        ||
+        !scr_controls_key_valid(_controls.left)
+    )
+    {
+        _controls.left =
+            _defaults.left;
+    }
+
+
+    if (
+        !variable_struct_exists(_controls, "confirm")
+        ||
+        !scr_controls_key_valid(_controls.confirm)
+    )
+    {
+        _controls.confirm =
+            _defaults.confirm;
+    }
+
+
+    if (
+        !variable_struct_exists(_controls, "cancel")
+        ||
+        !scr_controls_key_valid(_controls.cancel)
+    )
+    {
+        _controls.cancel =
+            _defaults.cancel;
+    }
+
+
+    if (
+        !variable_struct_exists(_controls, "menu")
+        ||
+        !scr_controls_key_valid(_controls.menu)
+    )
+    {
+        _controls.menu =
+            _defaults.menu;
+    }
+
+
     return global.config_data;
 }
 
@@ -109,7 +211,7 @@ function scr_config_data()
 //
 // Se llama justo antes de guardar.
 //
-// Toma los valores que actualmente tiene el menú
+// Toma los valores que actualmente tiene el menu
 // y los copia a global.config_data.
 // =========================================================
 
@@ -179,6 +281,14 @@ function scr_config_sync()
     }
 
 
+    // Los controles viven directamente en:
+    //
+    //     global.config_data.controls
+    //
+    // Solo aseguramos su estructura.
+    scr_controls_ensure();
+
+
     return global.config_data;
 }
 
@@ -187,14 +297,13 @@ function scr_config_sync()
 // APLICAR CONFIG CARGADA
 // =========================================================
 //
-// Se ejecuta después de cargar un Save.
+// Se ejecuta despues de cargar un Save.
 //
-// Aplica realmente:
+// Aplica:
 // - volumen
 // - fullscreen
 // - auto-correr
-//
-// También actualiza visualmente obj_menu_manager.
+// - controles
 // =========================================================
 
 function scr_config_apply()
@@ -231,7 +340,6 @@ function scr_config_apply()
         global.config_data.fullscreen_enabled;
 
 
-    // Solo cambiarla si realmente es diferente.
     if (
         window_get_fullscreen()
         !=
@@ -250,6 +358,13 @@ function scr_config_apply()
 
     global.autocorrer_enabled =
         global.config_data.autocorrer_enabled;
+
+
+    // =====================================================
+    // CONTROLES
+    // =====================================================
+
+    scr_controls_apply();
 
 
     // =====================================================

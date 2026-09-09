@@ -1508,8 +1508,8 @@ else if (state == MENU_STATE.CONFIG_MENU || state == MENU_STATE.CONFIG_ACTION) {
     } 
     else {
         draw_set_color(c_ltgray);
-        draw_text(cfg_box_x + 24, start_y, scr_loc("Configuracion de controles"));
-        draw_text(cfg_box_x + 24, start_y + 40, scr_loc("Proximamente..."));
+        draw_text(cfg_box_x + 24, start_y, scr_loc("easter"));
+        draw_text(cfg_box_x + 24, start_y + 40, scr_loc("egg"));
     }
 }
 
