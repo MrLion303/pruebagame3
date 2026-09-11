@@ -141,13 +141,25 @@ if (_platformer_pause_active)
     );
 
 
-    var _pm_mapping =
+    // Mostrar SALTO y ATAQUE en DOS líneas.
+    // ATAQUE queda exactamente debajo de SALTO.
+    var _pm_jump_key =
         (
             global.platformer_controls_swapped
             ?
-            "SALTO X  ATAQUE Z"
+            "X"
             :
-            "SALTO Z  ATAQUE X"
+            "Z"
+        );
+
+
+    var _pm_attack_key =
+        (
+            global.platformer_controls_swapped
+            ?
+            "Z"
+            :
+            "X"
         );
 
 
@@ -158,8 +170,18 @@ if (_platformer_pause_active)
 
     draw_text_transformed(
         _pm_x + 16,
-        _pm_y + 30 + (5 * 46),
-        _pm_mapping,
+        _pm_y + 28 + (5 * 46),
+        "SALTO " + _pm_jump_key,
+        0.48,
+        0.48,
+        0
+    );
+
+
+    draw_text_transformed(
+        _pm_x + 16,
+        _pm_y + 41 + (5 * 46),
+        "ATAQUE " + _pm_attack_key,
         0.48,
         0.48,
         0
@@ -168,6 +190,38 @@ if (_platformer_pause_active)
 
     draw_set_color(
         c_white
+    );
+
+
+    // =====================================================
+    // HUD DE VIDA DEBAJO DEL MENÚ
+    // =====================================================
+
+    var _pm_heal_amount =
+        0;
+
+
+    if (
+        variable_global_exists(
+            "platformer_heal_hud_timer"
+        )
+        &&
+        global.platformer_heal_hud_timer > 0
+        &&
+        variable_global_exists(
+            "platformer_heal_amount"
+        )
+    )
+    {
+        _pm_heal_amount =
+            global.platformer_heal_amount;
+    }
+
+
+    scr_platformer_draw_player_hp_hud(
+        _pm_x,
+        _pm_y + _pm_h + 8,
+        _pm_heal_amount
     );
 }
 
@@ -388,6 +442,149 @@ if (_show_inventory_tabs_v4)
 
     draw_set_color(
         c_white
+    );
+}
+
+
+// =========================================================
+// HUD DE CURACIÓN DESPUÉS DE CERRAR EL MENÚ
+// =========================================================
+//
+// Al consumir un item, el menú se cierra.
+//
+// Mientras queden frames del timer, dejamos la misma caja
+// donde estaba físicamente debajo del panel.
+//
+// En los últimos 12 frames:
+//     - baja fuera de la pantalla;
+//     - hace fade-out;
+//     - usa el mismo smoothstep del HUD de enemigo.
+//
+//     X = 0
+//     Y = 396
+//
+// Como el menú ya está cerrado, Draw GUI Begin no aplica
+// la traslación -80, por eso usamos X=0 directamente.
+// =========================================================
+
+var _platformer_heal_hud_active =
+(
+    variable_global_exists(
+        "platformer_active"
+    )
+    &&
+    global.platformer_active
+    &&
+    variable_global_exists(
+        "platformer_heal_hud_timer"
+    )
+    &&
+    global.platformer_heal_hud_timer > 0
+);
+
+
+if (
+    _platformer_heal_hud_active
+    &&
+    !_platformer_pause_active
+)
+{
+    var _heal_amount_draw =
+        (
+            variable_global_exists(
+                "platformer_heal_amount"
+            )
+            ?
+            global.platformer_heal_amount
+            :
+            0
+        );
+
+
+    // =====================================================
+    // SALIDA DESLIZÁNDOSE HACIA ABAJO
+    // =====================================================
+    //
+    // Replica el comportamiento del HUD de enemigo:
+    //
+    //     12 frames
+    //     smoothstep
+    //     baja fuera de pantalla
+    //     fade-out simultáneo
+    //
+    // Durante el resto del timer permanece totalmente quieto.
+    // =====================================================
+
+    var _heal_exit_frames =
+        12;
+
+
+    var _heal_timer_now =
+        global.platformer_heal_hud_timer;
+
+
+    var _heal_slide_t =
+        clamp(
+            _heal_timer_now
+            /
+            _heal_exit_frames,
+            0,
+            1
+        );
+
+
+    var _heal_slide_ease =
+        _heal_slide_t
+        *
+        _heal_slide_t
+        *
+        (
+            3
+            -
+            (2 * _heal_slide_t)
+        );
+
+
+    var _heal_gui_w =
+        display_get_gui_width();
+
+
+    var _heal_gui_h =
+        display_get_gui_height();
+
+
+    var _heal_scale =
+        min(
+            _heal_gui_w / 320,
+            _heal_gui_h / 240
+        )
+        *
+        0.78;
+
+
+    var _heal_target_y =
+        396;
+
+
+    var _heal_hidden_y =
+        _heal_gui_h
+        +
+        (10 * _heal_scale);
+
+
+    var _heal_draw_y =
+        lerp(
+            _heal_hidden_y,
+            _heal_target_y,
+            _heal_slide_ease
+        );
+
+
+    scr_platformer_draw_player_hp_hud(
+        0,
+        _heal_draw_y,
+        _heal_amount_draw,
+        _heal_slide_ease
     );
 }
 

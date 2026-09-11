@@ -82,18 +82,31 @@ with (obj_enemigo_mapa_parent)
 // BLOQUEAR MENÚ DE PAUSA DURANTE PELIGRO
 // =========================================================
 //
-// Mientras cualquier enemigo de mapa tenga:
+// MODO NORMAL:
+//     Conserva el comportamiento actual del juego. Si hay
+//     un enemigo en alerta, C/Ctrl se bloquean y el menú se
+//     cierra.
 //
-//     en_alerta = true
-//
-// C y Ctrl quedan anulados.
-//
-// Si por cualquier razón el menú ya estaba abierto cuando
-// un enemigo entra en alerta (por ejemplo, porque el enemigo
-// se movió hacia Maya), también lo cerramos inmediatamente.
+// MODO PLATAFORMERO:
+//     NO cerramos el menú. Enemigos, proyectiles, i-frames y
+//     el resto del mundo siguen avanzando detrás de él.
 // =========================================================
 
-if (danger_active)
+var _platformer_mode =
+(
+    variable_global_exists(
+        "platformer_active"
+    )
+    &&
+    global.platformer_active
+);
+
+
+if (
+    danger_active
+    &&
+    !_platformer_mode
+)
 {
     keyboard_clear(
         ord("C")
@@ -221,6 +234,42 @@ else
         hud_timer_dolor =
             0;
     }
+}
+
+
+// =========================================================
+// EN PLATAFORMERO, EL HUD DEL ENEMIGO NO SE DUPLICA
+// =========================================================
+//
+// El menú de plataforma ya dibuja su propia ventana de HP
+// debajo del panel izquierdo usando el mismo estilo.
+//
+// El mundo / enemigos siguen vivos: SOLO ocultamos el HUD
+// flotante original mientras el menú esté abierto.
+// =========================================================
+
+var _platformer_menu_open =
+(
+    _platformer_mode
+    &&
+    instance_exists(obj_menu_manager)
+    &&
+    obj_menu_manager.state != MENU_STATE.CLOSED
+);
+
+
+if (_platformer_menu_open)
+{
+    hud_anim =
+        0;
+
+
+    hud_hp_anterior =
+        -1;
+
+
+    hud_timer_dolor =
+        0;
 }
 
 

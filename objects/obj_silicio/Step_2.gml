@@ -3,12 +3,13 @@
 /// END STEP
 /// =========================================================
 ///
-/// En modo normal:
-///     scr_party_update() sigue haciendo todo.
+/// V4:
 ///
-/// En modo plataformero:
-///     Silicio suspende temporalmente "follow the leader"
-///     y usa física lateral propia.
+/// Silicio ya NO usa física independiente en plataformero.
+///
+/// Aquí únicamente aseguramos que siga unido al party.
+/// Su posición final la calcula scr_party_update() y después
+/// obj_settings aplica sus sprites de plataforma.
 /// =========================================================
 
 scr_platformer_init();

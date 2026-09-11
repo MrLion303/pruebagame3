@@ -134,6 +134,30 @@ if (
 
 
     // =====================================================
+    // APLICAR DATOS DEL SAVE AL PLAYER PERSISTENTE
+    // =====================================================
+    //
+    // scr_cargar_juego() ya cargó global.inventory_data y
+    // global.level_data antes del room_goto.
+    //
+    // Ahora sí los aplicamos sobre la instancia real de Maya.
+    // =====================================================
+
+    if (
+        _p != noone
+        &&
+        instance_exists(_p)
+        &&
+        transicion_seccion != "__NEW_GAME__"
+    )
+    {
+        scr_save_runtime_apply_loaded_player(
+            _p
+        );
+    }
+
+
+    // =====================================================
     // ELIMINAR MOVIMIENTO RESIDUAL
     // =====================================================
 

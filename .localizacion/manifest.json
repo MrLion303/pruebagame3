@@ -148,12 +148,13 @@
                                                                          "objects\\obj_game_over_texto\\Create_0.gml:184"
                                                                      ],
                     "Maya":  [
-                                 "objects\\obj_mapa_combate_fx\\Draw_64.gml:616"
+                                 "objects\\obj_mapa_combate_fx\\Draw_64.gml:616",
+                                 "scripts\\scr_platformer_system\\scr_platformer_system.gml:4723"
                              ],
                     "INV":  [
                                 "objects\\obj_menu_manager\\Create_0.gml:2",
                                 "objects\\obj_menu_manager\\Draw_64.gml:198",
-                                "objects\\obj_menu_manager\\Draw_75.gml:129"
+                                "objects\\obj_menu_manager\\Draw_75.gml:357"
                             ],
                     "TOYS":  [
                                  "objects\\obj_menu_manager\\Create_0.gml:2"
@@ -184,11 +185,11 @@
                     "Equip":  [
                                   "objects\\obj_menu_manager\\Create_0.gml:290",
                                   "objects\\obj_menu_manager\\Draw_64.gml:199",
-                                  "objects\\obj_menu_manager\\Draw_75.gml:130"
+                                  "objects\\obj_menu_manager\\Draw_75.gml:358"
                               ],
                     "CLAVE":  [
                                   "objects\\obj_menu_manager\\Draw_64.gml:200",
-                                  "objects\\obj_menu_manager\\Draw_75.gml:131"
+                                  "objects\\obj_menu_manager\\Draw_75.gml:359"
                               ],
                     "Estas seguro?":  [
                                           "objects\\obj_menu_manager\\Draw_64.gml:290",
@@ -203,8 +204,8 @@
                                "objects\\obj_menu_manager\\Draw_64.gml:1033",
                                "objects\\obj_menu_manager\\Draw_64.gml:1493",
                                "objects\\obj_menu_manager\\Draw_64.gml:1494",
-                               "objects\\obj_menu_manager\\Draw_75.gml:709",
-                               "objects\\obj_menu_manager\\Draw_75.gml:715",
+                               "objects\\obj_menu_manager\\Draw_75.gml:1101",
+                               "objects\\obj_menu_manager\\Draw_75.gml:1107",
                                "scripts\\scr_game_text\\scr_game_text.gml:366"
                            ],
                     "No":  [
@@ -214,8 +215,8 @@
                                "objects\\obj_menu_manager\\Draw_64.gml:1033",
                                "objects\\obj_menu_manager\\Draw_64.gml:1493",
                                "objects\\obj_menu_manager\\Draw_64.gml:1494",
-                               "objects\\obj_menu_manager\\Draw_75.gml:711",
-                               "objects\\obj_menu_manager\\Draw_75.gml:717",
+                               "objects\\obj_menu_manager\\Draw_75.gml:1103",
+                               "objects\\obj_menu_manager\\Draw_75.gml:1109",
                                "objects\\obj_shop_controller\\Draw_64.gml:890",
                                "scripts\\scr_game_text\\scr_game_text.gml:367"
                            ],
@@ -256,8 +257,8 @@
                                        ],
                     "Sin bonificacion":  [
                                              "objects\\obj_menu_manager\\Draw_64.gml:926",
-                                             "objects\\obj_menu_manager\\Draw_74.gml:267",
-                                             "objects\\obj_menu_manager\\Draw_75.gml:1322"
+                                             "objects\\obj_menu_manager\\Draw_74.gml:337",
+                                             "objects\\obj_menu_manager\\Draw_75.gml:1714"
                                          ],
                     "Uso: ":  [
                                   "objects\\obj_menu_manager\\Draw_64.gml:1431"

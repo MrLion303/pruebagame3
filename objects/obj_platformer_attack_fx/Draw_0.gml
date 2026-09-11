@@ -3,13 +3,16 @@
 /// DRAW
 /// =========================================================
 ///
-/// Si existe:
+/// Soporta ataque:
 ///
-///     spr_platformer_ataque
+///     horizontal
+///     arriba
+///     abajo
 ///
-/// se utiliza como slash.
+/// Si existe spr_platformer_ataque, reutiliza ese mismo
+/// sprite rotándolo.
 ///
-/// Si todavía no existe, dibuja un efecto simple provisional.
+/// Si no existe, dibuja un slash provisional.
 /// =========================================================
 
 if (
@@ -32,6 +35,19 @@ var _alpha =
         ),
         0,
         1
+    );
+
+
+var _dir =
+    (
+        variable_instance_exists(
+            id,
+            "attack_direction"
+        )
+        ?
+        attack_direction
+        :
+        "horizontal"
     );
 
 
@@ -61,6 +77,63 @@ var _cy =
     0.5;
 
 
+var _draw_x =
+    _cx;
+
+
+var _draw_y =
+    _cy;
+
+
+var _angle =
+    0;
+
+
+var _scale_x =
+    1;
+
+
+if (_dir == "up")
+{
+    _draw_y =
+        _cy - 28;
+
+
+    _angle =
+        90;
+}
+else if (_dir == "down")
+{
+    _draw_y =
+        _cy + 28;
+
+
+    _angle =
+        -90;
+}
+else
+{
+    _draw_x =
+        _cx
+        +
+        (
+            facing
+            *
+            24
+        );
+
+
+    _scale_x =
+        (
+            facing < 0
+            ?
+            -1
+            :
+            1
+        );
+}
+
+
 if (
     _slash != -1
     &&
@@ -70,30 +143,17 @@ if (
     draw_sprite_ext(
         _slash,
         0,
-        _cx
-        +
-        (
-            facing
-            *
-            24
-        ),
-        _cy,
-        (
-            facing < 0
-            ?
-            -1
-            :
-            1
-        ),
+        _draw_x,
+        _draw_y,
+        _scale_x,
         1,
-        0,
+        _angle,
         c_white,
         _alpha
     );
 }
 else
 {
-    // Slash provisional.
     draw_set_alpha(
         _alpha
     );
@@ -104,42 +164,97 @@ else
     );
 
 
-    var _x1 =
-        _cx
-        +
-        (
-            facing
-            *
-            10
+    // =====================================================
+    // ARRIBA
+    // =====================================================
+
+    if (_dir == "up")
+    {
+        draw_line_width(
+            _cx - 13,
+            _cy - 10,
+            _cx,
+            _cy - 34,
+            3
         );
 
 
-    var _x2 =
-        _cx
-        +
-        (
-            facing
-            *
-            34
+        draw_line_width(
+            _cx + 13,
+            _cy - 10,
+            _cx,
+            _cy - 34,
+            3
+        );
+    }
+
+    // =====================================================
+    // ABAJO
+    // =====================================================
+
+    else if (_dir == "down")
+    {
+        draw_line_width(
+            _cx - 13,
+            _cy + 10,
+            _cx,
+            _cy + 34,
+            3
         );
 
 
-    draw_line_width(
-        _x1,
-        _cy - 13,
-        _x2,
-        _cy,
-        3
-    );
+        draw_line_width(
+            _cx + 13,
+            _cy + 10,
+            _cx,
+            _cy + 34,
+            3
+        );
+    }
+
+    // =====================================================
+    // HORIZONTAL
+    // =====================================================
+
+    else
+    {
+        var _x1 =
+            _cx
+            +
+            (
+                facing
+                *
+                10
+            );
 
 
-    draw_line_width(
-        _x1,
-        _cy + 13,
-        _x2,
-        _cy,
-        3
-    );
+        var _x2 =
+            _cx
+            +
+            (
+                facing
+                *
+                34
+            );
+
+
+        draw_line_width(
+            _x1,
+            _cy - 13,
+            _x2,
+            _cy,
+            3
+        );
+
+
+        draw_line_width(
+            _x1,
+            _cy + 13,
+            _x2,
+            _cy,
+            3
+        );
+    }
 
 
     draw_set_alpha(

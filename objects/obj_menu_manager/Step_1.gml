@@ -17,6 +17,127 @@
 
 
 // =========================================================
+// BLOQUEAR APERTURA DE PAUSA DENTRO DEL RANGO DE ENEMIGO
+// =========================================================
+//
+// Usa EXACTAMENTE la misma geometría que el enemigo:
+//
+//     point_distance(enemigo, Maya) <= rango_ataque
+//
+// Se comprueba aquí, en Begin Step, ANTES de que el Step
+// normal pueda abrir el menú.
+//
+// Importante:
+//     - solo bloquea el intento de ABRIR;
+//     - no cierra a la fuerza un menú que ya estaba abierto;
+//     - reproduce snd_error una vez por intento.
+// =========================================================
+
+if (
+    state == MENU_STATE.CLOSED
+    &&
+    (
+        keyboard_check_pressed(
+            ord("C")
+        )
+        ||
+        keyboard_check_pressed(
+            vk_control
+        )
+    )
+    &&
+    instance_exists(
+        obj_player
+    )
+)
+{
+    var _pause_player =
+        instance_find(
+            obj_player,
+            0
+        );
+
+
+    var _pause_inside_enemy_range =
+        false;
+
+
+    // Guardamos la posición en variables de instancia para
+    // que `other` sea seguro dentro del with().
+    pause_range_player_x =
+        _pause_player.x;
+
+
+    pause_range_player_y =
+        _pause_player.y;
+
+
+    pause_range_detected =
+        false;
+
+
+    with (obj_enemigo_mapa_parent)
+    {
+        if (
+            variable_instance_exists(
+                id,
+                "rango_ataque"
+            )
+            &&
+            rango_ataque >= 0
+            &&
+            point_distance(
+                x,
+                y,
+                other.pause_range_player_x,
+                other.pause_range_player_y
+            )
+            <=
+            rango_ataque
+        )
+        {
+            other.pause_range_detected =
+                true;
+        }
+    }
+
+
+    _pause_inside_enemy_range =
+        pause_range_detected;
+
+
+    if (_pause_inside_enemy_range)
+    {
+        // Consumir la tecla para que Step no abra el menú.
+        keyboard_clear(
+            ord("C")
+        );
+
+
+        keyboard_clear(
+            vk_control
+        );
+
+
+        // Reiniciar el sonido para que cada intento se oiga.
+        if (audio_is_playing(snd_error))
+        {
+            audio_stop_sound(
+                snd_error
+            );
+        }
+
+
+        audio_play_sound(
+            snd_error,
+            10,
+            false
+        );
+    }
+}
+
+
+// =========================================================
 // INICIALIZACION UNA SOLA VEZ
 // =========================================================
 
