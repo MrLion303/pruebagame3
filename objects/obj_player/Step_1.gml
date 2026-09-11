@@ -1,13 +1,14 @@
 /// =========================================================
 /// OBJ_PLAYER
-/// BEGIN STEP
+/// BEGIN STEP COMPLETO
 /// =========================================================
-///
-/// MODO PLATAFORMERO V2
-///
-/// El cambio de sprite/física se aplica solo cuando Maya ya
-/// está dentro de la room destino.
+/// Modo plataformero actual + habilidades de mundo.
 /// =========================================================
+
+// Registra posición previa, activa Sigilo y ajusta rangos
+// antes de los Step normales de los enemigos.
+scr_player_abilities_begin_step(id);
+
 
 scr_platformer_init();
 
@@ -19,10 +20,7 @@ scr_platformer_apply_pending_mode();
 if (global.platformer_active)
 {
     if (
-        !variable_instance_exists(
-            id,
-            "platformer_mode_applied"
-        )
+        !variable_instance_exists(id, "platformer_mode_applied")
         ||
         !platformer_mode_applied
     )
@@ -31,21 +29,7 @@ if (global.platformer_active)
     }
 
 
-    // =====================================================
-    // POGO = MISMA FÍSICA VERTICAL QUE UN SALTO NORMAL
-    // =====================================================
-    //
-    // El pogo ya usa la gravedad normal del plataformero.
-    // Lo que hacía que se sintiera mucho más "flotante" era
-    // que su impulso era -18.0 mientras el salto normal usa
-    // platform_jump_speed (-10.5 actualmente).
-    //
-    // Desde ahora el rebote del pogo toma SIEMPRE el mismo
-    // impulso vertical del salto normal. Si en el futuro
-    // cambias platform_jump_speed, el pogo se actualizará
-    // automáticamente también.
-    // =====================================================
-
+    // Pogo = misma física vertical que un salto normal.
     if (
         variable_instance_exists(id, "platform_jump_speed")
         &&
@@ -62,10 +46,7 @@ if (global.platformer_active)
 else
 {
     if (
-        variable_instance_exists(
-            id,
-            "platformer_mode_applied"
-        )
+        variable_instance_exists(id, "platformer_mode_applied")
         &&
         platformer_mode_applied
     )

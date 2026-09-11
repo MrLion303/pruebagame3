@@ -1,12 +1,12 @@
 {
   "$GMScript":"v1",
-  "%Name":"NOTA_MEMORIA_NPC",
+  "%Name":"scr_habilidades_system",
   "isCompatibility":false,
   "isDnD":false,
-  "name":"NOTA_MEMORIA_NPC",
+  "name":"scr_habilidades_system",
   "parent":{
-    "name":"00 NOTAS",
-    "path":"folders/00 NOTAS.yy",
+    "name":"Mecánicas",
+    "path":"folders/Mecánicas.yy",
   },
   "resourceType":"GMScript",
   "resourceVersion":"2.0",

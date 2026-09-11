@@ -8,8 +8,8 @@
   "name":"obj_volador_1",
   "overriddenProperties":[],
   "parent":{
-    "name":"Enemigos",
-    "path":"folders/Enemigos.yy",
+    "name":"Voladores",
+    "path":"folders/Enemigos/Voladores.yy",
   },
   "parentObjectId":{
     "name":"obj_enemigo_mapa_parent",

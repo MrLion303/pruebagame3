@@ -1,17 +1,16 @@
 /// =========================================================
 /// OBJ_PLAYER
-/// END STEP
+/// END STEP COMPLETO
 /// =========================================================
-///
-/// Aplicar los sprites del plataformero DESPUÉS del Step RPG.
-///
-/// Así el Step RPG puede conservarse intacto.
+/// 1) Sigilo / dash / stamina.
+/// 2) El plataformero conserva la última palabra en su sprite.
 /// =========================================================
 
+scr_player_abilities_end_step(id);
+
+
 if (
-    variable_global_exists(
-        "platformer_active"
-    )
+    variable_global_exists("platformer_active")
     &&
     global.platformer_active
 )
