@@ -1,10 +1,17 @@
 /// =========================================================
 /// SCR_MENU_STAD_HABIL_DRAW
-/// NUEVO SCRIPT
+/// REEMPLAZO COMPLETO
 /// =========================================================
 ///
-/// Lo llama DIRECTAMENTE obj_menu_manager desde Draw GUI End.
-/// No usa ningún objeto externo.
+/// HABIL:
+///
+/// - Lista de habilidades.
+/// - Al seleccionar, toda la ventana se convierte en detalle.
+/// - Icono arriba a la izquierda.
+/// - Nombre a la derecha del icono.
+/// - DESCRIPCIÓN empieza DEBAJO del icono y ocupa el ancho.
+/// - Mayor separación entre renglones.
+/// - "Z / X - Cerrar" centrado abajo y más pequeño.
 /// =========================================================
 
 function scr_menu_stad_habil_draw(_menu)
@@ -62,7 +69,7 @@ function scr_menu_stad_habil_draw(_menu)
 
 
     // =====================================================
-    // GEOMETRÍA EXACTA DEL MENÚ ACTUAL
+    // GEOMETRÍA
     // =====================================================
 
     var _box_x =
@@ -74,16 +81,12 @@ function scr_menu_stad_habil_draw(_menu)
     var _box_w =
         346;
 
-    // STAD actual = 308 + 55.
     var _box_h =
         363;
 
 
     // =====================================================
-    // PESTAÑAS SUPERIORES STAD / HABIL
-    // =====================================================
-    //
-    // Misma caja y misma animación que INV / EQUIP / CLAVE.
+    // PESTAÑAS
     // =====================================================
 
     var _tab_t =
@@ -160,7 +163,6 @@ function scr_menu_stad_habil_draw(_menu)
             _slot_w;
 
 
-        // Igual que las pestañas de INV cuando tienen foco.
         if (
             _menu.stad_tab
             ==
@@ -227,11 +229,6 @@ function scr_menu_stad_habil_draw(_menu)
     // =====================================================
     // STAD
     // =====================================================
-    //
-    // El Draw GUI normal ya dibujó el STAD exactamente como
-    // siempre. Si esta pestaña está activa, no hay que tapar
-    // nada.
-    // =====================================================
 
     if (
         _menu.stad_tab
@@ -244,7 +241,7 @@ function scr_menu_stad_habil_draw(_menu)
 
 
     // =====================================================
-    // HABIL - TAPAR STAD Y DIBUJAR LISTA
+    // PANEL HABIL
     // =====================================================
 
     draw_sprite_stretched(
@@ -258,6 +255,284 @@ function scr_menu_stad_habil_draw(_menu)
         _box_h
     );
 
+
+    // =====================================================
+    // DETALLE DE HABILIDAD
+    // =====================================================
+
+    if (
+        _menu.habil_info_open
+        &&
+        _menu.habil_info_id
+        !=
+        ""
+    )
+    {
+        var _info =
+            scr_habilidad_data(
+                _menu.habil_info_id
+            );
+
+
+        var _desc =
+            scr_loc(
+                _info.descripcion
+            );
+
+
+        if (
+            _menu.habil_info_id
+            ==
+            "dash"
+        )
+        {
+            _desc =
+                scr_loc(
+                    "Permite hacer dash dentro del rango de peligro de un enemigo. Funciona con la habilidad Dash o con los Zapatos Rápidos."
+                );
+        }
+
+
+        // -------------------------------------------------
+        // ICONO
+        // -------------------------------------------------
+
+        var _detail_margin =
+            22;
+
+        var _icon_size =
+            82;
+
+        var _icon_x =
+            _box_x
+            +
+            _detail_margin;
+
+        var _icon_y =
+            _box_y
+            +
+            24;
+
+
+        draw_set_color(
+            c_gray
+        );
+
+
+        draw_rectangle(
+            _icon_x,
+            _icon_y,
+            _icon_x + _icon_size,
+            _icon_y + _icon_size,
+            true
+        );
+
+
+        if (
+            variable_struct_exists(
+                _info,
+                "icono"
+            )
+            &&
+            _info.icono
+            !=
+            -1
+            &&
+            sprite_exists(
+                _info.icono
+            )
+        )
+        {
+            var _sw =
+                max(
+                    1,
+                    sprite_get_width(
+                        _info.icono
+                    )
+                );
+
+
+            var _sh =
+                max(
+                    1,
+                    sprite_get_height(
+                        _info.icono
+                    )
+                );
+
+
+            var _fit =
+                min(
+                    (_icon_size - 12) / _sw,
+                    (_icon_size - 12) / _sh
+                );
+
+
+            var _cx =
+                _icon_x
+                +
+                (_icon_size * 0.5);
+
+
+            var _cy =
+                _icon_y
+                +
+                (_icon_size * 0.5);
+
+
+            var _draw_x =
+                _cx
+                +
+                (
+                    sprite_get_xoffset(
+                        _info.icono
+                    )
+                    -
+                    (_sw * 0.5)
+                )
+                *
+                _fit;
+
+
+            var _draw_y =
+                _cy
+                +
+                (
+                    sprite_get_yoffset(
+                        _info.icono
+                    )
+                    -
+                    (_sh * 0.5)
+                )
+                *
+                _fit;
+
+
+            draw_sprite_ext(
+                _info.icono,
+                0,
+                _draw_x,
+                _draw_y,
+                _fit,
+                _fit,
+                0,
+                c_white,
+                1
+            );
+        }
+
+
+        // -------------------------------------------------
+        // NOMBRE A LA DERECHA DEL ICONO
+        // -------------------------------------------------
+
+        var _name_x =
+            _icon_x
+            +
+            _icon_size
+            +
+            20;
+
+
+        draw_set_color(
+            c_yellow
+        );
+
+
+        draw_text(
+            _name_x,
+            _icon_y + 8,
+            scr_loc(
+                _info.nombre
+            )
+        );
+
+
+        // -------------------------------------------------
+        // DESCRIPCIÓN DEBAJO DEL ICONO
+        // -------------------------------------------------
+        //
+        // Empieza debajo de TODA la imagen.
+        // Usa todo el ancho del panel.
+        //
+        // Separación entre líneas aumentada a 30 px.
+        // -------------------------------------------------
+
+        var _desc_x =
+            _box_x
+            +
+            22;
+
+        var _desc_y =
+            _icon_y
+            +
+            _icon_size
+            +
+            24;
+
+        var _desc_w =
+            _box_w
+            -
+            44;
+
+
+        draw_set_color(
+            c_white
+        );
+
+
+        draw_text_ext(
+            _desc_x,
+            _desc_y,
+            _desc,
+            30,
+            _desc_w
+        );
+
+
+        // -------------------------------------------------
+        // Z / X - CERRAR
+        // -------------------------------------------------
+
+        draw_set_color(
+            c_gray
+        );
+
+
+        draw_set_halign(
+            fa_center
+        );
+
+
+        draw_text_transformed(
+            _box_x + (_box_w * 0.5),
+            _box_y + _box_h - 27,
+            scr_loc(
+                "Z / X - Cerrar"
+            ),
+            0.55,
+            0.55,
+            0
+        );
+
+
+        draw_set_halign(
+            fa_left
+        );
+
+
+        draw_set_color(
+            c_white
+        );
+
+
+        return;
+    }
+
+
+    // =====================================================
+    // LISTA
+    // =====================================================
 
     var _lista =
         scr_habilidades_lista_obtenidas();
@@ -282,7 +557,7 @@ function scr_menu_stad_habil_draw(_menu)
     var _row_h =
         56;
 
-    var _icon_size =
+    var _list_icon_size =
         36;
 
 
@@ -368,7 +643,7 @@ function scr_menu_stad_habil_draw(_menu)
 
 
             // -----------------------------------------
-            // ESPACIO PARA SPRITE
+            // ICONO
             // -----------------------------------------
 
             draw_set_color(
@@ -383,8 +658,8 @@ function scr_menu_stad_habil_draw(_menu)
             draw_rectangle(
                 _start_x,
                 _row_y,
-                _start_x + _icon_size,
-                _row_y + _icon_size,
+                _start_x + _list_icon_size,
+                _row_y + _list_icon_size,
                 true
             );
 
@@ -404,7 +679,7 @@ function scr_menu_stad_habil_draw(_menu)
                 )
             )
             {
-                var _sw =
+                var _lsw =
                     max(
                         1,
                         sprite_get_width(
@@ -413,7 +688,7 @@ function scr_menu_stad_habil_draw(_menu)
                     );
 
 
-                var _sh =
+                var _lsh =
                     max(
                         1,
                         sprite_get_height(
@@ -422,71 +697,70 @@ function scr_menu_stad_habil_draw(_menu)
                     );
 
 
-                var _fit =
+                var _lfit =
                     min(
-                        (_icon_size - 6)
-                        /
-                        _sw,
-
-                        (_icon_size - 6)
-                        /
-                        _sh
+                        (_list_icon_size - 6) / _lsw,
+                        (_list_icon_size - 6) / _lsh
                     );
 
 
-                var _cx =
+                var _lcx =
                     _start_x
                     +
-                    (_icon_size * 0.5);
+                    (_list_icon_size * 0.5);
 
 
-                var _cy =
+                var _lcy =
                     _row_y
                     +
-                    (_icon_size * 0.5);
+                    (_list_icon_size * 0.5);
 
 
-                var _draw_x =
-                    _cx
+                var _ldraw_x =
+                    _lcx
                     +
                     (
                         sprite_get_xoffset(
                             _data.icono
                         )
                         -
-                        (_sw * 0.5)
+                        (_lsw * 0.5)
                     )
                     *
-                    _fit;
+                    _lfit;
 
 
-                var _draw_y =
-                    _cy
+                var _ldraw_y =
+                    _lcy
                     +
                     (
                         sprite_get_yoffset(
                             _data.icono
                         )
                         -
-                        (_sh * 0.5)
+                        (_lsh * 0.5)
                     )
                     *
-                    _fit;
+                    _lfit;
 
 
                 draw_sprite_ext(
                     _data.icono,
                     0,
-                    _draw_x,
-                    _draw_y,
-                    _fit,
-                    _fit,
+                    _ldraw_x,
+                    _ldraw_y,
+                    _lfit,
+                    _lfit,
                     0,
                     c_white,
                     1
                 );
             }
 
+
+            // -----------------------------------------
+            // NOMBRE
+            // -----------------------------------------
 
             draw_set_color(
                 _selected
@@ -500,7 +774,7 @@ function scr_menu_stad_habil_draw(_menu)
             draw_text(
                 _start_x
                 +
-                _icon_size
+                _list_icon_size
                 +
                 16,
                 _row_y
@@ -511,160 +785,6 @@ function scr_menu_stad_habil_draw(_menu)
                 )
             );
         }
-    }
-
-
-    // =====================================================
-    // CUADRO DE INFO
-    // =====================================================
-
-    if (
-        _menu.habil_info_open
-        &&
-        _menu.habil_info_id
-        !=
-        ""
-    )
-    {
-        var _info =
-            scr_habilidad_data(
-                _menu.habil_info_id
-            );
-
-
-        var _desc =
-            scr_loc(
-                _info.descripcion
-            );
-
-
-        // Descripción actualizada según la nueva regla OR.
-        if (
-            _menu.habil_info_id
-            ==
-            "dash"
-        )
-        {
-            _desc =
-                scr_loc(
-                    "Permite hacer dash dentro del rango de peligro de un enemigo. Funciona con la habilidad Dash o con los Zapatos Rápidos."
-                );
-        }
-
-
-        var _info_w =
-            _box_w
-            -
-            28;
-
-        var _info_h =
-            150;
-
-        var _info_x =
-            _box_x
-            +
-            14;
-
-        var _info_y =
-            _box_y
-            +
-            (_box_h * 0.5)
-            -
-            (_info_h * 0.5);
-
-
-        draw_set_alpha(
-            0.72
-        );
-
-
-        draw_set_color(
-            c_black
-        );
-
-
-        draw_rectangle(
-            _box_x,
-            _box_y,
-            _box_x + _box_w,
-            _box_y + _box_h,
-            false
-        );
-
-
-        draw_set_alpha(
-            1
-        );
-
-
-        draw_sprite_stretched(
-            spr_textbox,
-            scr_ui_box_frame(
-                spr_textbox
-            ),
-            _info_x,
-            _info_y,
-            _info_w,
-            _info_h
-        );
-
-
-        draw_set_color(
-            c_yellow
-        );
-
-
-        draw_text(
-            _info_x + 18,
-            _info_y + 16,
-            scr_loc(
-                _info.nombre
-            )
-        );
-
-
-        draw_set_color(
-            c_white
-        );
-
-
-        draw_text_ext(
-            _info_x + 18,
-            _info_y + 50,
-            _desc,
-            20,
-            _info_w - 36
-        );
-
-
-        draw_set_color(
-            c_gray
-        );
-
-
-        draw_set_halign(
-            fa_center
-        );
-
-
-        draw_text(
-            _info_x
-            +
-            (_info_w * 0.5),
-            _info_y
-            +
-            _info_h
-            -
-            27,
-            scr_loc(
-                "Z / X - Cerrar"
-            )
-        );
-
-
-        draw_set_halign(
-            fa_left
-        );
     }
 
 

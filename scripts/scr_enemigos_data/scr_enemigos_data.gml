@@ -141,7 +141,9 @@ function scr_enemigos_data(_id_enemigo)
                     // =====================================
 
                     puede_usar_toys: true,
-                    probabilidad_toy: 0.35,
+
+                    // 10% por turno enemigo.
+                    probabilidad_toy: 0.10,
 
                     toys_disponibles:
                     [
@@ -156,7 +158,9 @@ function scr_enemigos_data(_id_enemigo)
                     // =====================================
 
                     puede_guardia: true,
-                    probabilidad_guardia: 0.20,
+
+                    // 10% por turno enemigo.
+                    probabilidad_guardia: 0.10,
 
                     // 0.50 = recibe 50% menos.
                     guardia_reduccion: 0.50

@@ -1,6 +1,9 @@
 /// =========================================================
 /// OBJ_BATALLA_ATTACK_MODS
-/// BEGIN STEP - NUEVO
+/// BEGIN STEP COMPLETO
+/// =========================================================
+///
+/// Ya NO existe la confirmación tardía.
 /// =========================================================
 
 if (room != bbs)
@@ -9,54 +12,32 @@ if (room != bbs)
     exit;
 }
 
+
 f_prepare_attack();
+
 
 if (!f_refresh_refs())
     exit;
 
-var _ui = ui_ref;
 
-
-// =========================================================
-// Z SOLO DESPUÉS DE PASAR EL CENTRO
-// =========================================================
-
-if (
-    hit_prepared
-    &&
-    current_after_center
-    &&
-    current_mode == "lineal"
-    &&
-    _ui.attack_timing_active
-)
-{
-    var _ya_paso =
-        (
-            _ui.attack_bar_direction > 0
-            &&
-            _ui.attack_bar_x > _ui.attack_bar_center_x
-        )
-        ||
-        (
-            _ui.attack_bar_direction < 0
-            &&
-            _ui.attack_bar_x < _ui.attack_bar_center_x
-        );
-
-    if (!_ya_paso)
-    {
-        keyboard_clear(ord("Z"));
-        keyboard_clear(vk_enter);
-    }
-}
+var _ui =
+    ui_ref;
 
 
 // =========================================================
 // TOY ENEMIGO: FORZAR MISS DEL JUGADOR
 // =========================================================
+//
+// En golpes intermedios de una cadena, End Step los resuelve
+// inmediatamente al detener la barra.
+//
+// Aquí solo necesitamos interceptar el golpe FINAL / único
+// justo antes de que obj_batalla_ui aplique el daño.
+// =========================================================
 
 if (
+    chain_active
+    &&
     hit_prepared
     &&
     current_mode == "lineal"
@@ -68,11 +49,9 @@ if (
     _ui.attack_stop_timer <= 1
 )
 {
-    _ui.attack_timing_stopped = false;
-    _ui.attack_stop_timer = 0;
+    f_resolve_current_hit(
+        true
+    );
 
-    _ui.f_resolver_timing_ataque(true);
-
-    _ui.attack_feedback_active = true;
-    _ui.attack_feedback_timer = 0;
+    exit;
 }

@@ -33,29 +33,15 @@ death_freeze_timer =
 
 
 // =========================================================
-// EXTENSIÓN STAD / HABIL
+// STAD / HABIL
 // =========================================================
 //
-// Se crea AQUÍ, desde el objeto persistente "game", para que
-// no dependa de:
-//     - tener una habilidad desbloqueada;
-//     - que obj_player lo cree a tiempo;
-//     - cambios de room.
+// Ya NO se crea ningún objeto auxiliar.
 //
-// El objeto también es persistent y simplemente espera cuando
-// obj_menu_manager no existe (rm_title, BBS, etc.).
+// Las pestañas STAD / HABIL viven directamente en:
+//
+//     obj_menu_manager > End Step
+//     obj_menu_manager > Draw GUI End
+//
+// Por eso obj_menu_habilidades_ext ya no debe aparecer aquí.
 // =========================================================
-
-if (
-    !instance_exists(
-        obj_menu_habilidades_ext
-    )
-)
-{
-    instance_create_depth(
-        0,
-        0,
-        -2000000,
-        obj_menu_habilidades_ext
-    );
-}

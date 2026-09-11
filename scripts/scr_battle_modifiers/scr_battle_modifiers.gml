@@ -1,6 +1,5 @@
 /// =========================================================
 /// SCR_BATTLE_MODIFIERS
-/// NUEVO SCRIPT
 /// =========================================================
 /// Capa común para debuffs temporales, Toys enemigos y
 /// modificadores modulares de armas.
@@ -108,13 +107,37 @@ function scr_battle_get_weapon_data()
 }
 
 
+/// =========================================================
+/// MODIFICADORES DE ARMA
+/// =========================================================
+///
 /// Campos combinables:
-/// ataque_modo: "lineal" / "circular_carga"
-/// ataque_golpes
-/// ataque_cura
-/// ataque_ancho_centro_mult
-/// ataque_confirmar_despues_centro
-/// carga_*
+///
+/// ataque_modo:
+///     "lineal" / "circular_carga"
+///
+/// ataque_golpes:
+///     cantidad de barras/cargas consecutivas sobre UN SOLO
+///     target/diana.
+///
+/// ataque_cura:
+///     HP recuperado al terminar toda la acción si hizo daño.
+///
+/// ataque_barra_ancho_mult:
+///     ensancha HORIZONTALMENTE la barra móvil.
+///     También aumenta de forma equivalente la tolerancia
+///     real para acertar el centro.
+///
+/// carga_*:
+///     configuración del ataque circular.
+///
+/// La antigua mecánica:
+///
+///     ataque_confirmar_despues_centro
+///
+/// YA NO EXISTE.
+/// =========================================================
+
 function scr_battle_get_weapon_mods()
 {
     var _w = scr_battle_get_weapon_data();
@@ -124,8 +147,8 @@ function scr_battle_get_weapon_mods()
         modo: "lineal",
         golpes: 1,
         cura: 0,
-        ancho_centro_mult: 1.0,
-        confirmar_despues_centro: false,
+
+        barra_ancho_mult: 1.0,
 
         carga_tiempo_frames: 24,
         carga_velocidad_radio: 5.5,
@@ -147,11 +170,12 @@ function scr_battle_get_weapon_mods()
     if (variable_struct_exists(_w, "ataque_cura"))
         _mods.cura = max(0, round(_w.ataque_cura));
 
-    if (variable_struct_exists(_w, "ataque_ancho_centro_mult"))
-        _mods.ancho_centro_mult = max(0.25, _w.ataque_ancho_centro_mult);
-
-    if (variable_struct_exists(_w, "ataque_confirmar_despues_centro"))
-        _mods.confirmar_despues_centro = _w.ataque_confirmar_despues_centro;
+    if (variable_struct_exists(_w, "ataque_barra_ancho_mult"))
+        _mods.barra_ancho_mult =
+            max(
+                1.0,
+                real(_w.ataque_barra_ancho_mult)
+            );
 
     if (variable_struct_exists(_w, "carga_tiempo_frames"))
         _mods.carga_tiempo_frames = max(8, round(_w.carga_tiempo_frames));

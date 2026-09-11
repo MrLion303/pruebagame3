@@ -86,6 +86,7 @@
     {"name":"obj_cutscene_controller","order":2,"path":"objects/obj_cutscene_controller/obj_cutscene_controller.yy",},
     {"name":"obj_cutscene_trigger","order":3,"path":"objects/obj_cutscene_trigger/obj_cutscene_trigger.yy",},
     {"name":"obj_damage_test","order":7,"path":"objects/obj_damage_test/obj_damage_test.yy",},
+    {"name":"obj_dash_afterimage","order":14,"path":"objects/obj_dash_afterimage/obj_dash_afterimage.yy",},
     {"name":"obj_enemigo_batalla_mapa_parent","order":5,"path":"objects/obj_enemigo_batalla_mapa_parent/obj_enemigo_batalla_mapa_parent.yy",},
     {"name":"obj_enemigo_mapa_espiral","order":1,"path":"objects/obj_enemigo_mapa_espiral/obj_enemigo_mapa_espiral.yy",},
     {"name":"obj_enemigo_mapa_parent","order":2,"path":"objects/obj_enemigo_mapa_parent/obj_enemigo_mapa_parent.yy",},

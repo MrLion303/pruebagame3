@@ -115,6 +115,7 @@
     {"id":{"name":"obj_cutscene_controller","path":"objects/obj_cutscene_controller/obj_cutscene_controller.yy",},},
     {"id":{"name":"obj_cutscene_trigger","path":"objects/obj_cutscene_trigger/obj_cutscene_trigger.yy",},},
     {"id":{"name":"obj_damage_test","path":"objects/obj_damage_test/obj_damage_test.yy",},},
+    {"id":{"name":"obj_dash_afterimage","path":"objects/obj_dash_afterimage/obj_dash_afterimage.yy",},},
     {"id":{"name":"obj_deslizamiento_abajo","path":"objects/obj_deslizamiento_abajo/obj_deslizamiento_abajo.yy",},},
     {"id":{"name":"obj_enemigo_batalla_mapa_parent","path":"objects/obj_enemigo_batalla_mapa_parent/obj_enemigo_batalla_mapa_parent.yy",},},
     {"id":{"name":"obj_enemigo_batalla_mapa_perseguidor_toby","path":"objects/obj_enemigo_batalla_mapa_perseguidor_toby/obj_enemigo_batalla_mapa_perseguidor_toby.yy",},},

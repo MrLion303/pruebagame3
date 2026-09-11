@@ -1,33 +1,25 @@
 /// =========================================================
 /// SCR_SHOP_DATA
+/// REEMPLAZO COMPLETO
 /// =========================================================
 ///
-/// Aquí se personaliza CADA tienda.
+/// CAMBIOS:
 ///
-/// El ID de la tienda es el nombre del room:
+/// - TODOS los precios de compra = 0.
+/// - TODOS los precios de venta = 0.
+/// - shop_1 vende TODOS los artículos actualmente definidos:
+///     consumibles
+///     Toys
+///     armas
+///     armaduras
 ///
-/// shop_1 -> case "shop_1"
-/// shop_2 -> case "shop_2"
-///
+/// Los objetos técnicos del mapa NO son artículos de tienda.
 /// =========================================================
 
 
 // =========================================================
 // LÍNEA DE DIÁLOGO
 // =========================================================
-///
-/// _texto:
-///     Texto de esa línea.
-///
-/// _cabeza:
-///     Sprite de cabeza/emoción.
-///
-/// _sonido:
-///     Sonido de habla por letras.
-///
-/// _color:
-///     Color del texto.
-/// =========================================================
 
 function scr_shop_dialog_line(
     _texto,
@@ -36,7 +28,8 @@ function scr_shop_dialog_line(
     _color = c_white
 )
 {
-    return {
+    return
+    {
         texto:
             _texto,
 
@@ -61,7 +54,8 @@ function scr_shop_talk_option(
     _dialogos
 )
 {
-    return {
+    return
+    {
         nombre:
             _nombre,
 
@@ -72,15 +66,13 @@ function scr_shop_talk_option(
 
 
 // =========================================================
-// ARTÍCULO QUE UNA TIENDA VENDE
+// ARTÍCULO DE STOCK
 // =========================================================
 //
 // _tipo:
 //     "item"  -> global.item_db
+//     "toy"   -> global.toy_db
 //     "equip" -> global.equip_db
-//
-// El precio y el icono se leen de scr_items_data /
-// scr_equips_data.
 // =========================================================
 
 function scr_shop_stock(
@@ -89,18 +81,110 @@ function scr_shop_stock(
     _color_nombre = noone
 )
 {
-    return {
+    return
+    {
         tipo:
             _tipo,
 
         id:
             _id,
 
-        // noone = usar color_tienda del objeto o blanco.
-        // Ejemplo: scr_shop_stock("item", "manzana", c_red)
         color_nombre:
             _color_nombre
     };
+}
+
+
+// =========================================================
+// FORZAR TODOS LOS PRECIOS A 0
+// =========================================================
+
+function scr_shop_db_prices_zero(_db)
+{
+    if (!is_struct(_db))
+    {
+        return;
+    }
+
+
+    var _names =
+        variable_struct_get_names(
+            _db
+        );
+
+
+    for (
+        var _i = 0;
+        _i < array_length(_names);
+        _i++
+    )
+    {
+        var _key =
+            _names[
+                _i
+            ];
+
+
+        var _data =
+            variable_struct_get(
+                _db,
+                _key
+            );
+
+
+        if (!is_struct(_data))
+        {
+            continue;
+        }
+
+
+        // Aunque un artículo futuro no tenga precio todavía,
+        // se crean ambos campos a 0.
+        _data.precio_compra =
+            0;
+
+        _data.precio_venta =
+            0;
+    }
+}
+
+
+function scr_shop_all_prices_zero()
+{
+    if (
+        variable_global_exists(
+            "item_db"
+        )
+    )
+    {
+        scr_shop_db_prices_zero(
+            global.item_db
+        );
+    }
+
+
+    if (
+        variable_global_exists(
+            "toy_db"
+        )
+    )
+    {
+        scr_shop_db_prices_zero(
+            global.toy_db
+        );
+    }
+
+
+    if (
+        variable_global_exists(
+            "equip_db"
+        )
+    )
+    {
+        scr_shop_db_prices_zero(
+            global.equip_db
+        );
+    }
 }
 
 
@@ -110,6 +194,11 @@ function scr_shop_stock(
 
 function scr_shop_data(_shop_id)
 {
+    // obj_shop_controller carga las tres DB antes de llamar
+    // esta función, así que aquí dejamos TODO a precio 0.
+    scr_shop_all_prices_zero();
+
+
     switch (_shop_id)
     {
         // =================================================
@@ -118,7 +207,8 @@ function scr_shop_data(_shop_id)
 
         case "shop_1":
 
-            return {
+            return
+            {
                 // -----------------------------------------
                 // IDENTIDAD
                 // -----------------------------------------
@@ -129,32 +219,13 @@ function scr_shop_data(_shop_id)
                     ),
 
 
-                // -----------------------------------------
-                // SPRITE DE LAS CAJAS
-                // -----------------------------------------
-                //
-                // Debe ser un sprite configurado como
-                // Nine Slice en GameMaker.
-                //
-                // Puedes cambiarlo por otro sprite en
-                // cualquier otra tienda.
-                // -----------------------------------------
-
                 caja_sprite:
                     spr_box_shop_1,
 
 
-                // -----------------------------------------
-                // VENDEDOR - IMAGEN GRANDE
-                // -----------------------------------------
-
                 vendedor_sprite:
                     noone,
 
-
-                // -----------------------------------------
-                // VALORES DEFAULT DE DIÁLOGO
-                // -----------------------------------------
 
                 vendedor_cabeza_default:
                     noone,
@@ -166,23 +237,22 @@ function scr_shop_data(_shop_id)
                     c_white,
 
 
-                // -----------------------------------------
-                // MENSAJE NORMAL DE LA CAJA IZQUIERDA
-                // -----------------------------------------
-
                 mensaje_idle:
                     scr_loc_src(
-                        "* Bienvenido. ¿Qué puedo hacer por ti?"
+                        "* Bienvenido. Todo cuesta 0 Sueños."
                     ),
 
 
-                // -----------------------------------------
-                // ARTÍCULOS A LA VENTA
-                // -----------------------------------------
+                // =========================================
+                // TODO EL STOCK ACTUAL DEL JUEGO
+                // =========================================
 
                 items_venta:
                 [
-                    // Consumibles.
+                    // -------------------------------------
+                    // CONSUMIBLES
+                    // -------------------------------------
+
                     scr_shop_stock(
                         "item",
                         "agua"
@@ -209,7 +279,10 @@ function scr_shop_data(_shop_id)
                     ),
 
 
-                    // Toys.
+                    // -------------------------------------
+                    // TOYS
+                    // -------------------------------------
+
                     scr_shop_stock(
                         "toy",
                         "brillitos"
@@ -220,8 +293,26 @@ function scr_shop_data(_shop_id)
                         "pegamento"
                     ),
 
+                    scr_shop_stock(
+                        "toy",
+                        "flash"
+                    ),
 
-                    // Armas.
+                    scr_shop_stock(
+                        "toy",
+                        "rompearmadura"
+                    ),
+
+                    scr_shop_stock(
+                        "toy",
+                        "lastre"
+                    ),
+
+
+                    // -------------------------------------
+                    // ARMAS ANTIGUAS
+                    // -------------------------------------
+
                     scr_shop_stock(
                         "equip",
                         "espada_basica"
@@ -243,24 +334,73 @@ function scr_shop_data(_shop_id)
                     ),
 
 
-                    // Armadura.
+                    // -------------------------------------
+                    // ARMAS MODULARES NUEVAS
+                    // -------------------------------------
+
+                    scr_shop_stock(
+                        "equip",
+                        "baston_vital"
+                    ),
+
+                    scr_shop_stock(
+                        "equip",
+                        "espada_certera"
+                    ),
+
+                    scr_shop_stock(
+                        "equip",
+                        "lanza_tardia"
+                    ),
+
+                    scr_shop_stock(
+                        "equip",
+                        "dagas_gemelas"
+                    ),
+
+                    scr_shop_stock(
+                        "equip",
+                        "garras_triples"
+                    ),
+
+                    scr_shop_stock(
+                        "equip",
+                        "cuchillas_tardias"
+                    ),
+
+                    scr_shop_stock(
+                        "equip",
+                        "aro_cargado"
+                    ),
+
+                    scr_shop_stock(
+                        "equip",
+                        "aro_gemelo_vital"
+                    ),
+
+
+                    // -------------------------------------
+                    // ARMADURAS
+                    // -------------------------------------
+
                     scr_shop_stock(
                         "equip",
                         "armadura_basica"
+                    ),
+
+                    scr_shop_stock(
+                        "equip",
+                        "zapatos_rapidos"
                     )
                 ],
 
 
                 // -----------------------------------------
-                // OPCIONES DE HABLAR
+                // TALK
                 // -----------------------------------------
 
                 talk_options:
                 [
-                    // =====================================
-                    // SALUDOS
-                    // =====================================
-
                     scr_shop_talk_option(
                         scr_loc_src(
                             "Saludos"
@@ -282,10 +422,6 @@ function scr_shop_data(_shop_id)
                     ),
 
 
-                    // =====================================
-                    // SOBRE ESTA TIENDA
-                    // =====================================
-
                     scr_shop_talk_option(
                         scr_loc_src(
                             "Sobre esta tienda"
@@ -306,10 +442,6 @@ function scr_shop_data(_shop_id)
                         ]
                     ),
 
-
-                    // =====================================
-                    // ¿QUÉ SON LOS SUEÑOS?
-                    // =====================================
 
                     scr_shop_talk_option(
                         scr_loc_src(
@@ -336,17 +468,6 @@ function scr_shop_data(_shop_id)
                 ],
 
 
-                // -----------------------------------------
-                // DIÁLOGO DE DESPEDIDA
-                // -----------------------------------------
-                //
-                // Este diálogo se muestra en la CAJA DE
-                // DIÁLOGO IZQUIERDA, NO en la caja de TALK.
-                //
-                // Puedes poner varias líneas y cada una
-                // puede tener cabeza, sonido y color.
-                // -----------------------------------------
-
                 despedida_dialogos:
                 [
                     scr_shop_dialog_line(
@@ -356,22 +477,6 @@ function scr_shop_data(_shop_id)
                     )
                 ],
 
-
-                // -----------------------------------------
-                // DESTINO DE SALIDA
-                // -----------------------------------------
-                //
-                // Si salida_room != noone:
-                // al terminar la despedida cambia de room.
-                //
-                // Si salida_room == noone:
-                // solamente cierra la interfaz de tienda
-                // y devuelve el control al jugador.
-                //
-                // Cuando sepas exactamente a qué room y
-                // coordenadas debe volver shop_1, cambia
-                // estos cuatro valores.
-                // -----------------------------------------
 
                 salida_room:
                     noone,
@@ -393,7 +498,8 @@ function scr_shop_data(_shop_id)
 
         default:
 
-            return {
+            return
+            {
                 nombre:
                     scr_loc_src(
                         "Tienda sin configurar"

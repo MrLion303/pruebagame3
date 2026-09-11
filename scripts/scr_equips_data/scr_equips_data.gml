@@ -2,24 +2,29 @@
 /// SCR_EQUIPS_DATA
 /// =========================================================
 ///
-/// Campos modulares opcionales de armas:
+/// MODIFICADORES MODULARES DE ARMAS:
 ///
 /// ataque_modo:
 ///     "lineal" / "circular_carga"
 ///
 /// ataque_golpes:
 ///     1, 2, 3...
+///     Si es mayor a 1, se mantienen UN SOLO target/diana y
+///     pasan varias barras/cargas una después de otra.
 ///
 /// ataque_cura:
-///     HP curado al completar una acción que hizo daño.
+///     HP curado al completar toda la acción si hizo daño.
 ///
-/// ataque_ancho_centro_mult:
-///     1.0 normal, 2.0 doble zona perfecta.
+/// ataque_barra_ancho_mult:
+///     1.0 = barra normal.
+///     2.0 = barra móvil al doble de ancho horizontal.
 ///
-/// ataque_confirmar_despues_centro:
-///     Z solo funciona después de cruzar el centro.
+/// carga_*:
+///     Ajustes del ataque circular.
 ///
-/// Los campos se pueden combinar libremente.
+/// IMPORTANTE:
+/// La mecánica de "confirmar después del centro" fue eliminada
+/// por completo.
 /// =========================================================
 
 function scr_equips_data()
@@ -89,7 +94,7 @@ function scr_equips_data()
         },
 
 
-        // Cura al terminar la acción de ataque.
+        // Cura al terminar toda la acción de ataque.
         baston_vital:
         {
             nombre: scr_loc_src("Bastón Vital"),
@@ -108,17 +113,20 @@ function scr_equips_data()
         },
 
 
-        // Duplica el radio que cuenta como golpe perfecto.
+        // La BARRA MÓVIL es más ancha.
         espada_certera:
         {
             nombre: scr_loc_src("Espada Certera"),
             tipo: "arma",
             ataque: 4,
             defensa: 0,
-            ataque_ancho_centro_mult: 2.0,
+
+            // Doble ancho horizontal de la barra móvil.
+            ataque_barra_ancho_mult: 2.0,
+
             descripcion:
                 scr_loc_src(
-                    "Su zona de golpe perfecto es el doble de permisiva."
+                    "Su barra de ataque es más ancha, haciendo más fácil detenerla sobre el centro."
                 ),
             precio_compra: 190,
             precio_venta: 95,
@@ -127,17 +135,17 @@ function scr_equips_data()
         },
 
 
-        // No acepta Z antes de haber cruzado el centro.
+        // La antigua confirmación tardía fue eliminada.
+        // Conservamos el ID para no romper saves existentes.
         lanza_tardia:
         {
-            nombre: scr_loc_src("Lanza Tardía"),
+            nombre: scr_loc_src("Lanza"),
             tipo: "arma",
             ataque: 6,
             defensa: 0,
-            ataque_confirmar_despues_centro: true,
             descripcion:
                 scr_loc_src(
-                    "Solo permite confirmar el golpe después de cruzar el centro."
+                    "Una lanza de buen alcance y gran poder de ataque."
                 ),
             precio_compra: 240,
             precio_venta: 120,
@@ -146,7 +154,7 @@ function scr_equips_data()
         },
 
 
-        // Dos timings seguidos.
+        // Dos barras consecutivas sobre UN SOLO target.
         dagas_gemelas:
         {
             nombre: scr_loc_src("Dagas Gemelas"),
@@ -156,7 +164,7 @@ function scr_equips_data()
             ataque_golpes: 2,
             descripcion:
                 scr_loc_src(
-                    "Permite realizar dos timings de ataque consecutivos."
+                    "Hace pasar dos barras consecutivas sobre un mismo target."
                 ),
             precio_compra: 230,
             precio_venta: 115,
@@ -165,7 +173,7 @@ function scr_equips_data()
         },
 
 
-        // Tres timings seguidos.
+        // Tres barras consecutivas sobre UN SOLO target.
         garras_triples:
         {
             nombre: scr_loc_src("Garras Triples"),
@@ -175,7 +183,7 @@ function scr_equips_data()
             ataque_golpes: 3,
             descripcion:
                 scr_loc_src(
-                    "Permite realizar tres timings de ataque consecutivos."
+                    "Hace pasar tres barras consecutivas sobre un mismo target."
                 ),
             precio_compra: 270,
             precio_venta: 135,
@@ -184,18 +192,18 @@ function scr_equips_data()
         },
 
 
-        // Combinación: después del centro + dos golpes.
+        // Antes tenía confirmación tardía.
+        // El ID se conserva, pero ahora solo mantiene el doble golpe.
         cuchillas_tardias:
         {
-            nombre: scr_loc_src("Cuchillas Tardías"),
+            nombre: scr_loc_src("Cuchillas Dobles"),
             tipo: "arma",
             ataque: 3,
             defensa: 0,
             ataque_golpes: 2,
-            ataque_confirmar_despues_centro: true,
             descripcion:
                 scr_loc_src(
-                    "Dos golpes. Cada uno solo se confirma después de cruzar el centro."
+                    "Hace pasar dos barras consecutivas sobre un mismo target."
                 ),
             precio_compra: 290,
             precio_venta: 145,
@@ -214,10 +222,9 @@ function scr_equips_data()
 
             ataque_modo: "circular_carga",
 
-            // 24 frames a 30 FPS = 0.8 segundos.
+            // Una vez pulsado Z, hay 24 frames para soltar.
             carga_tiempo_frames: 24,
 
-            // Desde radio 4 a radio ideal 64 en aprox. 11 frames.
             carga_velocidad_radio: 5.5,
             carga_radio_inicial: 4,
             carga_radio_objetivo: 64,
@@ -226,7 +233,7 @@ function scr_equips_data()
 
             descripcion:
                 scr_loc_src(
-                    "Mantén Z para agrandar el aro y suelta cuando llene la diana."
+                    "Mantén Z para agrandar el aro y suelta cuando coincida con la diana."
                 ),
             precio_compra: 0,
             precio_venta: 160,
@@ -235,7 +242,7 @@ function scr_equips_data()
         },
 
 
-        // Demostración real de combinaciones.
+        // Combinación real: misma diana, dos cargas y curación.
         aro_gemelo_vital:
         {
             nombre: scr_loc_src("Aro Gemelo Vital"),
@@ -256,7 +263,7 @@ function scr_equips_data()
 
             descripcion:
                 scr_loc_src(
-                    "Ataque circular, dos golpes y una pequeña curación."
+                    "Dos cargas consecutivas sobre una sola diana y una pequeña curación."
                 ),
             precio_compra: 380,
             precio_venta: 190,
