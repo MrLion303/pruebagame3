@@ -3,45 +3,43 @@
 /// CREATE
 /// =========================================================
 ///
-/// Parent universal de enemigos de mapa que pueden iniciar
-/// una batalla BBS al tocar a Maya.
+/// Parent universal para enemigos del mapa que pueden
+/// iniciar una batalla BBS.
 ///
-/// TIPOS:
+/// MODOS:
 ///
 ///     "contacto"
-///         Patrulla normalmente.
+///         Hace su movimiento normal.
 ///         Al tocar a Maya:
-///             1. cambia al sprite de alerta;
-///             2. bloquea el mundo durante el tiempo indicado;
-///             3. después inicia la batalla.
+///             alerta
+///             -> congela TODO 1 segundo
+///             -> batalla.
 ///
 ///     "persecucion"
-///         Patrulla normalmente.
-///         Cuando Maya entra en su rango:
-///             1. cambia al sprite de alerta;
-///             2. se queda quieto un momento;
-///             3. después empieza a perseguirla;
-///             4. al tocarla inicia batalla inmediatamente.
+///         Hace su movimiento normal.
+///         Cuando detecta a Maya:
+///             alerta
+///             -> enemigo quieto 0.5 s
+///             -> persigue a Maya.
+///         Al tocar a Maya:
+///             congela TODO 1 segundo
+///             -> batalla.
 ///
-/// La configuración se encuentra en:
+/// REGLAS UNIVERSALES:
 ///
-///     scr_enemigos_batalla_mapa_data
+///     - Los tiempos anteriores NO se personalizan.
+///     - El sprite NORMAL viene directamente del OBJETO.
+///     - Solo sprite_alerta se configura en los datos.
+///     - Los enemigos de persecución desaparecen al volver
+///       de la batalla que ellos iniciaron.
+///     - Si sales de la habitación y vuelves a entrar,
+///       reaparecen normalmente.
 ///
 /// =========================================================
 
 
 // =========================================================
-// ID DE DATOS
-// =========================================================
-//
-// Los objetos hijos deben asignar primero:
-//
-//     enemigo_batalla_mapa_id = "mi_enemigo";
-//
-// y después:
-//
-//     event_inherited();
-//
+// ID DE CONFIGURACIÓN
 // =========================================================
 
 if (
@@ -54,6 +52,57 @@ if (
     enemigo_batalla_mapa_id =
         "caminante_01";
 }
+
+
+// =========================================================
+// PUNTO ORIGINAL DE LA INSTANCIA
+// =========================================================
+//
+// Se guarda ANTES de mover al enemigo.
+//
+// Sirve para:
+//
+//     - origen de presets;
+//     - identificar exactamente qué instancia debe
+//       desaparecer al regresar de BBS.
+//
+// =========================================================
+
+spawn_room =
+    room;
+
+
+spawn_x =
+    x;
+
+
+spawn_y =
+    y;
+
+
+movimiento_origen_x =
+    x;
+
+
+movimiento_origen_y =
+    y;
+
+
+// =========================================================
+// SPRITE NORMAL
+// =========================================================
+//
+// YA NO se configura en el script.
+//
+// El sprite normal es el que tenga asignado el OBJETO.
+// =========================================================
+
+sprite_normal =
+    sprite_index;
+
+
+image_speed_normal =
+    image_speed;
 
 
 // =========================================================
@@ -90,19 +139,203 @@ radio_contacto =
     );
 
 
+sprite_alerta =
+    datos_enemigo_mapa.sprite_alerta;
+
+
 // =========================================================
-// TIEMPOS DE ALERTA
+// GLOBALES SEGURAS DE RETORNO
 // =========================================================
 //
-// Se configuran en SEGUNDOS en el script de datos.
-// Aquí se convierten automáticamente a frames usando los FPS
-// reales configurados en GameMaker.
+// IMPORTANTE:
 //
-// Ejemplo a 30 FPS:
+// NO usamos variable_global_del().
 //
-//     1.0 s = 30 frames
-//     0.5 s = 15 frames
+// Esa llamada era la causa del crash porque no existe como
+// función válida aquí.
 //
+// En su lugar mantenemos globals normales y usamos booleanos
+// para saber cuándo tienen datos activos.
+// =========================================================
+
+if (
+    !variable_global_exists(
+        "map_enemy_defeated_return_pending"
+    )
+)
+{
+    global.map_enemy_defeated_return_pending =
+        false;
+}
+
+
+if (
+    !variable_global_exists(
+        "map_enemy_defeated_room"
+    )
+)
+{
+    global.map_enemy_defeated_room =
+        -1;
+}
+
+
+if (
+    !variable_global_exists(
+        "map_enemy_defeated_id"
+    )
+)
+{
+    global.map_enemy_defeated_id =
+        "";
+}
+
+
+if (
+    !variable_global_exists(
+        "map_enemy_defeated_spawn_x"
+    )
+)
+{
+    global.map_enemy_defeated_spawn_x =
+        0;
+}
+
+
+if (
+    !variable_global_exists(
+        "map_enemy_defeated_spawn_y"
+    )
+)
+{
+    global.map_enemy_defeated_spawn_y =
+        0;
+}
+
+
+if (
+    !variable_global_exists(
+        "map_enemy_contact_grace_pending"
+    )
+)
+{
+    global.map_enemy_contact_grace_pending =
+        false;
+}
+
+
+if (
+    !variable_global_exists(
+        "map_enemy_contact_grace_room"
+    )
+)
+{
+    global.map_enemy_contact_grace_room =
+        -1;
+}
+
+
+if (
+    !variable_global_exists(
+        "map_enemy_contact_grace_id"
+    )
+)
+{
+    global.map_enemy_contact_grace_id =
+        "";
+}
+
+
+if (
+    !variable_global_exists(
+        "map_enemy_contact_grace_spawn_x"
+    )
+)
+{
+    global.map_enemy_contact_grace_spawn_x =
+        0;
+}
+
+
+if (
+    !variable_global_exists(
+        "map_enemy_contact_grace_spawn_y"
+    )
+)
+{
+    global.map_enemy_contact_grace_spawn_y =
+        0;
+}
+
+
+// =========================================================
+// PERSEGUIDOR DERROTADO: DESAPARECER AL VOLVER DE BBS
+// =========================================================
+//
+// El marcador guarda:
+//
+//     room
+//     ID de datos
+//     coordenada ORIGINAL de la instancia
+//
+// Así, si hay varios perseguidores iguales en la room,
+// desaparece únicamente el que inició la batalla.
+//
+// En cuanto esta instancia se destruye, consumimos el
+// marcador.
+//
+// Por eso:
+//
+//     vuelve de BBS -> NO aparece;
+//     sale de room -> entra otra vez -> aparece normalmente.
+//
+// =========================================================
+
+if (
+    modo_activacion
+    ==
+    "persecucion"
+    &&
+    global.map_enemy_defeated_return_pending
+    &&
+    global.map_enemy_defeated_room
+    ==
+    room
+    &&
+    global.map_enemy_defeated_id
+    ==
+    enemigo_batalla_mapa_id
+    &&
+    abs(
+        global.map_enemy_defeated_spawn_x
+        -
+        spawn_x
+    )
+    <=
+    0.1
+    &&
+    abs(
+        global.map_enemy_defeated_spawn_y
+        -
+        spawn_y
+    )
+    <=
+    0.1
+)
+{
+    global.map_enemy_defeated_return_pending =
+        false;
+
+
+    instance_destroy();
+
+
+    exit;
+}
+
+
+// =========================================================
+// TIEMPOS UNIVERSALES
 // =========================================================
 
 var _fps_actual =
@@ -114,22 +347,26 @@ var _fps_actual =
     );
 
 
-alerta_contacto_frames =
-    max(
-        0,
-        round(
-            datos_enemigo_mapa.alerta_contacto_segundos
-            *
-            _fps_actual
-        )
-    );
-
-
+// Persecución:
+// quieto después de detectar a Maya.
 alerta_persecucion_frames =
     max(
-        0,
+        1,
         round(
-            datos_enemigo_mapa.alerta_persecucion_segundos
+            0.5
+            *
+            _fps_actual
+        )
+    );
+
+
+// TODOS:
+// congelación al tocar antes de BBS.
+pausa_antes_batalla_frames =
+    max(
+        1,
+        round(
+            1.0
             *
             _fps_actual
         )
@@ -137,61 +374,109 @@ alerta_persecucion_frames =
 
 
 // =========================================================
-// PATRULLA
+// MOVIMIENTO NORMAL - PRESETS
+// =========================================================
+//
+// Igual que los enemigos de mapa a distancia.
+//
+// PRESETS:
+//
+//     "ninguno"
+//     "izquierda_derecha"
+//     "arriba_abajo"
+//     "diagonal"
+//     "circulo"
+//     "continuo"
+//
+// Para izquierda/derecha, arriba/abajo y diagonal se usa
+// smootherstep, frenando y acelerando suavemente.
+//
 // =========================================================
 
-patrulla_x1 =
-    datos_enemigo_mapa.patrulla_x1;
-
-patrulla_y1 =
-    datos_enemigo_mapa.patrulla_y1;
-
-patrulla_x2 =
-    datos_enemigo_mapa.patrulla_x2;
-
-patrulla_y2 =
-    datos_enemigo_mapa.patrulla_y2;
+puede_moverse =
+    datos_enemigo_mapa.puede_moverse;
 
 
-patrulla_velocidad =
-    max(
-        0,
-        datos_enemigo_mapa.patrulla_velocidad
+movimiento_preset =
+    string_lower(
+        datos_enemigo_mapa.movimiento_preset
     );
 
 
-patrulla_iniciar_en_a =
-    datos_enemigo_mapa.patrulla_iniciar_en_a;
+movimiento_velocidad =
+    max(
+        0,
+        datos_enemigo_mapa.movimiento_velocidad
+    );
 
 
-patrulla_objetivo =
-    patrulla_iniciar_en_a
+movimiento_distancia =
+    max(
+        0,
+        datos_enemigo_mapa.movimiento_distancia
+    );
+
+
+movimiento_radio =
+    max(
+        1,
+        datos_enemigo_mapa.movimiento_radio
+    );
+
+
+movimiento_direccion =
+    string_lower(
+        datos_enemigo_mapa.movimiento_direccion
+    );
+
+
+movimiento_angulo =
+    datos_enemigo_mapa.movimiento_angulo;
+
+
+movimiento_sentido =
+    (
+        datos_enemigo_mapa.movimiento_sentido
+        <
+        0
+    )
     ?
-    1
+    -1
     :
-    0;
+    1;
 
 
-if (patrulla_iniciar_en_a)
-{
-    x =
-        patrulla_x1;
+movimiento_diagonal_angulo =
+    datos_enemigo_mapa.movimiento_diagonal_angulo;
 
-    y =
-        patrulla_y1;
-}
-else
-{
-    x =
-        patrulla_x2;
 
-    y =
-        patrulla_y2;
-}
+// Punto medio del smootherstep.
+movimiento_trayecto_t =
+    0.5;
+
+
+movimiento_trayecto_sentido =
+    1;
+
+
+// El punto colocado en la room es la parte superior inicial
+// del círculo, igual que el sistema existente.
+movimiento_centro_x =
+    movimiento_origen_x;
+
+
+movimiento_centro_y =
+    movimiento_origen_y
+    +
+    movimiento_radio;
+
+
+movimiento_angulo_actual =
+    270;
 
 
 // =========================================================
-// PERSECUCIÓN / ALERTA
+// PERSECUCIÓN
 // =========================================================
 
 persecucion_velocidad =
@@ -205,126 +490,138 @@ persiguiendo =
     false;
 
 
-// true desde que un enemigo de persecución detecta a Maya.
-// Permanece true durante la espera y durante toda la
-// persecución hasta abandonar la room.
 alerta_activa =
     false;
 
 
-// Espera de 0.5 s (o el tiempo configurado) antes de empezar
-// a perseguir.
 esperando_persecucion =
     false;
 
 
-// Cuenta regresiva usada tanto por la alerta de persecución
-// como por la pausa previa a una batalla de contacto.
+// Velocidad suavizada durante persecución.
+persecucion_hsp =
+    0;
+
+
+persecucion_vsp =
+    0;
+
+
+// Universal.
+// Más alto = gira/acelera más rápido.
+persecucion_suavizado =
+    0.22;
+
+
+// =========================================================
+// PAUSA / BATALLA
+// =========================================================
+
 alerta_timer =
     0;
 
 
-// En modo contacto, durante esta pausa el parent seguirá
-// ejecutando su Step para contar el tiempo, pero el resto del
-// mundo queda bloqueado usando el sistema de cutscenes.
 pausa_contacto_activa =
     false;
 
-
-// =========================================================
-// ESTADO DE BATALLA
-// =========================================================
 
 batalla_iniciada =
     false;
 
 
-// Al volver de una batalla evitamos que el mismo contacto
-// vuelva a dispararla instantáneamente.
+// =========================================================
+// COOLDOWN PARA ENEMIGOS DE CONTACTO
+// =========================================================
+//
+// Los de persecución desaparecen al regresar.
+//
+// Los de contacto permanecen, así que solo reciben un margen
+// breve para no reactivar BBS instantáneamente.
+// =========================================================
+
 contacto_cooldown =
     0;
 
 
 if (
-    variable_global_exists(
-        "map_enemy_return_grace_room"
-    )
+    modo_activacion
+    ==
+    "contacto"
     &&
-    global.map_enemy_return_grace_room
+    global.map_enemy_contact_grace_pending
+    &&
+    global.map_enemy_contact_grace_room
     ==
     room
+    &&
+    global.map_enemy_contact_grace_id
+    ==
+    enemigo_batalla_mapa_id
+    &&
+    abs(
+        global.map_enemy_contact_grace_spawn_x
+        -
+        spawn_x
+    )
+    <=
+    0.1
+    &&
+    abs(
+        global.map_enemy_contact_grace_spawn_y
+        -
+        spawn_y
+    )
+    <=
+    0.1
 )
 {
     contacto_cooldown =
         30;
 
-    variable_global_del(
-        "map_enemy_return_grace_room"
-    );
+
+    global.map_enemy_contact_grace_pending =
+        false;
 }
 
 
 // =========================================================
-// SPRITES
+// SPRITE NORMAL
 // =========================================================
 
-sprite_default =
-    datos_enemigo_mapa.sprite_default;
-
-sprite_arriba =
-    datos_enemigo_mapa.sprite_arriba;
-
-sprite_abajo =
-    datos_enemigo_mapa.sprite_abajo;
-
-sprite_izquierda =
-    datos_enemigo_mapa.sprite_izquierda;
-
-sprite_derecha =
-    datos_enemigo_mapa.sprite_derecha;
-
-
-// Sprite que se muestra al detectar a Maya o al producirse el
-// contacto previo a batalla.
-sprite_alerta =
-    datos_enemigo_mapa.sprite_alerta;
-
-
-image_speed_caminando =
-    max(
-        0,
-        datos_enemigo_mapa.image_speed_caminando
-    );
-
-
-image_speed_alerta =
-    max(
-        0,
-        datos_enemigo_mapa.image_speed_alerta
-    );
-
-
-if (
-    sprite_default != -1
-    &&
-    sprite_exists(sprite_default)
-)
+mostrar_sprite_normal =
+function()
 {
-    sprite_index =
-        sprite_default;
-}
+    if (
+        sprite_normal != -1
+        &&
+        sprite_exists(
+            sprite_normal
+        )
+    )
+    {
+        if (
+            sprite_index
+            !=
+            sprite_normal
+        )
+        {
+            sprite_index =
+                sprite_normal;
 
 
-image_speed =
-    image_speed_caminando;
+            image_index =
+                0;
+        }
+
+
+        image_speed =
+            image_speed_normal;
+    }
+};
 
 
 // =========================================================
-// FUNCIÓN INTERNA: CAMBIAR A SPRITE DE ALERTA
-// =========================================================
-//
-// Si sprite_alerta vale -1, simplemente conserva el sprite
-// que ya estaba usando.
+// SPRITE DE ALERTA
 // =========================================================
 
 mostrar_sprite_alerta =
@@ -333,13 +630,20 @@ function()
     if (
         sprite_alerta != -1
         &&
-        sprite_exists(sprite_alerta)
+        sprite_exists(
+            sprite_alerta
+        )
     )
     {
-        if (sprite_index != sprite_alerta)
+        if (
+            sprite_index
+            !=
+            sprite_alerta
+        )
         {
             sprite_index =
                 sprite_alerta;
+
 
             image_index =
                 0;
@@ -347,17 +651,105 @@ function()
 
 
         image_speed =
-            image_speed_alerta;
+            image_speed_normal;
     }
 };
 
 
 // =========================================================
-// FUNCIÓN INTERNA: INICIAR BATALLA BBS
+// COMENZAR PAUSA UNIVERSAL ANTES DE BBS
 // =========================================================
-//
-// Centraliza el flujo para que contacto y persecución usen
-// exactamente la misma entrada a batalla.
+
+comenzar_pausa_batalla =
+function(_p)
+{
+    if (
+        pausa_contacto_activa
+        ||
+        batalla_iniciada
+        ||
+        _p == noone
+        ||
+        !instance_exists(
+            _p
+        )
+    )
+    {
+        return;
+    }
+
+
+    alerta_activa =
+        true;
+
+
+    pausa_contacto_activa =
+        true;
+
+
+    alerta_timer =
+        pausa_antes_batalla_frames;
+
+
+    persecucion_hsp =
+        0;
+
+
+    persecucion_vsp =
+        0;
+
+
+    mostrar_sprite_alerta();
+
+
+    // Congelar sistemas que respetan el bloqueo de mundo.
+    global.cutscene_active =
+        true;
+
+
+    if (
+        variable_instance_exists(
+            _p,
+            "puede_moverse"
+        )
+    )
+    {
+        _p.puede_moverse =
+            false;
+    }
+
+
+    if (
+        variable_instance_exists(
+            _p,
+            "can_move"
+        )
+    )
+    {
+        _p.can_move =
+            false;
+    }
+
+
+    if (
+        variable_instance_exists(
+            _p,
+            "cutscene_motion_active"
+        )
+    )
+    {
+        _p.cutscene_motion_active =
+            false;
+    }
+
+
+    _p.image_index =
+        0;
+};
+
+
+// =========================================================
+// INICIAR BATALLA BBS
 // =========================================================
 
 iniciar_batalla_bbs =
@@ -368,7 +760,9 @@ function(_p)
         ||
         _p == noone
         ||
-        !instance_exists(_p)
+        !instance_exists(
+            _p
+        )
     )
     {
         return;
@@ -386,15 +780,17 @@ function(_p)
     global.return_x =
         _p.x;
 
+
     global.return_y =
         _p.y;
+
 
     global.return_room =
         room;
 
 
     // -----------------------------------------------------
-    // HP ACTUAL
+    // HP
     // -----------------------------------------------------
 
     if (
@@ -416,25 +812,80 @@ function(_p)
     global.enemigo_actual_id =
         batalla_id;
 
+
     global.battle_enemy_id =
         batalla_id;
 
 
-    // Al regresar se da un pequeño margen para evitar que el
-    // mismo contacto reactive instantáneamente la batalla.
-    global.map_enemy_return_grace_room =
-        room;
+    // -----------------------------------------------------
+    // QUÉ HACER CUANDO BBS REGRESE A LA ROOM
+    // -----------------------------------------------------
+
+    if (
+        modo_activacion
+        ==
+        "persecucion"
+    )
+    {
+        // Este perseguidor debe desaparecer al volver.
+        global.map_enemy_defeated_return_pending =
+            true;
 
 
-    // Este encuentro no pertenece a una cinemática.
+        global.map_enemy_defeated_room =
+            room;
+
+
+        global.map_enemy_defeated_id =
+            enemigo_batalla_mapa_id;
+
+
+        global.map_enemy_defeated_spawn_x =
+            spawn_x;
+
+
+        global.map_enemy_defeated_spawn_y =
+            spawn_y;
+    }
+    else
+    {
+        // Los de contacto se mantienen, pero reciben margen.
+        global.map_enemy_contact_grace_pending =
+            true;
+
+
+        global.map_enemy_contact_grace_room =
+            room;
+
+
+        global.map_enemy_contact_grace_id =
+            enemigo_batalla_mapa_id;
+
+
+        global.map_enemy_contact_grace_spawn_x =
+            spawn_x;
+
+
+        global.map_enemy_contact_grace_spawn_y =
+            spawn_y;
+    }
+
+
+    // -----------------------------------------------------
+    // NO ES UNA CINEMÁTICA
+    // -----------------------------------------------------
+
     scr_cutscene_clear_resume();
 
+
+    // Termina nuestro congelamiento.
+    // La transición BBS toma el control a partir de aquí.
     global.cutscene_active =
         false;
 
 
     // -----------------------------------------------------
-    // BLOQUEAR A MAYA DURANTE LA TRANSICIÓN
+    // BLOQUEAR MAYA EN LA TRANSICIÓN
     // -----------------------------------------------------
 
     if (
@@ -478,10 +929,14 @@ function(_p)
 
 
     // -----------------------------------------------------
-    // TRANSICIÓN BBS
+    // TRANSICIÓN
     // -----------------------------------------------------
 
-    if (!instance_exists(obj_transicion_bbs))
+    if (
+        !instance_exists(
+            obj_transicion_bbs
+        )
+    )
     {
         instance_create_depth(
             0,
@@ -491,6 +946,44 @@ function(_p)
         );
     }
 };
+
+
+// =========================================================
+// DEBUG
+// =========================================================
+
+if (
+    sprite_normal == -1
+    ||
+    !sprite_exists(
+        sprite_normal
+    )
+)
+{
+    show_debug_message(
+        "[ENEMIGO BATALLA MAPA] "
+        +
+        object_get_name(
+            object_index
+        )
+        +
+        " no tiene sprite normal asignado."
+    );
+}
+
+
+if (
+    sprite_alerta == -1
+)
+{
+    show_debug_message(
+        "[ENEMIGO BATALLA MAPA] "
+        +
+        enemigo_batalla_mapa_id
+        +
+        " no tiene sprite_alerta. Se conservará el normal."
+    );
+}
 
 
 // =========================================================

@@ -2,118 +2,54 @@
 /// SCR_ENEMIGOS_BATALLA_MAPA_DATA
 /// =========================================================
 ///
-/// CONFIGURACIÓN DE ENEMIGOS DE MAPA QUE INICIAN BBS.
+/// DATOS DE LOS ENEMIGOS DEL MAPA QUE INICIAN BBS.
 ///
-/// Este script SOLO contiene los datos que normalmente vas a
-/// personalizar al crear enemigos nuevos.
+/// REGLAS QUE NO SE PERSONALIZAN:
 ///
-/// La lógica está en:
+///     - sprite normal:
+///         viene del objeto.
 ///
-///     obj_enemigo_batalla_mapa_parent
+///     - al tocar a Maya:
+///         TODOS paralizan el mundo 1 segundo.
+///
+///     - persecución:
+///         TODOS esperan quietos 0.5 segundos al detectar.
+///
+///     - perseguidor después de BBS:
+///         desaparece al regresar de la batalla y reaparece
+///         únicamente después de salir y volver a entrar a
+///         la habitación.
 ///
 /// =========================================================
-/// MODOS DE ACTIVACIÓN
+/// MODOS
 /// =========================================================
 ///
 /// "contacto"
-/// ---------------------------------------------------------
-/// El enemigo recorre su patrulla y NO persigue a Maya.
-///
-/// Cuando Maya y el enemigo se tocan:
-///
-///     1. cambia a sprite_alerta;
-///     2. el mundo se paraliza durante
-///        alerta_contacto_segundos;
-///     3. después inicia batalla.
-///
-/// Recomendado:
-///
-///     alerta_contacto_segundos: 1.0
-///
+///     No persigue.
+///     Hace su preset y batalla al tocar.
 ///
 /// "persecucion"
-/// ---------------------------------------------------------
-/// El enemigo recorre su patrulla.
-///
-/// Cuando Maya entra en rango_persecucion:
-///
-///     1. cambia a sprite_alerta;
-///     2. se queda QUIETO durante
-///        alerta_persecucion_segundos;
-///     3. después persigue a Maya;
-///     4. cuando la toca entra a batalla INMEDIATAMENTE.
-///
-/// NO vuelve a patrullar aunque Maya salga del rango.
-/// Solo se reinicia al abandonar y volver a entrar a la room.
-///
-/// Recomendado:
-///
-///     alerta_persecucion_segundos: 0.5
+///     Hace su preset.
+///     Entra Maya en rango -> alerta -> espera -> persigue.
+///     Al tocar -> pausa universal -> BBS.
 ///
 /// =========================================================
-/// PATRULLA
+/// MOVIMIENTO
 /// =========================================================
 ///
-/// patrulla_x1 / patrulla_y1:
-///     punto A.
+/// El origen es DONDE COLOCAS LA INSTANCIA EN LA ROOM.
 ///
-/// patrulla_x2 / patrulla_y2:
-///     punto B.
+/// PRESETS:
 ///
-/// patrulla_velocidad:
-///     píxeles por frame.
+///     "ninguno"
+///     "izquierda_derecha"
+///     "arriba_abajo"
+///     "diagonal"
+///     "circulo"
+///     "continuo"
 ///
-/// patrulla_iniciar_en_a:
-///     true  = aparece en A.
-///     false = aparece en B.
-///
-/// =========================================================
-/// PERSECUCIÓN
-/// =========================================================
-///
-/// rango_persecucion:
-///     distancia en píxeles a la que detecta a Maya.
-///
-/// persecucion_velocidad:
-///     velocidad mientras la persigue.
-///
-/// =========================================================
-/// BATALLA
-/// =========================================================
-///
-/// batalla_id:
-///     ID que DEBE existir en scr_enemigos_data().
-///
-/// radio_contacto:
-///     distancia entre el centro del enemigo y Maya a partir
-///     de la cual se considera que se tocaron.
-///
-/// =========================================================
-/// SPRITES
-/// =========================================================
-///
-/// sprite_default:
-///     sprite normal.
-///
-/// sprite_arriba / abajo / izquierda / derecha:
-///     opcionales.
-///     Si valen -1, se utiliza sprite_default.
-///
-/// sprite_alerta:
-///     aparece:
-///
-///         CONTACTO:
-///             al tocar a Maya, antes de la batalla.
-///
-///         PERSECUCIÓN:
-///             desde que detecta a Maya y durante toda la
-///             persecución.
-///
-/// image_speed_caminando:
-///     velocidad de animación normal.
-///
-/// image_speed_alerta:
-///     velocidad de animación del sprite de alerta.
+/// Los presets de ida/vuelta usan smootherstep para frenar,
+/// cambiar de dirección y volver a acelerar suavemente.
 ///
 /// =========================================================
 
@@ -123,19 +59,14 @@ function scr_enemigos_batalla_mapa_data(_id)
     switch (_id)
     {
         // =================================================
-        // CAMINANTE 01 - EJEMPLO BASE
-        // =================================================
-        //
-        // Sigue siendo una plantilla editable.
-        // Pon sprite_alerta si quieres que visualmente cambie
-        // al detectar al jugador.
+        // CAMINANTE 01
         // =================================================
 
         case "caminante_01":
             return
             {
                 // -----------------------------------------
-                // BATALLA
+                // BBS
                 // -----------------------------------------
 
                 batalla_id:
@@ -157,69 +88,10 @@ function scr_enemigos_batalla_mapa_data(_id)
 
 
                 // -----------------------------------------
-                // TIEMPOS DE ALERTA
+                // ALERTA
                 // -----------------------------------------
-
-                alerta_contacto_segundos:
-                    1.0,
-
-                alerta_persecucion_segundos:
-                    0.5,
-
-
-                // -----------------------------------------
-                // PATRULLA A <-> B
-                // -----------------------------------------
-
-                patrulla_x1:
-                    320,
-
-                patrulla_y1:
-                    240,
-
-                patrulla_x2:
-                    480,
-
-                patrulla_y2:
-                    240,
-
-                patrulla_velocidad:
-                    2,
-
-                patrulla_iniciar_en_a:
-                    true,
-
-
-                // -----------------------------------------
-                // PERSECUCIÓN
-                // -----------------------------------------
-
-                persecucion_velocidad:
-                    3.5,
-
-
-                // -----------------------------------------
-                // SPRITES NORMALES
-                // -----------------------------------------
-
-                sprite_default:
-                    -1,
-
-                sprite_arriba:
-                    -1,
-
-                sprite_abajo:
-                    -1,
-
-                sprite_izquierda:
-                    -1,
-
-                sprite_derecha:
-                    -1,
-
-
-                // -----------------------------------------
-                // SPRITE DE ALERTA
+                //
+                // El sprite normal está en el OBJETO.
                 // -----------------------------------------
 
                 sprite_alerta:
@@ -227,14 +99,43 @@ function scr_enemigos_batalla_mapa_data(_id)
 
 
                 // -----------------------------------------
-                // VELOCIDAD DE ANIMACIÓN
+                // PERSECUCIÓN
                 // -----------------------------------------
 
-                image_speed_caminando:
-                    0.18,
+                persecucion_velocidad:
+                    4.0,
 
-                image_speed_alerta:
-                    0.18
+
+                // -----------------------------------------
+                // MOVIMIENTO NORMAL
+                // -----------------------------------------
+
+                puede_moverse:
+                    true,
+
+                movimiento_preset:
+                    "izquierda_derecha",
+
+                movimiento_velocidad:
+                    2.0,
+
+                movimiento_distancia:
+                    64,
+
+                movimiento_radio:
+                    64,
+
+                movimiento_direccion:
+                    "derecha",
+
+                movimiento_angulo:
+                    0,
+
+                movimiento_sentido:
+                    1,
+
+                movimiento_diagonal_angulo:
+                    45
             };
 
 
@@ -242,35 +143,26 @@ function scr_enemigos_batalla_mapa_data(_id)
         // PERSEGUIDOR TOBY
         // =================================================
         //
-        // NUEVO ENEMIGO SOLICITADO.
+        // OBJETO:
         //
-        // Normal:
-        //     spr_volador_idle_1
+        //     obj_enemigo_batalla_mapa_perseguidor_toby
         //
-        // Alerta:
-        //     spr_volador_idle_2
+        // NORMAL:
+        //     el sprite asignado directamente al objeto.
         //
-        // Batalla:
-        //     "toby"
+        // ALERTA:
+        //     spr_volador_alarma_2
         //
-        // COMPORTAMIENTO:
-        //     - patrulla;
-        //     - detecta a Maya;
-        //     - muestra alarma;
-        //     - espera 0.5 s quieto;
-        //     - la persigue;
-        //     - al tocarla entra inmediatamente a Toby.
+        // MOVIMIENTO:
+        //     izquierda <-> derecha smooth.
         //
-        // IMPORTANTE:
-        // Cambia las coordenadas de patrulla de abajo según
-        // la habitación donde lo vayas a colocar.
         // =================================================
 
         case "perseguidor_toby":
             return
             {
                 // -----------------------------------------
-                // BATALLA
+                // BBS
                 // -----------------------------------------
 
                 batalla_id:
@@ -292,40 +184,11 @@ function scr_enemigos_batalla_mapa_data(_id)
 
 
                 // -----------------------------------------
-                // TIEMPOS DE ALERTA
+                // ALERTA
                 // -----------------------------------------
 
-                alerta_contacto_segundos:
-                    1.0,
-
-                alerta_persecucion_segundos:
-                    0.5,
-
-
-                // -----------------------------------------
-                // PATRULLA A <-> B
-                // -----------------------------------------
-                //
-                // AJUSTA ESTAS COORDENADAS A TU ROOM.
-                // -----------------------------------------
-
-                patrulla_x1:
-                    320,
-
-                patrulla_y1:
-                    240,
-
-                patrulla_x2:
-                    480,
-
-                patrulla_y2:
-                    240,
-
-                patrulla_velocidad:
-                    2,
-
-                patrulla_iniciar_en_a:
-                    true,
+                sprite_alerta:
+                    spr_volador_alarma_2,
 
 
                 // -----------------------------------------
@@ -333,50 +196,39 @@ function scr_enemigos_batalla_mapa_data(_id)
                 // -----------------------------------------
 
                 persecucion_velocidad:
-                    3.5,
+                    5.5,
 
 
                 // -----------------------------------------
-                // SPRITES NORMALES
-                // -----------------------------------------
-                //
-                // Como este enemigo utiliza un único sprite
-                // normal, los direccionales quedan en -1.
+                // MOVIMIENTO NORMAL
                 // -----------------------------------------
 
-                sprite_default:
-                    spr_volador_idle_1,
+                puede_moverse:
+                    true,
 
-                sprite_arriba:
-                    -1,
+                movimiento_preset:
+                    "izquierda_derecha",
 
-                sprite_abajo:
-                    -1,
+                movimiento_velocidad:
+                    3.0,
 
-                sprite_izquierda:
-                    -1,
+                movimiento_distancia:
+                    80,
 
-                sprite_derecha:
-                    -1,
+                movimiento_radio:
+                    64,
 
+                movimiento_direccion:
+                    "derecha",
 
-                // -----------------------------------------
-                // SPRITE DE ALERTA
-                // -----------------------------------------
+                movimiento_angulo:
+                    0,
 
-                sprite_alerta:
-                    spr_volador_idle_2,
+                movimiento_sentido:
+                    1,
 
-
-                // -----------------------------------------
-                // VELOCIDAD DE ANIMACIÓN
-                // -----------------------------------------
-
-                image_speed_caminando:
-                    0.18,
-
-                image_speed_alerta:
-                    0.18
+                movimiento_diagonal_angulo:
+                    45
             };
     }
 
@@ -384,14 +236,13 @@ function scr_enemigos_batalla_mapa_data(_id)
     // =====================================================
     // FALLBACK
     // =====================================================
-    //
-    // Evita romper el juego si escribes mal un ID.
-    // =====================================================
 
     show_debug_message(
         "[ENEMIGO BATALLA MAPA] ID desconocido: "
         +
-        string(_id)
+        string(
+            _id
+        )
     );
 
 
@@ -409,55 +260,37 @@ function scr_enemigos_batalla_mapa_data(_id)
         radio_contacto:
             18,
 
-        alerta_contacto_segundos:
-            1.0,
-
-        alerta_persecucion_segundos:
-            0.5,
-
-        patrulla_x1:
-            0,
-
-        patrulla_y1:
-            0,
-
-        patrulla_x2:
-            0,
-
-        patrulla_y2:
-            0,
-
-        patrulla_velocidad:
-            0,
-
-        patrulla_iniciar_en_a:
-            true,
-
-        persecucion_velocidad:
-            3,
-
-        sprite_default:
-            -1,
-
-        sprite_arriba:
-            -1,
-
-        sprite_abajo:
-            -1,
-
-        sprite_izquierda:
-            -1,
-
-        sprite_derecha:
-            -1,
-
         sprite_alerta:
             -1,
 
-        image_speed_caminando:
-            0.18,
+        persecucion_velocidad:
+            4.0,
 
-        image_speed_alerta:
-            0.18
+        puede_moverse:
+            false,
+
+        movimiento_preset:
+            "ninguno",
+
+        movimiento_velocidad:
+            0,
+
+        movimiento_distancia:
+            64,
+
+        movimiento_radio:
+            64,
+
+        movimiento_direccion:
+            "derecha",
+
+        movimiento_angulo:
+            0,
+
+        movimiento_sentido:
+            1,
+
+        movimiento_diagonal_angulo:
+            45
     };
 }

@@ -21,24 +21,34 @@ if (
 
 
 // =========================================================
-// PAUSA PREVIA A BATALLA - ENEMIGO DE CONTACTO
+// PAUSA UNIVERSAL ANTES DE BBS
 // =========================================================
 //
 // IMPORTANTE:
-// Este bloque va ANTES de scr_cutscene_world_locked().
+// debe ejecutarse ANTES de scr_cutscene_world_locked().
 //
-// Durante esta pausa nosotros mismos activamos
-// global.cutscene_active para bloquear el mundo. Si esta
-// sección estuviera después, este objeto también se quedaría
-// bloqueado y nunca podría terminar su cuenta regresiva.
+// Nosotros mismos activamos global.cutscene_active.
+// Este objeto necesita seguir contando mientras TODO lo demás
+// está paralizado.
 //
-// El enemigo NO se mueve durante este segundo.
-// El sprite de alerta sí puede seguir animándose.
+// Se aplica tanto a:
+//
+//     "contacto"
+//     "persecucion"
+//
 // =========================================================
 
 if (pausa_contacto_activa)
 {
     mostrar_sprite_alerta();
+
+
+    persecucion_hsp =
+        0;
+
+
+    persecucion_vsp =
+        0;
 
 
     if (alerta_timer > 0)
@@ -57,11 +67,13 @@ if (pausa_contacto_activa)
         false;
 
 
-    // Ya terminó la pausa. Recuperamos al jugador y entramos
-    // inmediatamente a BBS.
-    if (instance_exists(obj_player))
+    if (
+        instance_exists(
+            obj_player
+        )
+    )
     {
-        var _p_contacto =
+        var _p_pausa =
             instance_find(
                 obj_player,
                 0
@@ -69,13 +81,11 @@ if (pausa_contacto_activa)
 
 
         iniciar_batalla_bbs(
-            _p_contacto
+            _p_pausa
         );
     }
     else
     {
-        // Seguridad: si por alguna razón Maya ya no existe,
-        // liberamos el bloqueo del mundo.
         global.cutscene_active =
             false;
     }
@@ -86,18 +96,17 @@ if (pausa_contacto_activa)
 
 
 // =========================================================
-// BLOQUEOS NORMALES DEL MUNDO
+// BLOQUEOS NORMALES
 // =========================================================
 
 if (
     scr_cutscene_world_locked()
     ||
-    instance_exists(obj_pauser)
+    instance_exists(
+        obj_pauser
+    )
 )
 {
-    image_speed =
-        0;
-
     exit;
 }
 
@@ -112,11 +121,12 @@ if (contacto_cooldown > 0)
 // PLAYER
 // =========================================================
 
-if (!instance_exists(obj_player))
+if (
+    !instance_exists(
+        obj_player
+    )
+)
 {
-    image_speed =
-        0;
-
     exit;
 }
 
@@ -131,7 +141,9 @@ var _p =
 if (
     _p == noone
     ||
-    !instance_exists(_p)
+    !instance_exists(
+        _p
+    )
 )
 {
     exit;
@@ -139,26 +151,35 @@ if (
 
 
 // =========================================================
-// ESPERA DE ALERTA - ENEMIGO DE PERSECUCIÓN
+// ALERTA DE PERSECUCIÓN
 // =========================================================
 //
-// Cuando detecta a Maya:
+// Al detectar a Maya:
 //
-//     1. cambia al sprite de alerta;
-//     2. se queda completamente quieto;
-//     3. espera alerta_persecucion_frames;
-//     4. después empieza a perseguir.
+//     - sprite alerta;
+//     - enemigo quieto 0.5 s;
+//     - después persigue.
 //
-// Maya NO se congela. Solo se detiene este enemigo.
+// Maya NO se paraliza aquí.
 // =========================================================
 
 if (
-    modo_activacion == "persecucion"
+    modo_activacion
+    ==
+    "persecucion"
     &&
     esperando_persecucion
 )
 {
     mostrar_sprite_alerta();
+
+
+    persecucion_hsp =
+        0;
+
+
+    persecucion_vsp =
+        0;
 
 
     if (alerta_timer > 0)
@@ -176,26 +197,20 @@ if (
     esperando_persecucion =
         false;
 
+
     persiguiendo =
         true;
 }
 
 
 // =========================================================
-// DETECTAR PERSECUCIÓN
-// =========================================================
-//
-// Entrar una sola vez en el rango activa la alerta.
-//
-// Una vez detectada Maya, aunque se aleje durante esos
-// 0.5 segundos, al terminar la espera el enemigo comenzará a
-// perseguirla y no dejará de hacerlo hasta:
-//     - tocarla;
-//     - o abandonar la habitación.
+// DETECTAR A MAYA
 // =========================================================
 
 if (
-    modo_activacion == "persecucion"
+    modo_activacion
+    ==
+    "persecucion"
     &&
     !alerta_activa
     &&
@@ -204,7 +219,7 @@ if (
     !esperando_persecucion
 )
 {
-    var _dist_rango =
+    var _distancia_alerta =
         point_distance(
             x,
             y,
@@ -213,214 +228,468 @@ if (
         );
 
 
-    if (_dist_rango <= rango_persecucion)
+    if (
+        _distancia_alerta
+        <=
+        rango_persecucion
+    )
     {
         alerta_activa =
             true;
 
+
         esperando_persecucion =
             true;
+
 
         alerta_timer =
             alerta_persecucion_frames;
 
 
+        persecucion_hsp =
+            0;
+
+
+        persecucion_vsp =
+            0;
+
+
         mostrar_sprite_alerta();
 
 
-        // Si el tiempo configurado es 0, perseguirá desde el
-        // próximo bloque en el siguiente Step.
-        if (alerta_timer <= 0)
-        {
-            esperando_persecucion =
-                false;
-
-            persiguiendo =
-                true;
-        }
-        else
-        {
-            exit;
-        }
+        exit;
     }
 }
 
 
 // =========================================================
-// ELEGIR OBJETIVO DE MOVIMIENTO
-// =========================================================
-
-var _target_x =
-    x;
-
-var _target_y =
-    y;
-
-var _move_speed =
-    0;
-
-
-if (
-    modo_activacion == "persecucion"
-    &&
-    persiguiendo
-)
-{
-    // -----------------------------------------------------
-    // PERSEGUIR A MAYA
-    // -----------------------------------------------------
-
-    _target_x =
-        _p.x;
-
-    _target_y =
-        _p.y;
-
-    _move_speed =
-        persecucion_velocidad;
-}
-else
-{
-    // -----------------------------------------------------
-    // PATRULLA A <-> B
-    // -----------------------------------------------------
-
-    if (patrulla_objetivo == 0)
-    {
-        _target_x =
-            patrulla_x1;
-
-        _target_y =
-            patrulla_y1;
-    }
-    else
-    {
-        _target_x =
-            patrulla_x2;
-
-        _target_y =
-            patrulla_y2;
-    }
-
-
-    _move_speed =
-        patrulla_velocidad;
-}
-
-
-// =========================================================
-// MOVER
+// POSICIÓN ANTERIOR
 // =========================================================
 
 var _old_x =
     x;
 
+
 var _old_y =
     y;
 
 
-var _dist_objetivo =
-    point_distance(
-        x,
-        y,
-        _target_x,
-        _target_y
-    );
-
+// =========================================================
+// PERSECUCIÓN SMOOTH
+// =========================================================
+//
+// La velocidad no cambia de dirección instantáneamente.
+//
+// En cada frame:
+//
+//     velocidad actual -> lerp -> velocidad hacia Maya
+//
+// Esto produce un giro/aceleración más suave.
+// =========================================================
 
 if (
-    _move_speed > 0
+    modo_activacion
+    ==
+    "persecucion"
     &&
-    _dist_objetivo > 0.01
+    persiguiendo
 )
 {
-    var _paso =
-        min(
-            _move_speed,
-            _dist_objetivo
-        );
-
-
-    var _dir =
-        point_direction(
+    var _distancia_player =
+        point_distance(
             x,
             y,
-            _target_x,
-            _target_y
+            _p.x,
+            _p.y
         );
 
 
-    x +=
-        lengthdir_x(
-            _paso,
-            _dir
-        );
+    if (_distancia_player > 0.001)
+    {
+        var _dir_player =
+            point_direction(
+                x,
+                y,
+                _p.x,
+                _p.y
+            );
 
 
-    y +=
-        lengthdir_y(
-            _paso,
-            _dir
-        );
+        var _target_hsp =
+            lengthdir_x(
+                persecucion_velocidad,
+                _dir_player
+            );
+
+
+        var _target_vsp =
+            lengthdir_y(
+                persecucion_velocidad,
+                _dir_player
+            );
+
+
+        persecucion_hsp =
+            lerp(
+                persecucion_hsp,
+                _target_hsp,
+                persecucion_suavizado
+            );
+
+
+        persecucion_vsp =
+            lerp(
+                persecucion_vsp,
+                _target_vsp,
+                persecucion_suavizado
+            );
+
+
+        var _vel_actual =
+            point_distance(
+                0,
+                0,
+                persecucion_hsp,
+                persecucion_vsp
+            );
+
+
+        if (
+            _vel_actual > 0
+            &&
+            _vel_actual > _distancia_player
+        )
+        {
+            var _factor =
+                _distancia_player
+                /
+                _vel_actual;
+
+
+            x +=
+                persecucion_hsp
+                *
+                _factor;
+
+
+            y +=
+                persecucion_vsp
+                *
+                _factor;
+        }
+        else
+        {
+            x +=
+                persecucion_hsp;
+
+
+            y +=
+                persecucion_vsp;
+        }
+    }
 }
 
 
 // =========================================================
-// CAMBIAR EXTREMO DE PATRULLA
+// MOVIMIENTO NORMAL POR PRESET
 // =========================================================
 
-if (
-    !(modo_activacion == "persecucion" && persiguiendo)
+else if (
+    puede_moverse
     &&
-    point_distance(
-        x,
-        y,
-        _target_x,
-        _target_y
-    )
-    <=
-    max(
-        0.5,
-        patrulla_velocidad
-    )
+    movimiento_velocidad > 0
 )
 {
-    x =
-        _target_x;
+    // -----------------------------------------------------
+    // IDA Y VUELTA CON SMOOTHERSTEP
+    // -----------------------------------------------------
 
-    y =
-        _target_y;
+    if (
+        movimiento_preset
+        ==
+        "izquierda_derecha"
+        ||
+        movimiento_preset
+        ==
+        "arriba_abajo"
+        ||
+        movimiento_preset
+        ==
+        "diagonal"
+    )
+    {
+        var _distancia_recorrido =
+            max(
+                1,
+                movimiento_distancia
+            );
 
 
-    patrulla_objetivo =
-        1
-        -
-        patrulla_objetivo;
+        var _paso_t =
+            movimiento_velocidad
+            /
+            (
+                3.75
+                *
+                _distancia_recorrido
+            );
+
+
+        movimiento_trayecto_t +=
+            _paso_t
+            *
+            movimiento_trayecto_sentido;
+
+
+        if (
+            movimiento_trayecto_t
+            >=
+            1
+        )
+        {
+            movimiento_trayecto_t =
+                1;
+
+
+            movimiento_trayecto_sentido =
+                -1;
+        }
+        else if (
+            movimiento_trayecto_t
+            <=
+            0
+        )
+        {
+            movimiento_trayecto_t =
+                0;
+
+
+            movimiento_trayecto_sentido =
+                1;
+        }
+
+
+        var _t =
+            clamp(
+                movimiento_trayecto_t,
+                0,
+                1
+            );
+
+
+        var _ease =
+            (
+                6
+                *
+                power(
+                    _t,
+                    5
+                )
+            )
+            -
+            (
+                15
+                *
+                power(
+                    _t,
+                    4
+                )
+            )
+            +
+            (
+                10
+                *
+                power(
+                    _t,
+                    3
+                )
+            );
+
+
+        var _offset =
+            lerp(
+                -_distancia_recorrido,
+                _distancia_recorrido,
+                _ease
+            );
+
+
+        if (
+            movimiento_preset
+            ==
+            "izquierda_derecha"
+        )
+        {
+            x =
+                movimiento_origen_x
+                +
+                _offset;
+
+
+            y =
+                movimiento_origen_y;
+        }
+        else if (
+            movimiento_preset
+            ==
+            "arriba_abajo"
+        )
+        {
+            x =
+                movimiento_origen_x;
+
+
+            y =
+                movimiento_origen_y
+                +
+                _offset;
+        }
+        else
+        {
+            x =
+                movimiento_origen_x
+                +
+                lengthdir_x(
+                    _offset,
+                    movimiento_diagonal_angulo
+                );
+
+
+            y =
+                movimiento_origen_y
+                +
+                lengthdir_y(
+                    _offset,
+                    movimiento_diagonal_angulo
+                );
+        }
+    }
+
+
+    // -----------------------------------------------------
+    // CÍRCULO
+    // -----------------------------------------------------
+
+    else if (
+        movimiento_preset
+        ==
+        "circulo"
+    )
+    {
+        var _radio =
+            max(
+                1,
+                movimiento_radio
+            );
+
+
+        var _paso_angular =
+            (
+                movimiento_velocidad
+                /
+                _radio
+            )
+            *
+            (
+                180
+                /
+                pi
+            );
+
+
+        movimiento_angulo_actual +=
+            _paso_angular
+            *
+            movimiento_sentido;
+
+
+        movimiento_angulo_actual =
+            movimiento_angulo_actual
+            mod
+            360;
+
+
+        x =
+            movimiento_centro_x
+            +
+            lengthdir_x(
+                _radio,
+                movimiento_angulo_actual
+            );
+
+
+        y =
+            movimiento_centro_y
+            +
+            lengthdir_y(
+                _radio,
+                movimiento_angulo_actual
+            );
+    }
+
+
+    // -----------------------------------------------------
+    // CONTINUO
+    // -----------------------------------------------------
+
+    else if (
+        movimiento_preset
+        ==
+        "continuo"
+    )
+    {
+        var _angulo_mov =
+            movimiento_angulo;
+
+
+        switch (
+            movimiento_direccion
+        )
+        {
+            case "derecha":
+                _angulo_mov =
+                    0;
+                break;
+
+
+            case "arriba":
+                _angulo_mov =
+                    90;
+                break;
+
+
+            case "izquierda":
+                _angulo_mov =
+                    180;
+                break;
+
+
+            case "abajo":
+                _angulo_mov =
+                    270;
+                break;
+        }
+
+
+        x +=
+            lengthdir_x(
+                movimiento_velocidad,
+                _angulo_mov
+            );
+
+
+        y +=
+            lengthdir_y(
+                movimiento_velocidad,
+                _angulo_mov
+            );
+    }
 }
 
 
 // =========================================================
 // SPRITE
 // =========================================================
-//
-// Si está en alerta:
-//     SIEMPRE conserva sprite_alerta.
-//
-// Si no está en alerta:
-//     usa los sprites normales/direccionales.
-// =========================================================
-
-var _dx =
-    x - _old_x;
-
-var _dy =
-    y - _old_y;
-
-var _moving =
-    abs(_dx) > 0.001
-    ||
-    abs(_dy) > 0.001;
-
 
 if (alerta_activa)
 {
@@ -428,95 +697,7 @@ if (alerta_activa)
 }
 else
 {
-    if (_moving)
-    {
-        var _sprite_nuevo =
-            sprite_default;
-
-
-        if (abs(_dx) >= abs(_dy))
-        {
-            if (_dx > 0)
-            {
-                if (
-                    sprite_derecha != -1
-                    &&
-                    sprite_exists(sprite_derecha)
-                )
-                {
-                    _sprite_nuevo =
-                        sprite_derecha;
-                }
-            }
-            else
-            {
-                if (
-                    sprite_izquierda != -1
-                    &&
-                    sprite_exists(sprite_izquierda)
-                )
-                {
-                    _sprite_nuevo =
-                        sprite_izquierda;
-                }
-            }
-        }
-        else
-        {
-            if (_dy > 0)
-            {
-                if (
-                    sprite_abajo != -1
-                    &&
-                    sprite_exists(sprite_abajo)
-                )
-                {
-                    _sprite_nuevo =
-                        sprite_abajo;
-                }
-            }
-            else
-            {
-                if (
-                    sprite_arriba != -1
-                    &&
-                    sprite_exists(sprite_arriba)
-                )
-                {
-                    _sprite_nuevo =
-                        sprite_arriba;
-                }
-            }
-        }
-
-
-        if (
-            _sprite_nuevo != -1
-            &&
-            sprite_exists(_sprite_nuevo)
-            &&
-            sprite_index != _sprite_nuevo
-        )
-        {
-            sprite_index =
-                _sprite_nuevo;
-
-            image_index =
-                0;
-        }
-
-
-        image_speed =
-            image_speed_caminando;
-    }
-    else
-    {
-        image_speed =
-            0;
-
-        image_index =
-            0;
-    }
+    mostrar_sprite_normal();
 }
 
 
@@ -530,7 +711,7 @@ if (contacto_cooldown > 0)
 }
 
 
-var _dist_contacto =
+var _distancia_contacto =
     point_distance(
         x,
         y,
@@ -539,122 +720,30 @@ var _dist_contacto =
     );
 
 
-if (_dist_contacto > radio_contacto)
+if (
+    _distancia_contacto
+    >
+    radio_contacto
+)
 {
     exit;
 }
 
 
 // =========================================================
-// CONTACTO: ALERTA + 1 SEGUNDO + BATALLA
+// UNIVERSAL:
+// AL TOCAR -> PARALIZAR TODO -> BBS
 // =========================================================
 //
-// NO entra inmediatamente a BBS.
+// Ya NO existe comportamiento distinto entre contacto y
+// persecución en este punto.
 //
-// Primero:
-//     - cambia al sprite de alerta;
-//     - bloquea a Maya;
-//     - bloquea el mundo mediante cutscene_active;
-//     - espera el tiempo configurado.
-//
-// Después inicia la batalla.
+// Ambos hacen la misma pausa universal de 1 segundo.
 // =========================================================
 
-if (modo_activacion == "contacto")
-{
-    alerta_activa =
-        true;
-
-    pausa_contacto_activa =
-        true;
-
-    alerta_timer =
-        alerta_contacto_frames;
+comenzar_pausa_batalla(
+    _p
+);
 
 
-    mostrar_sprite_alerta();
-
-
-    // Bloqueo global del mundo.
-    // Los sistemas que ya respetan scr_cutscene_world_locked()
-    // se quedan congelados durante esta pausa.
-    global.cutscene_active =
-        true;
-
-
-    // Bloquear específicamente al jugador.
-    if (
-        variable_instance_exists(
-            _p,
-            "puede_moverse"
-        )
-    )
-    {
-        _p.puede_moverse =
-            false;
-    }
-
-
-    if (
-        variable_instance_exists(
-            _p,
-            "can_move"
-        )
-    )
-    {
-        _p.can_move =
-            false;
-    }
-
-
-    if (
-        variable_instance_exists(
-            _p,
-            "cutscene_motion_active"
-        )
-    )
-    {
-        _p.cutscene_motion_active =
-            false;
-    }
-
-
-    _p.image_index =
-        0;
-
-
-    // Si el tiempo se configuró en 0, entrar inmediatamente.
-    if (alerta_timer <= 0)
-    {
-        pausa_contacto_activa =
-            false;
-
-        iniciar_batalla_bbs(
-            _p
-        );
-    }
-
-
-    exit;
-}
-
-
-// =========================================================
-// PERSECUCIÓN: BATALLA INMEDIATA AL TOCAR
-// =========================================================
-//
-// No hay pausa adicional.
-//
-// La pausa de 0.5 s ya ocurrió cuando el enemigo detectó al
-// jugador. Una vez persiguiendo, tocar a Maya entra a BBS
-// directamente.
-// =========================================================
-
-if (modo_activacion == "persecucion")
-{
-    iniciar_batalla_bbs(
-        _p
-    );
-
-    exit;
-}
+exit;
