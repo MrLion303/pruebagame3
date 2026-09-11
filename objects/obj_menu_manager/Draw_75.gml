@@ -590,6 +590,20 @@ if (
 
 
 // =========================================================
+// STAD / HABIL - INTEGRADO DIRECTAMENTE EN OBJ_MENU_MANAGER
+// =========================================================
+//
+// IMPORTANTE:
+// Este llamado ocurre ANTES del "SOLO CONFIG" y por tanto
+// también se ejecuta cuando state == INFO_MENU.
+// =========================================================
+
+scr_menu_stad_habil_draw(
+    id
+);
+
+
+// =========================================================
 // SOLO CONFIG
 // =========================================================
 
@@ -714,6 +728,7 @@ if (
 
 
     scr_config_data();
+
 
     scr_controls_apply();
 }
@@ -1326,15 +1341,6 @@ else
         );
 
 
-        // =================================================
-        // YA NO HAY ">"
-        // =================================================
-        //
-        // La seleccion se muestra exclusivamente mediante
-        // color amarillo.
-        // =================================================
-
-
         draw_set_color(
             _selected
             ?
@@ -1346,10 +1352,6 @@ else
 
         // -------------------------------------------------
         // RESTAURAR PREDETERMINADO
-        // -------------------------------------------------
-        //
-        // Se dibuja COMPLETO en una unica linea.
-        // No tiene columna de valor separada.
         // -------------------------------------------------
 
         if (_index == 7)
@@ -1374,7 +1376,6 @@ else
                 0.86;
 
 
-            // Es la etiqueta mas larga.
             if (_index == 5)
             {
                 _name_scale =

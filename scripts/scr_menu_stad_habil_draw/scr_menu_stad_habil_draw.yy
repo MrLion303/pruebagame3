@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"scr_menu_stad_habil_draw",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"scr_menu_stad_habil_draw",
+  "parent":{
+    "name":"scripts",
+    "path":"folders/scripts.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

@@ -1,18 +1,436 @@
 /// =========================================================
 /// OBJ_MENU_MANAGER
-/// END STEP
+/// END STEP COMPLETO
 /// =========================================================
 ///
-/// AJUSTES EXCLUSIVOS DEL MODO PLATAFORMERO:
-///
-/// - añade una sexta opción debajo de CERRAR;
-/// - permite intercambiar salto/ataque;
-/// - bloquea TOYS;
-/// - bloquea entrar a EQUIP para cambiar equipo.
-///
-/// Se hace en End Step para conservar intacta toda la lógica
-/// existente del menú.
+/// 1) STAD / HABIL integrado DIRECTAMENTE en este objeto.
+/// 2) Conserva todos los ajustes del modo plataformero.
 /// =========================================================
+
+
+// =========================================================
+// STAD / HABIL - INICIALIZACIÓN
+// =========================================================
+
+if (
+    !variable_instance_exists(
+        id,
+        "stad_tabs_ready"
+    )
+)
+{
+    stad_tabs_ready =
+        true;
+
+    // 0 = STAD
+    // 1 = HABIL
+    stad_tab =
+        0;
+
+    stad_tab_slide =
+        0;
+
+    stad_tab_slide_speed =
+        1 / 12;
+
+    habil_index =
+        0;
+
+    habil_scroll =
+        0;
+
+    habil_visible_rows =
+        5;
+
+    habil_info_open =
+        false;
+
+    habil_info_id =
+        "";
+
+    stad_was_active =
+        false;
+}
+
+
+// =========================================================
+// SI STEP NORMAL INTENTÓ SALIR CON X MIENTRAS HABÍA INFO
+// =========================================================
+//
+// Step_0 procesa X antes que End Step.
+//
+// Si había un cuadro de información de habilidad abierto,
+// reinterpretamos ese X como "cerrar cuadro", no "salir de
+// STAD".
+// =========================================================
+
+if (
+    habil_info_open
+    &&
+    state == MENU_STATE.MAIN
+    &&
+    (
+        keyboard_check_pressed(
+            ord("X")
+        )
+        ||
+        keyboard_check_pressed(
+            vk_shift
+        )
+    )
+)
+{
+    state =
+        MENU_STATE.INFO_MENU;
+
+    habil_info_open =
+        false;
+
+    habil_info_id =
+        "";
+
+    keyboard_clear(
+        ord("X")
+    );
+
+    keyboard_clear(
+        vk_shift
+    );
+
+    audio_play_sound(
+        snd_menumove,
+        10,
+        false
+    );
+}
+
+
+// =========================================================
+// ESTADO STAD
+// =========================================================
+
+var _stad_active =
+    (
+        state
+        ==
+        MENU_STATE.INFO_MENU
+    );
+
+
+if (_stad_active)
+{
+    // ---------------------------------------------
+    // ACABAMOS DE ENTRAR
+    // ---------------------------------------------
+
+    if (!stad_was_active)
+    {
+        stad_tab =
+            0;
+
+        stad_tab_slide =
+            0;
+
+        habil_index =
+            0;
+
+        habil_scroll =
+            0;
+
+        habil_info_open =
+            false;
+
+        habil_info_id =
+            "";
+    }
+
+
+    stad_was_active =
+        true;
+
+
+    // ---------------------------------------------
+    // ANIMACIÓN DE LA CAJA DE PESTAÑAS
+    // ---------------------------------------------
+
+    stad_tab_slide =
+        min(
+            1,
+            stad_tab_slide
+            +
+            stad_tab_slide_speed
+        );
+
+
+    var _habilidades =
+        scr_habilidades_lista_obtenidas();
+
+
+    var _habil_total =
+        array_length(
+            _habilidades
+        );
+
+
+    if (_habil_total <= 0)
+    {
+        habil_index =
+            0;
+
+        habil_scroll =
+            0;
+    }
+    else
+    {
+        habil_index =
+            clamp(
+                habil_index,
+                0,
+                _habil_total - 1
+            );
+    }
+
+
+    // ---------------------------------------------
+    // INFO ABIERTA
+    // ---------------------------------------------
+
+    if (habil_info_open)
+    {
+        if (
+            keyboard_check_pressed(
+                ord("Z")
+            )
+            ||
+            keyboard_check_pressed(
+                vk_enter
+            )
+        )
+        {
+            habil_info_open =
+                false;
+
+            habil_info_id =
+                "";
+
+            keyboard_clear(
+                ord("Z")
+            );
+
+            keyboard_clear(
+                vk_enter
+            );
+
+            audio_play_sound(
+                snd_menumove,
+                10,
+                false
+            );
+        }
+    }
+
+    // ---------------------------------------------
+    // NAVEGACIÓN NORMAL
+    // ---------------------------------------------
+
+    else
+    {
+        var _tab_changed =
+            false;
+
+
+        if (
+            keyboard_check_pressed(
+                vk_right
+            )
+        )
+        {
+            stad_tab =
+                (stad_tab + 1)
+                mod
+                2;
+
+            _tab_changed =
+                true;
+        }
+
+
+        if (
+            keyboard_check_pressed(
+                vk_left
+            )
+        )
+        {
+            stad_tab =
+                (stad_tab - 1 + 2)
+                mod
+                2;
+
+            _tab_changed =
+                true;
+        }
+
+
+        if (_tab_changed)
+        {
+            habil_index =
+                0;
+
+            habil_scroll =
+                0;
+
+            audio_play_sound(
+                snd_menumove,
+                10,
+                false
+            );
+        }
+
+
+        // -----------------------------------------
+        // HABIL
+        // -----------------------------------------
+
+        if (stad_tab == 1)
+        {
+            var _habil_moved =
+                false;
+
+
+            if (
+                _habil_total > 0
+                &&
+                keyboard_check_pressed(
+                    vk_down
+                )
+            )
+            {
+                habil_index =
+                    min(
+                        _habil_total - 1,
+                        habil_index + 1
+                    );
+
+                _habil_moved =
+                    true;
+            }
+
+
+            if (
+                _habil_total > 0
+                &&
+                keyboard_check_pressed(
+                    vk_up
+                )
+            )
+            {
+                habil_index =
+                    max(
+                        0,
+                        habil_index - 1
+                    );
+
+                _habil_moved =
+                    true;
+            }
+
+
+            if (_habil_moved)
+            {
+                if (
+                    habil_index
+                    <
+                    habil_scroll
+                )
+                {
+                    habil_scroll =
+                        habil_index;
+                }
+
+
+                if (
+                    habil_index
+                    >=
+                    habil_scroll
+                    +
+                    habil_visible_rows
+                )
+                {
+                    habil_scroll =
+                        habil_index
+                        -
+                        habil_visible_rows
+                        +
+                        1;
+                }
+
+
+                audio_play_sound(
+                    snd_menumove,
+                    10,
+                    false
+                );
+            }
+
+
+            if (
+                _habil_total > 0
+                &&
+                (
+                    keyboard_check_pressed(
+                        ord("Z")
+                    )
+                    ||
+                    keyboard_check_pressed(
+                        vk_enter
+                    )
+                )
+            )
+            {
+                habil_info_id =
+                    _habilidades[
+                        habil_index
+                    ];
+
+                habil_info_open =
+                    true;
+
+                keyboard_clear(
+                    ord("Z")
+                );
+
+                keyboard_clear(
+                    vk_enter
+                );
+
+                audio_play_sound(
+                    snd_menumove,
+                    10,
+                    false
+                );
+            }
+        }
+    }
+}
+else
+{
+    stad_was_active =
+        false;
+
+    stad_tab_slide =
+        0;
+
+    habil_info_open =
+        false;
+
+    habil_info_id =
+        "";
+}
+
+
+// =========================================================
+// PLATAFORMERO - CÓDIGO ACTUAL CONSERVADO
+// =========================================================
 
 scr_platformer_init();
 
@@ -89,13 +507,6 @@ platform_main_was_active =
 // =========================================================
 // SEXTA OPCIÓN: INTERCAMBIAR SALTO / ATAQUE
 // =========================================================
-//
-// Durante Step, la sexta opción usa main_index = 4 como
-// sustituto. Por eso el Step normal intentará abrir CERRAR.
-//
-// Aquí reconocemos ese caso y lo convertimos en el cambio
-// de controles solicitado.
-// =========================================================
 
 if (
     state == MENU_STATE.GAME_CLOSE_CONFIRM
@@ -140,11 +551,6 @@ if (
 
 // =========================================================
 // BLOQUEO DE TOYS
-// =========================================================
-//
-// El Step normal pudo intentar entrar a TOYS este mismo frame.
-//
-// Lo devolvemos inmediatamente a MAIN antes de dibujar.
 // =========================================================
 
 if (
@@ -204,12 +610,6 @@ if (
 
 // =========================================================
 // BLOQUEO DE EQUIPAMIENTO
-// =========================================================
-//
-// EQUIP puede seguir viéndose como pestaña.
-//
-// Pero al confirmar la pestaña no se puede entrar a sus slots,
-// así que no existe ninguna ruta para equipar/cambiar equipo.
 // =========================================================
 
 if (
@@ -321,19 +721,6 @@ if (
 // =========================================================
 // MENÚ PRINCIPAL CON 6 OPCIONES
 // =========================================================
-//
-// 0 INV
-// 1 TOYS          bloqueado
-// 2 STAD
-// 3 CONFIG
-// 4 CERRAR
-// 5 CAMBIAR Z/X
-//
-// El Step normal sigue creyendo que existen 5 opciones.
-//
-// Para la sexta usamos main_index = 4 como índice sustituto
-// durante Step y corregimos aquí el estado final.
-// =========================================================
 
 if (state == MENU_STATE.MAIN)
 {
@@ -440,8 +827,6 @@ if (state == MENU_STATE.MAIN)
 
         else if (platform_main_index == 5)
         {
-            // El Step normal habrá interpretado temporalmente
-            // main_index=4 como CERRAR. Cancelamos ese estado.
             state =
                 MENU_STATE.MAIN;
 
@@ -461,8 +846,6 @@ if (state == MENU_STATE.MAIN)
     }
 
 
-    // La sexta opción necesita un índice sustituto para que
-    // el Step normal no salga del rango de main_options.
     main_index =
         min(
             platform_main_index,
