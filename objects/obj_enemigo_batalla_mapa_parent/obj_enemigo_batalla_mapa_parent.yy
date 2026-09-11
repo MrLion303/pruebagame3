@@ -1,19 +1,16 @@
 {
   "$GMObject":"",
-  "%Name":"obj_batalla_controller",
+  "%Name":"obj_enemigo_batalla_mapa_parent",
   "eventList":[
     {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":0,"eventType":0,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
     {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":0,"eventType":3,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
-    {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":0,"eventType":1,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
-    {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":64,"eventType":8,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
-    {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":1,"eventType":3,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
   ],
   "managed":true,
-  "name":"obj_batalla_controller",
+  "name":"obj_enemigo_batalla_mapa_parent",
   "overriddenProperties":[],
   "parent":{
-    "name":"MSistema de Batallas",
-    "path":"folders/MSistema de Batallas.yy",
+    "name":"Batalla en el mapa",
+    "path":"folders/MSistema de Batallas/Batalla en el mapa.yy",
   },
   "parentObjectId":null,
   "persistent":false,

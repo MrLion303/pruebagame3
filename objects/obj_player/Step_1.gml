@@ -31,6 +31,32 @@ if (global.platformer_active)
     }
 
 
+    // =====================================================
+    // POGO = MISMA FÍSICA VERTICAL QUE UN SALTO NORMAL
+    // =====================================================
+    //
+    // El pogo ya usa la gravedad normal del plataformero.
+    // Lo que hacía que se sintiera mucho más "flotante" era
+    // que su impulso era -18.0 mientras el salto normal usa
+    // platform_jump_speed (-10.5 actualmente).
+    //
+    // Desde ahora el rebote del pogo toma SIEMPRE el mismo
+    // impulso vertical del salto normal. Si en el futuro
+    // cambias platform_jump_speed, el pogo se actualizará
+    // automáticamente también.
+    // =====================================================
+
+    if (
+        variable_instance_exists(id, "platform_jump_speed")
+        &&
+        variable_instance_exists(id, "platform_pogo_bounce_speed")
+    )
+    {
+        platform_pogo_bounce_speed =
+            platform_jump_speed;
+    }
+
+
     scr_platformer_player_update();
 }
 else
