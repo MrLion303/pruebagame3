@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"scr_platformer_system",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"scr_platformer_system",
+  "parent":{
+    "name":"Plataformero",
+    "path":"folders/Plataformero.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
