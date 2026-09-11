@@ -27,6 +27,31 @@ if (
 
 
 // =========================================================
+// GARANTIZAR EXTENSIÓN STAD / HABIL
+// =========================================================
+//
+// Esto NO depende ya de obj_player.
+//
+// En cuanto existe el menú de pausa, game garantiza que
+// también exista el objeto que dibuja/controla STAD/HABIL.
+// =========================================================
+
+if (
+    instance_exists(obj_menu_manager)
+    &&
+    !instance_exists(obj_menu_habilidades_ext)
+)
+{
+    instance_create_depth(
+        0,
+        0,
+        -100000000,
+        obj_menu_habilidades_ext
+    );
+}
+
+
+// =========================================================
 // F3 - INTERFAZ DE DEBUG
 // =========================================================
 

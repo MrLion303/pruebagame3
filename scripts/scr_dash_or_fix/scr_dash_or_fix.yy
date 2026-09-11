@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"scr_dash_or_fix",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"scr_dash_or_fix",
+  "parent":{
+    "name":"Mecánicas",
+    "path":"folders/Mecánicas.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

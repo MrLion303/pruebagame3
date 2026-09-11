@@ -181,6 +181,7 @@
     {"id":{"name":"scr_cutscene_core","path":"scripts/scr_cutscene_core/scr_cutscene_core.yy",},},
     {"id":{"name":"scr_cutscene_data","path":"scripts/scr_cutscene_data/scr_cutscene_data.yy",},},
     {"id":{"name":"scr_cutscene_warp_entry","path":"scripts/scr_cutscene_warp_entry/scr_cutscene_warp_entry.yy",},},
+    {"id":{"name":"scr_dash_or_fix","path":"scripts/scr_dash_or_fix/scr_dash_or_fix.yy",},},
     {"id":{"name":"scr_death_enemigos_bbs","path":"scripts/scr_death_enemigos_bbs/scr_death_enemigos_bbs.yy",},},
     {"id":{"name":"scr_depth_sort","path":"scripts/scr_depth_sort/scr_depth_sort.yy",},},
     {"id":{"name":"scr_downslide_system","path":"scripts/scr_downslide_system/scr_downslide_system.yy",},},

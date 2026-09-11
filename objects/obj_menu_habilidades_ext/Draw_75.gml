@@ -1,19 +1,19 @@
 /// =========================================================
 /// OBJ_MENU_HABILIDADES_EXT
-/// DRAW GUI COMPLETO
+/// DRAW GUI END - NUEVO
 /// =========================================================
 ///
-/// Dibuja EXACTAMENTE encima del panel de STAD:
+/// STAD / HABIL utiliza:
 ///
-///          STAD              HABIL
-///     +-----------------------------+
-///     |                             |
-///     |          CONTENIDO          |
-///     |                             |
-///     +-----------------------------+
+///     - la MISMA posición de pestañas que INV/EQUIP/CLAVE;
+///     - el MISMO spr_textbox;
+///     - el MISMO tamaño 346 x 44;
+///     - la MISMA animación de subida;
+///     - dos zonas simétricas.
 ///
-/// Usa la misma caja, tamaño y animación de las pestañas
-/// INV / EQUIP / CLAVE.
+/// STAD original lo sigue dibujando obj_menu_manager.
+/// Cuando HABIL está activo, este evento cubre ese panel con
+/// el panel de habilidades.
 /// =========================================================
 
 if (
@@ -71,31 +71,34 @@ draw_set_valign(
 
 
 // =========================================================
-// COORDENADAS DEL MENÚ ACTUAL
+// POSICIÓN BASE
 // =========================================================
 //
-// obj_menu_manager actual:
-//     m_x = 80
-//     m_y = 80
-//     m_w = 130
+// Valores EXACTOS del menú actual:
 //
-// Panel derecho:
-//     x = 222
-//     y = 80
+// m_x = 80
+// m_y = 80
+// m_w = 130
 //
-// Pestañas de INV:
-//     x = 222
-//     y final = 28
-//     y oculta = 88
-//     w = 346
-//     h = 44
+// panel:
+// x = 222
+// y = 80
+//
+// pestañas:
+// x = 222
+// y final = 28
+// y oculta = 88
+// w = 346
+// h = 44
 // =========================================================
 
-var _shift_x =
+var _platform_shift =
     0;
 
 
-// El menú completo se desplaza 80 px en modo plataforma.
+// En plataformero el menú normal se mueve 80 px a la izquierda.
+// Al llegar aquí la matriz del manager ya fue restaurada,
+// así que aplicamos el mismo desplazamiento directamente.
 if (
     variable_global_exists(
         "platformer_active"
@@ -104,7 +107,7 @@ if (
     global.platformer_active
 )
 {
-    _shift_x =
+    _platform_shift =
         -80;
 }
 
@@ -112,7 +115,7 @@ if (
 var _panel_x =
     222
     +
-    _shift_x;
+    _platform_shift;
 
 var _panel_y =
     80;
@@ -120,16 +123,15 @@ var _panel_y =
 var _panel_w =
     346;
 
-// STAD actual usa 308 + 55.
 var _panel_h =
     363;
 
 
 // =========================================================
-// BARRA SUPERIOR STAD / HABIL
+// PESTAÑAS: MISMA ANIMACIÓN QUE INVENTARIO
 // =========================================================
 
-var _t =
+var _tab_t =
     1
     -
     power(
@@ -141,11 +143,17 @@ var _t =
 var _tab_x =
     _panel_x;
 
+var _tab_final_y =
+    28;
+
+var _tab_hidden_y =
+    88;
+
 var _tab_y =
     lerp(
-        88,
-        28,
-        _t
+        _tab_hidden_y,
+        _tab_final_y,
+        _tab_t
     );
 
 var _tab_w =
@@ -179,7 +187,7 @@ var _tab_names =
 ];
 
 
-var _tab_slot_w =
+var _slot_w =
     _tab_w
     /
     2;
@@ -194,15 +202,16 @@ for (
     var _left =
         _tab_x
         +
-        (_i * _tab_slot_w);
+        (_i * _slot_w);
 
 
     var _right =
         _left
         +
-        _tab_slot_w;
+        _slot_w;
 
 
+    // Igual que el foco amarillo de las pestañas del inventario.
     if (_i == stad_tab)
     {
         draw_set_color(
@@ -234,6 +243,7 @@ for (
     );
 
 
+    // +8: mismo ajuste vertical que tus pestañas actuales.
     draw_text(
         (_left + _right)
         *
@@ -262,8 +272,7 @@ draw_set_color(
 // STAD
 // =========================================================
 //
-// No cubrimos nada.
-// Debajo ya está el STAD original del obj_menu_manager.
+// El panel original ya está dibujado debajo.
 // =========================================================
 
 if (stad_tab == 0)
@@ -273,10 +282,7 @@ if (stad_tab == 0)
 
 
 // =========================================================
-// HABIL
-// =========================================================
-//
-// Cubrimos el panel STAD con una nueva caja idéntica.
+// HABIL - PANEL
 // =========================================================
 
 draw_sprite_stretched(
@@ -304,7 +310,7 @@ var _total =
 var _start_x =
     _panel_x
     +
-    20;
+    18;
 
 var _start_y =
     _panel_y
@@ -363,11 +369,7 @@ else
 
 
         var _selected =
-            (
-                _idx
-                ==
-                habil_index
-            );
+            (_idx == habil_index);
 
 
         var _ability_id =
@@ -404,7 +406,7 @@ else
 
 
         // ---------------------------------------------
-        // ESPACIO DEL SPRITE
+        // ESPACIO PARA SPRITE
         // ---------------------------------------------
 
         draw_set_color(
@@ -431,7 +433,9 @@ else
                 "icono"
             )
             &&
-            _data.icono != -1
+            _data.icono
+            !=
+            -1
             &&
             sprite_exists(
                 _data.icono
@@ -458,13 +462,8 @@ else
 
             var _fit =
                 min(
-                    (_icon_size - 6)
-                    /
-                    _sw,
-
-                    (_icon_size - 6)
-                    /
-                    _sh
+                    (_icon_size - 6) / _sw,
+                    (_icon_size - 6) / _sh
                 );
 
 
@@ -553,7 +552,7 @@ else
 
 
 // =========================================================
-// INFO DE HABILIDAD
+// CUADRO DE INFORMACIÓN
 // =========================================================
 
 if (
@@ -564,18 +563,27 @@ if (
     ""
 )
 {
-    var _info =
+    var _data_info =
         scr_habilidad_data(
             habil_info_id
         );
 
 
-    var _info_desc =
+    var _info_name =
         scr_loc(
-            _info.descripcion
+            _data_info.nombre
         );
 
 
+    var _info_desc =
+        scr_loc(
+            _data_info.descripcion
+        );
+
+
+    // La descripción original de Dash todavía decía que
+    // necesitaba los zapatos. Con la corrección OR, mostrar
+    // información correcta aunque no reescribamos el script.
     if (
         habil_info_id
         ==
@@ -584,7 +592,7 @@ if (
     {
         _info_desc =
             scr_loc(
-                "Permite hacer dash dentro del rango de peligro de un enemigo. Funciona con la habilidad Dash o con los Zapatos Rápidos."
+                "Permite hacer dash dentro del rango de peligro. Funciona si tienes la habilidad Dash o si llevas los Zapatos Rápidos."
             );
     }
 
@@ -613,6 +621,7 @@ if (
         (_box_h * 0.5);
 
 
+    // Oscurecer solo el contenido del panel detrás.
     draw_set_alpha(
         0.72
     );
@@ -657,9 +666,7 @@ if (
     draw_text(
         _box_x + 18,
         _box_y + 16,
-        scr_loc(
-            _info.nombre
-        )
+        _info_name
     );
 
 

@@ -1,11 +1,26 @@
 /// =========================================================
 /// OBJ_MENU_HABILIDADES_EXT
-/// BEGIN STEP - NUEVO
+/// BEGIN STEP COMPLETO
 /// =========================================================
 
-if (!instance_exists(obj_menu_manager))
+if (
+    !instance_exists(
+        obj_menu_manager
+    )
+)
 {
-    instance_destroy();
+    last_info_active =
+        false;
+
+    stad_tab_slide =
+        0;
+
+    habil_info_open =
+        false;
+
+    habil_info_id =
+        "";
+
     exit;
 }
 
@@ -23,32 +38,82 @@ if (_menu == noone)
 }
 
 
+var _info_active =
+    (
+        _menu.state
+        ==
+        MENU_STATE.INFO_MENU
+    );
+
+
 // =========================================================
-// ENTRAR / SALIR DE STAD
+// FUERA DE STAD
 // =========================================================
 
-if (_menu.state != MENU_STATE.INFO_MENU)
+if (!_info_active)
 {
-    habil_info_open = false;
-    habil_info_id = "";
-    last_menu_state = _menu.state;
+    last_info_active =
+        false;
+
+    stad_tab_slide =
+        0;
+
+    habil_info_open =
+        false;
+
+    habil_info_id =
+        "";
+
     exit;
 }
 
 
-if (last_menu_state != MENU_STATE.INFO_MENU)
+// =========================================================
+// ACABA DE ENTRAR A STAD
+// =========================================================
+
+if (!last_info_active)
 {
-    stad_tab = 0;
-    habil_index = 0;
-    habil_scroll = 0;
-    habil_info_open = false;
-    habil_info_id = "";
+    stad_tab =
+        0;
+
+    stad_tab_slide =
+        0;
+
+    habil_index =
+        0;
+
+    habil_scroll =
+        0;
+
+    habil_info_open =
+        false;
+
+    habil_info_id =
+        "";
 }
 
 
-last_menu_state =
-    MENU_STATE.INFO_MENU;
+last_info_active =
+    true;
 
+
+// =========================================================
+// ANIMACIÓN DE LA BARRA
+// =========================================================
+
+stad_tab_slide =
+    min(
+        1,
+        stad_tab_slide
+        +
+        stad_tab_slide_speed
+    );
+
+
+// =========================================================
+// HABILIDADES OBTENIDAS
+// =========================================================
 
 var _lista =
     scr_habilidades_lista_obtenidas();
@@ -62,8 +127,11 @@ var _total =
 
 if (_total <= 0)
 {
-    habil_index = 0;
-    habil_scroll = 0;
+    habil_index =
+        0;
+
+    habil_scroll =
+        0;
 }
 else
 {
@@ -77,35 +145,58 @@ else
 
 
 // =========================================================
-// CUADRO DE INFO ABIERTO
+// MODAL DE INFORMACIÓN
 // =========================================================
 //
-// X/Shift o Z/Enter cierran SOLO el cuadro.
-// Limpiamos esas teclas antes del Step normal del menú para
-// que X no cierre también todo STAD.
+// Si está abierto, consumimos las teclas ANTES del Step
+// normal del menú para que X no cierre también STAD.
 // =========================================================
 
 if (habil_info_open)
 {
-    var _cerrar_info =
-        keyboard_check_pressed(ord("X"))
+    var _close_info =
+        keyboard_check_pressed(
+            ord("Z")
+        )
         ||
-        keyboard_check_pressed(vk_shift)
+        keyboard_check_pressed(
+            vk_enter
+        )
         ||
-        keyboard_check_pressed(ord("Z"))
+        keyboard_check_pressed(
+            ord("X")
+        )
         ||
-        keyboard_check_pressed(vk_enter);
+        keyboard_check_pressed(
+            vk_shift
+        );
 
 
-    if (_cerrar_info)
+    if (_close_info)
     {
-        habil_info_open = false;
-        habil_info_id = "";
+        habil_info_open =
+            false;
 
-        keyboard_clear(ord("X"));
-        keyboard_clear(vk_shift);
-        keyboard_clear(ord("Z"));
-        keyboard_clear(vk_enter);
+        habil_info_id =
+            "";
+
+
+        keyboard_clear(
+            ord("Z")
+        );
+
+        keyboard_clear(
+            vk_enter
+        );
+
+        keyboard_clear(
+            ord("X")
+        );
+
+        keyboard_clear(
+            vk_shift
+        );
+
 
         audio_play_sound(
             snd_menumove,
@@ -120,34 +211,53 @@ if (habil_info_open)
 
 
 // =========================================================
-// CAMBIAR STAD / HABIL
+// STAD <-> HABIL
 // =========================================================
 
-var _tab_moved = false;
+var _tab_moved =
+    false;
 
 
-if (keyboard_check_pressed(vk_right))
+if (
+    keyboard_check_pressed(
+        vk_right
+    )
+)
 {
     stad_tab =
-        (stad_tab + 1) % 2;
+        (stad_tab + 1)
+        %
+        2;
 
-    _tab_moved = true;
+    _tab_moved =
+        true;
 }
 
 
-if (keyboard_check_pressed(vk_left))
+if (
+    keyboard_check_pressed(
+        vk_left
+    )
+)
 {
     stad_tab =
-        (stad_tab - 1 + 2) % 2;
+        (stad_tab - 1 + 2)
+        %
+        2;
 
-    _tab_moved = true;
+    _tab_moved =
+        true;
 }
 
 
 if (_tab_moved)
 {
-    habil_index = 0;
-    habil_scroll = 0;
+    habil_index =
+        0;
+
+    habil_scroll =
+        0;
+
 
     audio_play_sound(
         snd_menumove,
@@ -158,18 +268,21 @@ if (_tab_moved)
 
 
 // =========================================================
-// HABIL - LISTA
+// HABIL - NAVEGACIÓN
 // =========================================================
 
 if (stad_tab == 1)
 {
-    var _moved = false;
+    var _moved =
+        false;
 
 
     if (
         _total > 0
         &&
-        keyboard_check_pressed(vk_down)
+        keyboard_check_pressed(
+            vk_down
+        )
     )
     {
         habil_index =
@@ -178,14 +291,17 @@ if (stad_tab == 1)
                 habil_index + 1
             );
 
-        _moved = true;
+        _moved =
+            true;
     }
 
 
     if (
         _total > 0
         &&
-        keyboard_check_pressed(vk_up)
+        keyboard_check_pressed(
+            vk_up
+        )
     )
     {
         habil_index =
@@ -194,13 +310,18 @@ if (stad_tab == 1)
                 habil_index - 1
             );
 
-        _moved = true;
+        _moved =
+            true;
     }
 
 
     if (_moved)
     {
-        if (habil_index < habil_scroll)
+        if (
+            habil_index
+            <
+            habil_scroll
+        )
         {
             habil_scroll =
                 habil_index;
@@ -232,14 +353,17 @@ if (stad_tab == 1)
     }
 
 
-    // Z / Enter abre el cuadro de información.
     if (
         _total > 0
         &&
         (
-            keyboard_check_pressed(ord("Z"))
+            keyboard_check_pressed(
+                ord("Z")
+            )
             ||
-            keyboard_check_pressed(vk_enter)
+            keyboard_check_pressed(
+                vk_enter
+            )
         )
     )
     {
@@ -253,8 +377,13 @@ if (stad_tab == 1)
             true;
 
 
-        keyboard_clear(ord("Z"));
-        keyboard_clear(vk_enter);
+        keyboard_clear(
+            ord("Z")
+        );
+
+        keyboard_clear(
+            vk_enter
+        );
 
 
         audio_play_sound(
@@ -264,3 +393,7 @@ if (stad_tab == 1)
         );
     }
 }
+
+
+// X / Shift sin modal queda libre.
+// obj_menu_manager lo utiliza normalmente para regresar a MAIN.

@@ -1,38 +1,66 @@
 /// =========================================================
 /// OBJ_MENU_HABILIDADES_EXT
-/// CREATE - NUEVO
+/// CREATE COMPLETO
 /// =========================================================
 ///
 /// **PARENT: ninguno**
 ///
-/// No se coloca manualmente en la room.
-/// scr_habilidades_system lo crea automáticamente.
-///
-/// Extiende INFO_MENU sin reemplazar los archivos enormes de
-/// obj_menu_manager.
+/// No se coloca manualmente.
+/// El objeto persistente "game" lo crea automáticamente
+/// cuando existe obj_menu_manager.
 /// =========================================================
 
-persistent = false;
-
-// Menor depth = se dibuja encima del menú de pausa.
-depth = -2000000;
+persistent =
+    false;
 
 
+// Muy al frente para que su Draw GUI quede encima del Draw GUI
+// normal de obj_menu_manager.
+depth =
+    -100000000;
+
+
+// =========================================================
+// PESTAÑAS
+// =========================================================
+//
 // 0 = STAD
 // 1 = HABIL
-stad_tab = 0;
+// =========================================================
+
+stad_tab =
+    0;
 
 
-// Lista.
-habil_index = 0;
-habil_scroll = 0;
-habil_visible_rows = 5;
+// Animación igual que INV / EQUIP / CLAVE.
+stad_tab_slide =
+    0;
+
+stad_tab_slide_speed =
+    1 / 12;
 
 
-// Modal de información.
-habil_info_open = false;
-habil_info_id = "";
+// =========================================================
+// HABIL
+// =========================================================
+
+habil_index =
+    0;
+
+habil_scroll =
+    0;
+
+habil_visible_rows =
+    5;
 
 
-// Detectar entradas nuevas a STAD.
-last_menu_state = -1;
+habil_info_open =
+    false;
+
+habil_info_id =
+    "";
+
+
+// Para detectar cuándo entramos de nuevo a STAD.
+last_info_active =
+    false;

@@ -228,7 +228,7 @@ function scr_equips_data()
                 scr_loc_src(
                     "Mantén Z para agrandar el aro y suelta cuando llene la diana."
                 ),
-            precio_compra: 320,
+            precio_compra: 0,
             precio_venta: 160,
             icono_tienda: -1,
             color_tienda: noone
@@ -292,7 +292,7 @@ function scr_equips_data()
                 scr_loc_src(
                     "Permiten hacer dash mientras estás dentro del rango de peligro de un enemigo del mapa."
                 ),
-            precio_compra: 260,
+            precio_compra: 0,
             precio_venta: 130,
             icono_tienda: -1,
             color_tienda: noone

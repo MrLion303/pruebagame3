@@ -136,6 +136,7 @@
     {"name":"scr_controls_system","order":13,"path":"scripts/scr_controls_system/scr_controls_system.yy",},
     {"name":"scr_cutscene_data","order":1,"path":"scripts/scr_cutscene_data/scr_cutscene_data.yy",},
     {"name":"scr_cutscene_warp_entry","order":11,"path":"scripts/scr_cutscene_warp_entry/scr_cutscene_warp_entry.yy",},
+    {"name":"scr_dash_or_fix","order":13,"path":"scripts/scr_dash_or_fix/scr_dash_or_fix.yy",},
     {"name":"scr_death_enemigos_bbs","order":4,"path":"scripts/scr_death_enemigos_bbs/scr_death_enemigos_bbs.yy",},
     {"name":"scr_depth_sort","order":12,"path":"scripts/scr_depth_sort/scr_depth_sort.yy",},
     {"name":"scr_downslide_system","order":1,"path":"scripts/scr_downslide_system/scr_downslide_system.yy",},
