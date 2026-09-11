@@ -147,7 +147,756 @@ function scr_platformer_init()
         global.platformer_active =
             false;
     }
+
+
+    // =====================================================
+    // CONTROLES EXCLUSIVOS DEL PLATAFORMERO
+    // =====================================================
+    //
+    // false:
+    //     saltar = Z / Enter
+    //     atacar = X / Shift
+    //
+    // true:
+    //     saltar = X / Shift
+    //     atacar = Z / Enter
+    //
+    // Esto NO toca el remapeo global del juego.
+    // El menu de pausa sigue usando Z para confirmar y X
+    // para volver.
+    // =====================================================
+
+    if (
+        !variable_global_exists(
+            "platformer_controls_swapped"
+        )
+    )
+    {
+        global.platformer_controls_swapped =
+            false;
+    }
+
+
+    // =====================================================
+    // CAMBIO DE MODO PENDIENTE ENTRE ROOMS
+    // =====================================================
+    //
+    // El trigger NO cambia el modo en la room de origen.
+    //
+    // Solo deja pendiente el cambio y obj_player lo aplica
+    // cuando YA estamos dentro de la room destino.
+    // =====================================================
+
+    if (
+        !variable_global_exists(
+            "platformer_mode_pending"
+        )
+    )
+    {
+        global.platformer_mode_pending =
+            false;
+    }
+
+
+    if (
+        !variable_global_exists(
+            "platformer_mode_pending_enable"
+        )
+    )
+    {
+        global.platformer_mode_pending_enable =
+            false;
+    }
+
+
+    if (
+        !variable_global_exists(
+            "platformer_mode_pending_room"
+        )
+    )
+    {
+        global.platformer_mode_pending_room =
+            -1;
+    }
+
+
+    if (
+        !variable_global_exists(
+            "platformer_mode_pending_facing"
+        )
+    )
+    {
+        global.platformer_mode_pending_facing =
+            1;
+    }
 }
+
+// =========================================================
+// INPUT EXCLUSIVO DEL PLATAFORMERO
+// =========================================================
+
+function scr_platformer_jump_pressed()
+{
+    scr_platformer_init();
+
+
+    if (global.platformer_controls_swapped)
+    {
+        return
+        (
+            keyboard_check_pressed(
+                ord("X")
+            )
+            ||
+            keyboard_check_pressed(
+                vk_shift
+            )
+        );
+    }
+
+
+    return
+    (
+        keyboard_check_pressed(
+            ord("Z")
+        )
+        ||
+        keyboard_check_pressed(
+            vk_enter
+        )
+    );
+}
+
+
+function scr_platformer_jump_held()
+{
+    scr_platformer_init();
+
+
+    if (global.platformer_controls_swapped)
+    {
+        return
+        (
+            keyboard_check(
+                ord("X")
+            )
+            ||
+            keyboard_check(
+                vk_shift
+            )
+        );
+    }
+
+
+    return
+    (
+        keyboard_check(
+            ord("Z")
+        )
+        ||
+        keyboard_check(
+            vk_enter
+        )
+    );
+}
+
+
+function scr_platformer_attack_pressed()
+{
+    scr_platformer_init();
+
+
+    if (global.platformer_controls_swapped)
+    {
+        return
+        (
+            keyboard_check_pressed(
+                ord("Z")
+            )
+            ||
+            keyboard_check_pressed(
+                vk_enter
+            )
+        );
+    }
+
+
+    return
+    (
+        keyboard_check_pressed(
+            ord("X")
+        )
+        ||
+        keyboard_check_pressed(
+            vk_shift
+        )
+    );
+}
+
+
+function scr_platformer_toggle_controls()
+{
+    scr_platformer_init();
+
+
+    global.platformer_controls_swapped =
+        !global.platformer_controls_swapped;
+
+
+    return
+        global.platformer_controls_swapped;
+}
+
+
+// =========================================================
+// CAMBIO DE MODO DESPUES DEL ROOM_GOTO
+// =========================================================
+
+function scr_platformer_queue_mode_change(
+    _enabled,
+    _target_room,
+    _start_facing = 1
+)
+{
+    scr_platformer_init();
+
+
+    global.platformer_mode_pending =
+        true;
+
+
+    global.platformer_mode_pending_enable =
+        _enabled;
+
+
+    global.platformer_mode_pending_room =
+        _target_room;
+
+
+    global.platformer_mode_pending_facing =
+        (
+            _start_facing < 0
+            ?
+            -1
+            :
+            1
+        );
+
+
+    return true;
+}
+
+
+function scr_platformer_apply_pending_mode()
+{
+    scr_platformer_init();
+
+
+    if (!global.platformer_mode_pending)
+    {
+        return false;
+    }
+
+
+    if (
+        room
+        !=
+        global.platformer_mode_pending_room
+    )
+    {
+        return false;
+    }
+
+
+    var _enable =
+        global.platformer_mode_pending_enable;
+
+
+    var _facing =
+        global.platformer_mode_pending_facing;
+
+
+    // Limpiar ANTES de aplicar para que jamás se repita
+    // accidentalmente si algún código cambia de room.
+    global.platformer_mode_pending =
+        false;
+
+
+    global.platformer_mode_pending_room =
+        -1;
+
+
+    scr_platformer_set_mode(
+        _enable
+    );
+
+
+    if (
+        _enable
+        &&
+        instance_exists(obj_player)
+    )
+    {
+        var _p =
+            instance_find(
+                obj_player,
+                0
+            );
+
+
+        if (
+            variable_instance_exists(
+                _p,
+                "platform_facing"
+            )
+        )
+        {
+            _p.platform_facing =
+                _facing;
+        }
+    }
+
+
+    return true;
+}
+
+
+// =========================================================
+// ACTIVAR UN WARP DEL PLATAFORMERO
+// =========================================================
+
+function scr_platformer_warp_activate(
+    _warp
+)
+{
+    if (
+        _warp == noone
+        ||
+        !instance_exists(_warp)
+    )
+    {
+        return false;
+    }
+
+
+    if (
+        !variable_instance_exists(
+            _warp,
+            "active"
+        )
+        ||
+        !_warp.active
+    )
+    {
+        return false;
+    }
+
+
+    if (
+        variable_instance_exists(
+            _warp,
+            "interaction_locked"
+        )
+        &&
+        _warp.interaction_locked
+    )
+    {
+        return false;
+    }
+
+
+    if (
+        !variable_instance_exists(
+            _warp,
+            "target_room"
+        )
+        ||
+        _warp.target_room == noone
+        ||
+        _warp.target_room == -1
+    )
+    {
+        return false;
+    }
+
+
+    if (instance_exists(obj_warp))
+    {
+        return false;
+    }
+
+
+    _warp.interaction_locked =
+        true;
+
+
+    var _enable =
+        (
+            variable_instance_exists(
+                _warp,
+                "platformer_enable"
+            )
+            ?
+            _warp.platformer_enable
+            :
+            true
+        );
+
+
+    var _start_facing =
+        (
+            variable_instance_exists(
+                _warp,
+                "platformer_start_facing"
+            )
+            ?
+            _warp.platformer_start_facing
+            :
+            1
+        );
+
+
+    // IMPORTANTE:
+    //
+    // Todavía NO tocamos global.platformer_active.
+    //
+    // El sprite y la física cambiarán únicamente cuando
+    // obj_player detecte que YA estamos en target_room.
+    scr_platformer_queue_mode_change(
+        _enable,
+        _warp.target_room,
+        _start_facing
+    );
+
+
+    var _transition =
+        instance_create_depth(
+            0,
+            0,
+            -9999,
+            obj_warp
+        );
+
+
+    _transition.target_x =
+        _warp.target_x;
+
+
+    _transition.target_y =
+        _warp.target_y;
+
+
+    _transition.target_rm =
+        _warp.target_room;
+
+
+    _transition.target_face =
+        _warp.target_face;
+
+
+    _transition.target_music =
+        _warp.target_music;
+
+
+    _transition.keep_music =
+        _warp.keep_music;
+
+
+    _transition.target_cutscene =
+        "";
+
+
+    _transition.target_cutscene_once =
+        true;
+
+
+    return true;
+}
+
+
+// =========================================================
+// TRAMPOLINES
+// =========================================================
+//
+// Devuelve el trampolín cuya SUPERFICIE superior está
+// tocando la hitbox indicada.
+//
+// Es one-way:
+// solo funciona como suelo desde arriba.
+// =========================================================
+
+function scr_platformer_trampoline_at(
+    _x,
+    _y,
+    _left,
+    _top,
+    _right,
+    _bottom
+)
+{
+    var _trampoline_obj =
+        asset_get_index(
+            "obj_platformer_trampolin"
+        );
+
+
+    if (_trampoline_obj == -1)
+    {
+        return noone;
+    }
+
+
+    var _player_left =
+        _x + _left;
+
+
+    var _player_top =
+        _y + _top;
+
+
+    var _player_right =
+        _x + _right;
+
+
+    var _player_bottom =
+        _y + _bottom;
+
+
+    var _count =
+        instance_number(
+            _trampoline_obj
+        );
+
+
+    for (
+        var _i = 0;
+        _i < _count;
+        _i++
+    )
+    {
+        var _tr =
+            instance_find(
+                _trampoline_obj,
+                _i
+            );
+
+
+        if (
+            _tr == noone
+            ||
+            !instance_exists(_tr)
+        )
+        {
+            continue;
+        }
+
+
+        if (
+            variable_instance_exists(
+                _tr,
+                "active"
+            )
+            &&
+            !_tr.active
+        )
+        {
+            continue;
+        }
+
+
+        var _left_tr;
+        var _right_tr;
+        var _top_tr;
+        var _bottom_tr;
+
+
+        if (
+            _tr.sprite_index != -1
+            &&
+            sprite_exists(
+                _tr.sprite_index
+            )
+        )
+        {
+            _left_tr =
+                _tr.bbox_left;
+
+
+            _right_tr =
+                _tr.bbox_right;
+
+
+            _top_tr =
+                _tr.bbox_top;
+
+
+            _bottom_tr =
+                _tr.bbox_bottom;
+        }
+        else
+        {
+            var _half_w =
+                16;
+
+
+            var _height =
+                8;
+
+
+            if (
+                variable_instance_exists(
+                    _tr,
+                    "trampoline_half_width"
+                )
+            )
+            {
+                _half_w =
+                    max(
+                        1,
+                        _tr.trampoline_half_width
+                    );
+            }
+
+
+            if (
+                variable_instance_exists(
+                    _tr,
+                    "trampoline_height"
+                )
+            )
+            {
+                _height =
+                    max(
+                        1,
+                        _tr.trampoline_height
+                    );
+            }
+
+
+            _left_tr =
+                _tr.x - _half_w;
+
+
+            _right_tr =
+                _tr.x + _half_w;
+
+
+            _top_tr =
+                _tr.y;
+
+
+            _bottom_tr =
+                _tr.y + _height;
+        }
+
+
+        var _surface_margin =
+            2;
+
+
+        if (
+            variable_instance_exists(
+                _tr,
+                "surface_margin"
+            )
+        )
+        {
+            _surface_margin =
+                max(
+                    1,
+                    _tr.surface_margin
+                );
+        }
+
+
+        var _horizontal_overlap =
+        (
+            _player_right
+            >=
+            _left_tr
+
+            &&
+
+            _player_left
+            <=
+            _right_tr
+        );
+
+
+        var _touching_surface =
+        (
+            _player_top
+            <
+            _top_tr
+
+            &&
+
+            _player_bottom
+            >=
+            _top_tr
+
+            &&
+
+            _player_bottom
+            <=
+            _top_tr
+            +
+            _surface_margin
+        );
+
+
+        if (
+            _horizontal_overlap
+            &&
+            _touching_surface
+        )
+        {
+            return _tr;
+        }
+    }
+
+
+    return noone;
+}
+
+
+function scr_platformer_floor_at(
+    _x,
+    _y,
+    _left,
+    _top,
+    _right,
+    _bottom
+)
+{
+    if (
+        scr_platformer_collision_at(
+            _x,
+            _y,
+            _left,
+            _top,
+            _right,
+            _bottom
+        )
+    )
+    {
+        return true;
+    }
+
+
+    return
+        scr_platformer_trampoline_at(
+            _x,
+            _y,
+            _left,
+            _top,
+            _right,
+            _bottom
+        )
+        !=
+        noone;
+}
+
 
 
 // =========================================================
@@ -253,6 +1002,40 @@ function scr_platformer_player_prepare()
 
         platform_jump_buffer_max =
             3;
+
+
+        // ---------------------------------------------
+        // SENTON
+        // ---------------------------------------------
+        //
+        // En el aire:
+        //
+        //     ABAJO + botón de SALTO
+        //
+        // acelera la caída.
+        //
+        // Si golpea un obj_platformer_trampolin:
+        // rebota con mucha más fuerza.
+        // ---------------------------------------------
+
+        platform_stomp_active =
+            false;
+
+
+        platform_stomp_available =
+            false;
+
+
+        platform_stomp_start_speed =
+            12;
+
+
+        platform_stomp_gravity =
+            1.65;
+
+
+        platform_stomp_max_fall =
+            18;
 
 
         // ---------------------------------------------
@@ -450,6 +1233,14 @@ function scr_platformer_player_enter()
         0;
 
 
+    platform_stomp_active =
+        false;
+
+
+    platform_stomp_available =
+        false;
+
+
     // Empezar mirando según la última dirección normal.
     if (
         variable_instance_exists(
@@ -517,6 +1308,14 @@ function scr_platformer_player_leave()
 
     platform_attack_cooldown =
         0;
+
+
+    platform_stomp_active =
+        false;
+
+
+    platform_stomp_available =
+        false;
 
 
     image_xscale =
@@ -1030,6 +1829,211 @@ function scr_platformer_player_attack()
 
 
     // =====================================================
+    // GOLPEAR TRIGGER DE SALIDA
+    // =====================================================
+
+    var _warp_obj =
+        asset_get_index(
+            "obj_platformer_warp"
+        );
+
+
+    if (_warp_obj != -1)
+    {
+        var _warp_count =
+            instance_number(
+                _warp_obj
+            );
+
+
+        for (
+            var _wi = 0;
+            _wi < _warp_count;
+            _wi++
+        )
+        {
+            var _w =
+                instance_find(
+                    _warp_obj,
+                    _wi
+                );
+
+
+            if (
+                _w == noone
+                ||
+                !instance_exists(_w)
+            )
+            {
+                continue;
+            }
+
+
+            if (
+                !variable_instance_exists(
+                    _w,
+                    "platformer_enable"
+                )
+                ||
+                _w.platformer_enable
+            )
+            {
+                continue;
+            }
+
+
+            if (
+                variable_instance_exists(
+                    _w,
+                    "active"
+                )
+                &&
+                !_w.active
+            )
+            {
+                continue;
+            }
+
+
+            if (
+                variable_instance_exists(
+                    _w,
+                    "interaction_locked"
+                )
+                &&
+                _w.interaction_locked
+            )
+            {
+                continue;
+            }
+
+
+            var _wl;
+            var _wr;
+            var _wt;
+            var _wb;
+
+
+            if (
+                _w.sprite_index != -1
+                &&
+                sprite_exists(
+                    _w.sprite_index
+                )
+            )
+            {
+                _wl =
+                    _w.bbox_left;
+
+
+                _wr =
+                    _w.bbox_right;
+
+
+                _wt =
+                    _w.bbox_top;
+
+
+                _wb =
+                    _w.bbox_bottom;
+            }
+            else
+            {
+                var _half_w =
+                    16;
+
+
+                var _half_h =
+                    24;
+
+
+                if (
+                    variable_instance_exists(
+                        _w,
+                        "attack_hitbox_half_width"
+                    )
+                )
+                {
+                    _half_w =
+                        max(
+                            1,
+                            _w.attack_hitbox_half_width
+                        );
+                }
+
+
+                if (
+                    variable_instance_exists(
+                        _w,
+                        "attack_hitbox_half_height"
+                    )
+                )
+                {
+                    _half_h =
+                        max(
+                            1,
+                            _w.attack_hitbox_half_height
+                        );
+                }
+
+
+                _wl =
+                    _w.x - _half_w;
+
+
+                _wr =
+                    _w.x + _half_w;
+
+
+                _wt =
+                    _w.y - _half_h;
+
+
+                _wb =
+                    _w.y + _half_h;
+            }
+
+
+            var _warp_overlap =
+            (
+                _wr
+                >=
+                platform_attack_left
+
+                &&
+
+                _wl
+                <=
+                platform_attack_right
+
+                &&
+
+                _wb
+                >=
+                platform_attack_top
+
+                &&
+
+                _wt
+                <=
+                platform_attack_bottom
+            );
+
+
+            if (_warp_overlap)
+            {
+                scr_platformer_warp_activate(
+                    _w
+                );
+
+
+                break;
+            }
+        }
+    }
+
+
+    // =====================================================
     // EFECTO VISUAL
     // =====================================================
 
@@ -1076,8 +2080,6 @@ function scr_platformer_player_update()
     scr_platformer_player_prepare();
 
 
-    // El Step RPG debe permanecer desactivado SIEMPRE
-    // mientras estemos en este modo.
     puede_moverse =
         false;
 
@@ -1249,13 +2251,17 @@ function scr_platformer_player_update()
     // =====================================================
 
     platform_grounded =
-        scr_platformer_collision_at(
-            x,
-            y + 1,
-            platform_hit_left,
-            platform_hit_top,
-            platform_hit_right,
-            platform_hit_bottom
+        (
+            platform_vsp >= 0
+            &&
+            scr_platformer_floor_at(
+                x,
+                y + 1,
+                platform_hit_left,
+                platform_hit_top,
+                platform_hit_right,
+                platform_hit_bottom
+            )
         );
 
 
@@ -1263,6 +2269,14 @@ function scr_platformer_player_update()
     {
         platform_coyote =
             platform_coyote_max;
+
+
+        platform_stomp_active =
+            false;
+
+
+        platform_stomp_available =
+            false;
     }
     else if (platform_coyote > 0)
     {
@@ -1315,90 +2329,120 @@ function scr_platformer_player_update()
 
 
     // =====================================================
-    // SALTO - BUFFER
+    // INPUT DE SALTO
     // =====================================================
 
     var _jump_pressed =
-    (
-        keyboard_check_pressed(
-            ord("Z")
-        )
-        ||
-        keyboard_check_pressed(
-            vk_enter
-        )
-    );
+        scr_platformer_jump_pressed();
 
 
-    // Si estamos al lado del objeto de salida/entrada,
-    // Z se reserva para interactuar con él.
+    var _jump_held =
+        scr_platformer_jump_held();
+
+
+    // =====================================================
+    // SENTON
+    // =====================================================
+
     if (
+        !platform_grounded
+        &&
+        !platform_stomp_active
+        &&
+        platform_stomp_available
+        &&
+        keyboard_check(vk_down)
+        &&
         _jump_pressed
-        &&
-        !scr_platformer_jump_blocked_by_warp()
     )
     {
-        platform_jump_buffer =
-            platform_jump_buffer_max;
-    }
-    else if (platform_jump_buffer > 0)
-    {
-        platform_jump_buffer--;
-    }
+        platform_stomp_active =
+            true;
 
 
-    if (
-        platform_jump_buffer > 0
-        &&
-        platform_coyote > 0
-    )
-    {
-        platform_vsp =
-            platform_jump_speed;
-
-
-        platform_grounded =
+        platform_stomp_available =
             false;
+
+
+        platform_jump_buffer =
+            0;
 
 
         platform_coyote =
             0;
 
 
-        platform_jump_buffer =
+        platform_vsp =
+            max(
+                platform_vsp,
+                platform_stomp_start_speed
+            );
+
+
+        platform_y_rem =
             0;
     }
 
 
     // =====================================================
-    // SALTO VARIABLE
-    // =====================================================
-    //
-    // Soltar Z/Enter pronto = salto más corto.
+    // SALTO - BUFFER
     // =====================================================
 
-    var _jump_held =
-    (
-        keyboard_check(
-            ord("Z")
-        )
-        ||
-        keyboard_check(
-            vk_enter
-        )
-    );
-
-
-    if (
-        !_jump_held
-        &&
-        platform_vsp
-        <
-        platform_jump_cut_speed
-    )
+    if (!platform_stomp_active)
     {
-        platform_vsp =
-            platform_jump_cut_speed;
+        if (_jump_pressed)
+        {
+            platform_jump_buffer =
+                platform_jump_buffer_max;
+        }
+        else if (platform_jump_buffer > 0)
+        {
+            platform_jump_buffer--;
+        }
+
+
+        if (
+            platform_jump_buffer > 0
+            &&
+            platform_coyote > 0
+        )
+        {
+            platform_vsp =
+                platform_jump_speed;
+
+
+            platform_grounded =
+                false;
+
+
+            platform_stomp_available =
+                true;
+
+
+            platform_coyote =
+                0;
+
+
+            platform_jump_buffer =
+                0;
+        }
+
+
+        // =================================================
+        // SALTO VARIABLE
+        // =================================================
+
+        if (
+            !_jump_held
+            &&
+            platform_vsp
+            <
+            platform_jump_cut_speed
+        )
+        {
+            platform_vsp =
+                platform_jump_cut_speed;
+        }
     }
 
 
@@ -1406,13 +2450,26 @@ function scr_platformer_player_update()
     // GRAVEDAD
     // =====================================================
 
-    platform_vsp =
-        min(
-            platform_vsp
-            +
-            platform_gravity,
-            platform_max_fall
-        );
+    if (platform_stomp_active)
+    {
+        platform_vsp =
+            min(
+                platform_vsp
+                +
+                platform_stomp_gravity,
+                platform_stomp_max_fall
+            );
+    }
+    else
+    {
+        platform_vsp =
+            min(
+                platform_vsp
+                +
+                platform_gravity,
+                platform_max_fall
+            );
+    }
 
 
     // =====================================================
@@ -1420,13 +2477,9 @@ function scr_platformer_player_update()
     // =====================================================
 
     if (
-        keyboard_check_pressed(
-            ord("X")
-        )
-        ||
-        keyboard_check_pressed(
-            vk_shift
-        )
+        !platform_stomp_active
+        &&
+        scr_platformer_attack_pressed()
     )
     {
         scr_platformer_player_attack();
@@ -1481,7 +2534,6 @@ function scr_platformer_player_update()
             }
             else
             {
-                // PARED.
                 platform_hsp =
                     0;
 
@@ -1528,6 +2580,111 @@ function scr_platformer_player_update()
             _iy++
         )
         {
+            var _trampoline =
+                noone;
+
+
+            if (_sy > 0)
+            {
+                _trampoline =
+                    scr_platformer_trampoline_at(
+                        x,
+                        y + _sy,
+                        platform_hit_left,
+                        platform_hit_top,
+                        platform_hit_right,
+                        platform_hit_bottom
+                    );
+            }
+
+
+            if (_trampoline != noone)
+            {
+                platform_y_rem =
+                    0;
+
+
+                if (platform_stomp_active)
+                {
+                    var _bounce =
+                        -15.5;
+
+
+                    if (
+                        variable_instance_exists(
+                            _trampoline,
+                            "bounce_speed"
+                        )
+                    )
+                    {
+                        _bounce =
+                            _trampoline.bounce_speed;
+                    }
+
+
+                    platform_vsp =
+                        min(
+                            -1,
+                            _bounce
+                        );
+
+
+                    platform_stomp_active =
+                        false;
+
+
+                    // El rebote vuelve a contar como estar
+                    // lanzado por un salto, así se puede
+                    // encadenar otro sentón si se desea.
+                    platform_stomp_available =
+                        true;
+
+
+                    platform_grounded =
+                        false;
+
+
+                    scr_screen_shake_start(
+                        3,
+                        6
+                    );
+
+
+                    if (
+                        variable_instance_exists(
+                            _trampoline,
+                            "bounce_sound"
+                        )
+                        &&
+                        _trampoline.bounce_sound != -1
+                        &&
+                        audio_exists(
+                            _trampoline.bounce_sound
+                        )
+                    )
+                    {
+                        audio_play_sound(
+                            _trampoline.bounce_sound,
+                            10,
+                            false
+                        );
+                    }
+                }
+                else
+                {
+                    platform_vsp =
+                        0;
+
+
+                    platform_grounded =
+                        true;
+                }
+
+
+                break;
+            }
+
+
             if (
                 !scr_platformer_collision_at(
                     x,
@@ -1544,11 +2701,6 @@ function scr_platformer_player_update()
             }
             else
             {
-                // _sy > 0:
-                //     suelo.
-                //
-                // _sy < 0:
-                //     techo / golpe de cabeza.
                 platform_vsp =
                     0;
 
@@ -1561,6 +2713,19 @@ function scr_platformer_player_update()
                 {
                     platform_grounded =
                         true;
+
+
+                    if (platform_stomp_active)
+                    {
+                        platform_stomp_active =
+                            false;
+
+
+                        scr_screen_shake_start(
+                            2,
+                            4
+                        );
+                    }
                 }
 
 
@@ -1570,19 +2735,25 @@ function scr_platformer_player_update()
     }
 
 
-    // Actualizar suelo después del movimiento.
+    // =====================================================
+    // ACTUALIZAR SUELO DESPUES DEL MOVIMIENTO
+    // =====================================================
+
     platform_grounded =
-        scr_platformer_collision_at(
-            x,
-            y + 1,
-            platform_hit_left,
-            platform_hit_top,
-            platform_hit_right,
-            platform_hit_bottom
+        (
+            platform_vsp >= 0
+            &&
+            scr_platformer_floor_at(
+                x,
+                y + 1,
+                platform_hit_left,
+                platform_hit_top,
+                platform_hit_right,
+                platform_hit_bottom
+            )
         );
 
 
-    // Facing normal compatible con otras partes del juego.
     if (platform_facing < 0)
     {
         facing_direction =
@@ -1625,10 +2796,43 @@ function scr_platformer_player_apply_sprite()
 
 
     // =====================================================
+    // SENTON
+    // =====================================================
+    //
+    // Sprite opcional:
+    //
+    //     spr_maya_platform_senton
+    //
+    // Si no existe usa el mismo sprite de salto.
+    // =====================================================
+
+    if (platform_stomp_active)
+    {
+        var _jump_fallback =
+            scr_platformer_sprite(
+                "spr_maya_platform_salto",
+                (
+                    platform_facing < 0
+                    ?
+                    pendejo_izquierda
+                    :
+                    pendejo_derecha
+                )
+            );
+
+
+        _new_sprite =
+            scr_platformer_sprite(
+                "spr_maya_platform_senton",
+                _jump_fallback
+            );
+    }
+
+    // =====================================================
     // AIRE -> SALTO
     // =====================================================
 
-    if (!platform_grounded)
+    else if (!platform_grounded)
     {
         _new_sprite =
             scr_platformer_sprite(
@@ -2223,13 +3427,17 @@ function scr_platformer_silicio_update()
     // =====================================================
 
     platform_sil_grounded =
-        scr_platformer_collision_at(
-            x,
-            y + 1,
-            platform_sil_hit_left,
-            platform_sil_hit_top,
-            platform_sil_hit_right,
-            platform_sil_hit_bottom
+        (
+            platform_sil_vsp >= 0
+            &&
+            scr_platformer_floor_at(
+                x,
+                y + 1,
+                platform_sil_hit_left,
+                platform_sil_hit_top,
+                platform_sil_hit_right,
+                platform_sil_hit_bottom
+            )
         );
 
 
@@ -2422,8 +3630,29 @@ function scr_platformer_silicio_update()
             _iy++
         )
         {
-            if (
-                !scr_platformer_collision_at(
+            var _sil_trampoline =
+                noone;
+
+
+            if (_sy > 0)
+            {
+                _sil_trampoline =
+                    scr_platformer_trampoline_at(
+                        x,
+                        y + _sy,
+                        platform_sil_hit_left,
+                        platform_sil_hit_top,
+                        platform_sil_hit_right,
+                        platform_sil_hit_bottom
+                    );
+            }
+
+
+            var _sil_blocked =
+            (
+                _sil_trampoline != noone
+                ||
+                scr_platformer_collision_at(
                     x,
                     y + _sy,
                     platform_sil_hit_left,
@@ -2431,7 +3660,10 @@ function scr_platformer_silicio_update()
                     platform_sil_hit_right,
                     platform_sil_hit_bottom
                 )
-            )
+            );
+
+
+            if (!_sil_blocked)
             {
                 y +=
                     _sy;
@@ -2460,13 +3692,17 @@ function scr_platformer_silicio_update()
 
 
     platform_sil_grounded =
-        scr_platformer_collision_at(
-            x,
-            y + 1,
-            platform_sil_hit_left,
-            platform_sil_hit_top,
-            platform_sil_hit_right,
-            platform_sil_hit_bottom
+        (
+            platform_sil_vsp >= 0
+            &&
+            scr_platformer_floor_at(
+                x,
+                y + 1,
+                platform_sil_hit_left,
+                platform_sil_hit_top,
+                platform_sil_hit_right,
+                platform_sil_hit_bottom
+            )
         );
 
 

@@ -1,4 +1,178 @@
 /// =========================================================
+/// DESVELO - PLATAFORMERO V2
+/// PANEL IZQUIERDO CON BOTÓN EXTRA
+/// =========================================================
+
+var _platformer_pause_active =
+(
+    variable_global_exists(
+        "platformer_active"
+    )
+    &&
+    global.platformer_active
+    &&
+    state != MENU_STATE.CLOSED
+    &&
+    state != MENU_STATE.EXITING
+);
+
+
+if (_platformer_pause_active)
+{
+    if (variable_global_exists("font_main"))
+    {
+        draw_set_font(
+            global.font_main
+        );
+    }
+
+
+    var _pm_x =
+        80;
+
+
+    var _pm_y =
+        80;
+
+
+    var _pm_w =
+        130;
+
+
+    var _pm_h =
+        308;
+
+
+    // Redibujar TODO el panel izquierdo para que la opción
+    // sustituta main_index=4 no deje CERRAR amarillo cuando
+    // realmente está seleccionada la sexta opción.
+    draw_sprite_stretched(
+        spr_textbox,
+        scr_ui_box_frame(spr_textbox),
+        _pm_x,
+        _pm_y,
+        _pm_w,
+        _pm_h
+    );
+
+
+    var _pm_selected =
+        0;
+
+
+    if (
+        variable_instance_exists(
+            id,
+            "platform_main_index"
+        )
+    )
+    {
+        _pm_selected =
+            platform_main_index;
+    }
+    else
+    {
+        _pm_selected =
+            main_index;
+    }
+
+
+    draw_set_halign(
+        fa_left
+    );
+
+
+    draw_set_valign(
+        fa_top
+    );
+
+
+    // Las cinco opciones existentes.
+    for (
+        var _pm_i = 0;
+        _pm_i < array_length(main_options);
+        _pm_i++
+    )
+    {
+        draw_set_color(
+            (
+                state == MENU_STATE.MAIN
+                &&
+                _pm_selected == _pm_i
+            )
+            ?
+            c_yellow
+            :
+            c_orange
+        );
+
+
+        draw_text(
+            _pm_x + 16,
+            _pm_y + 12 + (_pm_i * 46),
+            scr_loc(
+                main_options[_pm_i]
+            )
+        );
+    }
+
+
+    // Sexta opción.
+    draw_set_color(
+        (
+            state == MENU_STATE.MAIN
+            &&
+            _pm_selected == 5
+        )
+        ?
+        c_yellow
+        :
+        c_orange
+    );
+
+
+    draw_text_transformed(
+        _pm_x + 16,
+        _pm_y + 12 + (5 * 46),
+        "CAMBIAR Z/X",
+        0.66,
+        0.66,
+        0
+    );
+
+
+    var _pm_mapping =
+        (
+            global.platformer_controls_swapped
+            ?
+            "SALTO X  ATAQUE Z"
+            :
+            "SALTO Z  ATAQUE X"
+        );
+
+
+    draw_set_color(
+        c_white
+    );
+
+
+    draw_text_transformed(
+        _pm_x + 16,
+        _pm_y + 30 + (5 * 46),
+        _pm_mapping,
+        0.48,
+        0.48,
+        0
+    );
+
+
+    draw_set_color(
+        c_white
+    );
+}
+
+
+/// =========================================================
 /// OBJ_MENU_MANAGER
 /// DRAW GUI END
 /// =========================================================
@@ -230,6 +404,27 @@ if (
     state != MENU_STATE.CONFIG_ACTION
 )
 {
+    // Restaurar la matriz antes de salir del evento.
+    if (
+        variable_instance_exists(
+            id,
+            "platformer_menu_matrix_active"
+        )
+        &&
+        platformer_menu_matrix_active
+    )
+    {
+        matrix_set(
+            matrix_world,
+            platformer_menu_matrix_previous
+        );
+
+
+        platformer_menu_matrix_active =
+            false;
+    }
+
+
     exit;
 }
 
@@ -1379,3 +1574,27 @@ draw_set_color(
 draw_set_alpha(
     1
 );
+
+
+// =========================================================
+// PLATAFORMERO V2 - RESTAURAR MATRIZ GUI
+// =========================================================
+
+if (
+    variable_instance_exists(
+        id,
+        "platformer_menu_matrix_active"
+    )
+    &&
+    platformer_menu_matrix_active
+)
+{
+    matrix_set(
+        matrix_world,
+        platformer_menu_matrix_previous
+    );
+
+
+    platformer_menu_matrix_active =
+        false;
+}

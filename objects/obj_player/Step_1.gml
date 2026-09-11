@@ -3,18 +3,17 @@
 /// BEGIN STEP
 /// =========================================================
 ///
-/// MODO PLATAFORMERO
+/// MODO PLATAFORMERO V2
 ///
-/// NO reemplaza el Step RPG actual.
-///
-/// Begin Step mueve a Maya primero y deja:
-//
-//     puede_moverse = false
-//
-// para que el Step RPG normal no aplique su movimiento.
+/// El cambio de sprite/física se aplica solo cuando Maya ya
+/// está dentro de la room destino.
 /// =========================================================
 
 scr_platformer_init();
+
+
+// Aplicar entrada/salida pendiente DESPUÉS del room_goto.
+scr_platformer_apply_pending_mode();
 
 
 if (global.platformer_active)

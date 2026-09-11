@@ -1,12 +1,9 @@
 {
   "$GMObject":"",
-  "%Name":"obj_platformer_warp",
-  "eventList":[
-    {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":0,"eventType":0,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
-    {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":0,"eventType":3,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
-  ],
+  "%Name":"obj_colision_platformer_traspasar",
+  "eventList":[],
   "managed":true,
-  "name":"obj_platformer_warp",
+  "name":"obj_colision_platformer_traspasar",
   "overriddenProperties":[],
   "parent":{
     "name":"Plataformero",
@@ -31,8 +28,8 @@
   "resourceVersion":"2.0",
   "solid":false,
   "spriteId":{
-    "name":"spr_palanca_platformer",
-    "path":"sprites/spr_palanca_platformer/spr_palanca_platformer.yy",
+    "name":"spr_colision_traspasar_plataforma",
+    "path":"sprites/spr_colision_traspasar_plataforma/spr_colision_traspasar_plataforma.yy",
   },
   "spriteMaskId":null,
   "visible":true,

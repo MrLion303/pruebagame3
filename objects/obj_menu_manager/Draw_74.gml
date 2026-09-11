@@ -1,4 +1,74 @@
 /// =========================================================
+/// DESVELO - PLATAFORMERO V2
+/// DESPLAZAR MENÚ A LA IZQUIERDA
+/// =========================================================
+///
+/// En modo plataformero toda la interfaz de pausa se mueve
+/// 80 px a la izquierda.
+///
+/// El panel principal, que normalmente empieza en X=80,
+/// queda exactamente en X=0.
+///
+/// La matriz se restaura en Draw GUI End.
+/// =========================================================
+
+platformer_menu_matrix_active =
+    false;
+
+
+if (
+    variable_global_exists(
+        "platformer_active"
+    )
+    &&
+    global.platformer_active
+    &&
+    state != MENU_STATE.CLOSED
+    &&
+    state != MENU_STATE.EXITING
+)
+{
+    platformer_menu_matrix_previous =
+        matrix_get(
+            matrix_world
+        );
+
+
+    var _platformer_menu_translation =
+        matrix_build(
+            -80,
+            0,
+            0,
+
+            0,
+            0,
+            0,
+
+            1,
+            1,
+            1
+        );
+
+
+    var _platformer_menu_combined =
+        matrix_multiply(
+            platformer_menu_matrix_previous,
+            _platformer_menu_translation
+        );
+
+
+    matrix_set(
+        matrix_world,
+        _platformer_menu_combined
+    );
+
+
+    platformer_menu_matrix_active =
+        true;
+}
+
+
+/// =========================================================
 /// OBJ_MENU_MANAGER
 /// DRAW GUI BEGIN
 /// =========================================================

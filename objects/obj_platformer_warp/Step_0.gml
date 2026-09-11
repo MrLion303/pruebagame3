@@ -3,14 +3,12 @@
 /// STEP
 /// =========================================================
 ///
-/// Interacción con Z / Enter.
+/// ENTRADA:
+///     Z / Enter.
 ///
-/// Flujo:
-//
-///     1. Cambia global.platformer_active.
-///     2. Crea obj_warp.
-///     3. obj_warp hace la transición y room_goto.
-///     4. Maya aparece en target_x / target_y.
+/// SALIDA:
+///     este Step no la activa;
+///     se activa golpeando el trigger con el melee.
 /// =========================================================
 
 if (
@@ -33,22 +31,24 @@ if (
 }
 
 
+// La salida solamente responde al ataque melee.
+if (!platformer_enable)
+{
+    exit;
+}
+
+
 if (!instance_exists(obj_player))
 {
     exit;
 }
 
 
-// No iniciar otro warp mientras ya hay uno.
 if (instance_exists(obj_warp))
 {
     exit;
 }
 
-
-// =========================================================
-// BLOQUEOS
-// =========================================================
 
 if (
     variable_global_exists(
@@ -96,10 +96,6 @@ if (
 }
 
 
-// =========================================================
-// DISTANCIA
-// =========================================================
-
 var _p =
     instance_find(
         obj_player,
@@ -142,10 +138,6 @@ if (
 }
 
 
-// =========================================================
-// Z / ENTER
-// =========================================================
-
 if (
     !keyboard_check_pressed(
         ord("Z")
@@ -160,7 +152,6 @@ if (
 }
 
 
-// Consumir la pulsación.
 keyboard_clear(
     ord("Z")
 );
@@ -171,84 +162,7 @@ keyboard_clear(
 );
 
 
-interaction_locked =
-    true;
-
-
-// =========================================================
-// CAMBIAR MODO
-// =========================================================
-
-scr_platformer_set_mode(
-    platformer_enable
+// El cambio de modo queda pendiente hasta target_room.
+scr_platformer_warp_activate(
+    id
 );
-
-
-if (
-    platformer_enable
-    &&
-    instance_exists(obj_player)
-)
-{
-    var _pp =
-        instance_find(
-            obj_player,
-            0
-        );
-
-
-    _pp.platform_facing =
-        (
-            platformer_start_facing < 0
-            ?
-            -1
-            :
-            1
-        );
-}
-
-
-// =========================================================
-// CREAR TRANSICIÓN UNIVERSAL
-// =========================================================
-
-var _warp =
-    instance_create_depth(
-        0,
-        0,
-        -9999,
-        obj_warp
-    );
-
-
-_warp.target_x =
-    target_x;
-
-
-_warp.target_y =
-    target_y;
-
-
-_warp.target_rm =
-    target_room;
-
-
-_warp.target_face =
-    target_face;
-
-
-_warp.target_music =
-    target_music;
-
-
-_warp.keep_music =
-    keep_music;
-
-
-// Este warp no necesita iniciar cinemática automáticamente.
-_warp.target_cutscene =
-    "";
-
-
-_warp.target_cutscene_once =
-    true;

@@ -1,12 +1,12 @@
 {
   "$GMObject":"",
-  "%Name":"obj_platformer_warp",
+  "%Name":"obj_platformer_trampolin",
   "eventList":[
     {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":0,"eventType":0,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
-    {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":0,"eventType":3,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
+    {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":0,"eventType":8,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
   ],
   "managed":true,
-  "name":"obj_platformer_warp",
+  "name":"obj_platformer_trampolin",
   "overriddenProperties":[],
   "parent":{
     "name":"Plataformero",
@@ -31,8 +31,8 @@
   "resourceVersion":"2.0",
   "solid":false,
   "spriteId":{
-    "name":"spr_palanca_platformer",
-    "path":"sprites/spr_palanca_platformer/spr_palanca_platformer.yy",
+    "name":"spr_trampolin",
+    "path":"sprites/spr_trampolin/spr_trampolin.yy",
   },
   "spriteMaskId":null,
   "visible":true,

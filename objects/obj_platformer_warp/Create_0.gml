@@ -3,20 +3,14 @@
 /// CREATE
 /// =========================================================
 ///
-/// Objeto de entrada / salida del modo plataformero.
+/// ENTRADA:
+///     platformer_enable = true
+///     Z / Enter.
 ///
-/// Se activa con:
-///
-///     Z
-///     Enter
-///
-/// Usa obj_warp para conservar la transición universal.
+/// SALIDA:
+///     platformer_enable = false
+///     golpe melee.
 /// =========================================================
-
-
-// =========================================================
-// DESTINO
-// =========================================================
 
 target_room =
     noone;
@@ -42,37 +36,23 @@ keep_music =
     false;
 
 
-// =========================================================
-// MODO
-// =========================================================
-//
-// true:
-//     al usarlo ENTRA al plataformero.
-//
-// false:
-//     al usarlo SALE del plataformero.
-// =========================================================
-
+// true = entrar.
+// false = salir.
 platformer_enable =
     true;
 
 
-// Dirección horizontal con la que Maya empieza:
-//
-//     1  = derecha
-//     -1 = izquierda
+// 1 derecha.
+// -1 izquierda.
 platformer_start_facing =
     1;
 
-
-// =========================================================
-// INTERACCIÓN
-// =========================================================
 
 active =
     true;
 
 
+// Solo para la entrada con Z / Enter.
 interaction_distance =
     48;
 
@@ -81,7 +61,10 @@ interaction_locked =
     false;
 
 
-// Si quieres ponerle sprite:
-// asígnalo desde el Object Editor.
-//
-// No necesita ser Solid.
+// Fallback de hitbox para poder golpear un trigger sin sprite.
+attack_hitbox_half_width =
+    16;
+
+
+attack_hitbox_half_height =
+    24;

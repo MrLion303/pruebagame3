@@ -12,8 +12,8 @@
   "out_tilehborder":2,
   "out_tilevborder":2,
   "parent":{
-    "name":"Plataformero",
-    "path":"folders/Plataformero.yy",
+    "name":"sprites",
+    "path":"folders/Plataformero/sprites.yy",
   },
   "resourceType":"GMTileSet",
   "resourceVersion":"2.0",
