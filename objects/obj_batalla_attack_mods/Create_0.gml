@@ -2,75 +2,202 @@
 /// OBJ_BATALLA_ATTACK_MODS
 /// CREATE COMPLETO
 /// =========================================================
-/// PARENT: ninguno
 ///
-/// Cambios:
-/// - Multi-hit usa UN SOLO target/diana.
-/// - Las barras/cargas pasan inmediatamente una tras otra.
-/// - Aro cargado corregido.
-/// - Espada Certera ensancha la barra móvil REAL.
-/// - Eliminada por completo la confirmación tardía.
+/// PARENT OBJECT:
+///     ninguno
+///
+/// Este objeto controla únicamente la LÓGICA especial.
+/// El dibujo especial se hace al final de:
+///
+///     obj_batalla_ui -> Draw GUI End
+///
+/// para garantizar que nunca quede debajo de la UI base.
 /// =========================================================
 
-persistent = false;
-
-// Debe quedar por encima de la UI de batalla.
-// Un depth muy bajo se dibuja al frente.
-depth = -1000000000;
-
-controller_ref = noone;
-ui_ref = noone;
+persistent =
+    false;
 
 
-// =========================================================
-// CADENA DE GOLPES
-// =========================================================
+controller_ref =
+    noone;
 
-chain_active = false;
-chain_total = 1;
-chain_index = 0;
-chain_target = -1;
-
-chain_total_damage = 0;
-chain_heal = 0;
-
-chain_waiting_feedback = false;
-feedback_seen = false;
-
-hit_prepared = false;
+ui_ref =
+    noone;
 
 
 // =========================================================
-// MODIFICADORES DEL GOLPE ACTUAL
+// ACCIÓN ACTUAL
 // =========================================================
 
-weapon_mods = scr_battle_get_weapon_mods();
+action_active =
+    false;
 
-current_mode = "lineal";
-current_force_miss = false;
+action_target =
+    -1;
 
-// Solo afecta al dibujo adicional de la barra ensanchada.
-// El target NO cambia de tamaño.
-current_bar_xscale = 1.0;
+action_total_damage =
+    0;
+
+action_heal =
+    0;
+
+action_feedback_started =
+    false;
+
+action_feedback_seen =
+    false;
+
+
+weapon_mods =
+    scr_battle_get_weapon_mods();
+
+
+current_mode =
+    "lineal";
+
+
+// Escala X visual/mecánica de la barra normal.
+current_bar_xscale =
+    1.0;
+
+
+// Precisión reducida del jugador para ataque lineal estándar.
+single_force_miss =
+    false;
 
 
 // =========================================================
-// ATAQUE CIRCULAR
+// MODO PERSONALIZADO
+// =========================================================
+//
+// ""       = timing normal de obj_batalla_ui
+// "multi"  = 2/3 barras simultáneas
+// "circle" = diana cargada
 // =========================================================
 
-circle_active = false;
-circle_started = false;
-circle_timer = 0;
+custom_mode =
+    "";
 
-circle_limit = 24;
+custom_wait_release =
+    false;
 
-circle_radius = 4;
-circle_radius_start = 4;
-circle_radius_target = 64;
-circle_radius_max = 90;
+custom_accept_pressed =
+    false;
 
-circle_speed = 5.5;
-circle_perfect_tolerance = 5;
+custom_accept_held =
+    false;
+
+
+// Guardamos la velocidad real de la UI mientras la bloqueamos.
+saved_ui_bar_speed =
+    7;
+
+
+// =========================================================
+// MULTI-BARRA
+// =========================================================
+
+multi_count =
+    0;
+
+multi_next =
+    0;
+
+multi_direction =
+    1;
+
+multi_gap =
+    38;
+
+multi_min_x =
+    0;
+
+multi_max_x =
+    0;
+
+multi_center_x =
+    0;
+
+multi_positions =
+    [];
+
+multi_done =
+    [];
+
+multi_speed =
+    7;
+
+
+// =========================================================
+// CÍRCULO CARGADO
+// =========================================================
+
+circle_active =
+    false;
+
+circle_total =
+    1;
+
+circle_index =
+    0;
+
+circle_started =
+    false;
+
+circle_timer =
+    0;
+
+circle_limit =
+    24;
+
+circle_radius =
+    4;
+
+circle_radius_start =
+    4;
+
+circle_radius_target =
+    64;
+
+circle_radius_max =
+    90;
+
+circle_speed =
+    5.5;
+
+circle_perfect_tolerance =
+    5;
+
+
+// =========================================================
+// ENTRADA VISUAL DEL ATAQUE CARGADO
+// =========================================================
+//
+// Primero el textbox horizontal se encoge suavemente hasta
+// 128x128. SOLO al terminar esa animación aparece la diana y
+// empieza la ventana real de tiempo del ataque.
+// =========================================================
+
+circle_intro_active =
+    false;
+
+circle_intro_timer =
+    0;
+
+circle_intro_frames =
+    10;
+
+circle_intro_progress =
+    0;
+
+circle_ready =
+    false;
+
+// Obliga a que el jugador pulse Z/Enter DE NUEVO después de
+// que la diana ya apareció. Mantener el botón desde el diálogo
+// anterior no inicia automáticamente la carga.
+circle_input_armed =
+    false;
 
 
 // =========================================================
@@ -81,28 +208,48 @@ f_refresh_refs =
 function()
 {
     controller_ref =
-        instance_exists(obj_batalla_controller)
-        ? instance_find(obj_batalla_controller, 0)
-        : noone;
+        instance_exists(
+            obj_batalla_controller
+        )
+        ?
+        instance_find(
+            obj_batalla_controller,
+            0
+        )
+        :
+        noone;
+
 
     ui_ref =
-        instance_exists(obj_batalla_ui)
-        ? instance_find(obj_batalla_ui, 0)
-        : noone;
+        instance_exists(
+            obj_batalla_ui
+        )
+        ?
+        instance_find(
+            obj_batalla_ui,
+            0
+        )
+        :
+        noone;
+
 
     return
         controller_ref != noone
         &&
         ui_ref != noone
         &&
-        instance_exists(controller_ref)
+        instance_exists(
+            controller_ref
+        )
         &&
-        instance_exists(ui_ref);
+        instance_exists(
+            ui_ref
+        );
 };
 
 
 // =========================================================
-// ¿SIGUE VIVO EL TARGET?
+// TARGET VIVO
 // =========================================================
 
 f_target_alive =
@@ -111,24 +258,38 @@ function()
     if (!f_refresh_refs())
         return false;
 
-    var _ui = ui_ref;
+
+    var _ui =
+        ui_ref;
+
 
     if (
-        chain_target < 0
+        action_target < 0
         ||
-        chain_target >= array_length(_ui.enemigos)
+        action_target >= array_length(
+            _ui.enemigos
+        )
     )
     {
         return false;
     }
 
-    var _en = _ui.enemigos[chain_target];
+
+    var _en =
+        _ui.enemigos[
+            action_target
+        ];
+
 
     if (!is_struct(_en))
         return false;
 
+
     if (
-        variable_struct_exists(_en, "derrotado")
+        variable_struct_exists(
+            _en,
+            "derrotado"
+        )
         &&
         _en.derrotado
     )
@@ -136,8 +297,12 @@ function()
         return false;
     }
 
+
     if (
-        variable_struct_exists(_en, "vida_actual")
+        variable_struct_exists(
+            _en,
+            "vida_actual"
+        )
         &&
         _en.vida_actual <= 0
     )
@@ -145,258 +310,66 @@ function()
         return false;
     }
 
+
     return true;
 };
 
 
 // =========================================================
-// TEXTO FINAL DE DAÑO TOTAL
+// ROLL DE FALLO POR TOY ENEMIGO
 // =========================================================
 
-f_update_total_result_text =
-function()
-{
-    if (!f_refresh_refs())
-        return;
-
-    var _ui = ui_ref;
-
-    if (
-        chain_target < 0
-        ||
-        chain_target >= array_length(_ui.enemigos)
-    )
-    {
-        return;
-    }
-
-    var _en =
-        _ui.enemigos[chain_target];
-
-    var _dead =
-        (
-            variable_struct_exists(_en, "derrotado")
-            &&
-            _en.derrotado
-        )
-        ||
-        (
-            variable_struct_exists(_en, "vida_actual")
-            &&
-            _en.vida_actual <= 0
-        );
-
-
-    // Si murió, conservamos el texto de muerte creado por la UI.
-    if (_dead)
-        return;
-
-
-    if (chain_total_damage > 0)
-    {
-        _ui.attack_result_text =
-            scr_locf(
-                "* Hiciste {damage} de daño a {enemy}!",
-                {
-                    damage: string(chain_total_damage),
-                    enemy: scr_loc(_en.nombre)
-                }
-            );
-    }
-    else
-    {
-        _ui.attack_result_text =
-            scr_loc_src(
-                "* Fallaste el ataque."
-            );
-    }
-};
-
-
-// =========================================================
-// APLICAR ENSANCHADO HORIZONTAL DE LA BARRA
-// =========================================================
-
-f_apply_line_visual_mods =
-function()
-{
-    if (!f_refresh_refs())
-        return;
-
-    var _ui = ui_ref;
-
-    current_bar_xscale =
-        max(
-            1.0,
-            weapon_mods.barra_ancho_mult
-        );
-
-
-    // Base normal del sistema.
-    _ui.attack_perfect_radius =
-        4.0;
-
-
-    if (current_bar_xscale <= 1.0001)
-        return;
-
-
-    // El sprite spr_barra_bbs mide 14 px de ancho.
-    // Calculamos cuánto crece SU MITAD al estirarlo.
-    //
-    // Ese mismo crecimiento se suma a la tolerancia real:
-    // si visualmente la barra ancha alcanza el centro,
-    // también cuenta mecánicamente.
-    var _normal_half_w =
-        sprite_get_width(spr_barra_bbs)
-        *
-        _ui.attack_bar_scale_base
-        *
-        0.5;
-
-
-    var _extra_half_w =
-        _normal_half_w
-        *
-        (current_bar_xscale - 1);
-
-
-    _ui.attack_perfect_radius =
-        4.0
-        +
-        _extra_half_w;
-
-
-    // La barra ensanchada no debe salirse del target al
-    // comenzar en ninguno de los extremos.
-    var _new_min =
-        _ui.attack_bar_min_x
-        +
-        _extra_half_w;
-
-
-    var _new_max =
-        _ui.attack_bar_max_x
-        -
-        _extra_half_w;
-
-
-    if (_new_max > _new_min + 2)
-    {
-        _ui.attack_bar_min_x =
-            _new_min;
-
-        _ui.attack_bar_max_x =
-            _new_max;
-
-        _ui.attack_bar_center_x =
-            (
-                _ui.attack_bar_min_x
-                +
-                _ui.attack_bar_max_x
-            )
-            *
-            0.5;
-
-
-        _ui.attack_bar_x =
-            (_ui.attack_bar_direction > 0)
-            ?
-            _ui.attack_bar_min_x
-            :
-            _ui.attack_bar_max_x;
-    }
-};
-
-
-// =========================================================
-// PREPARAR GOLPE
-// =========================================================
-// Se llama también desde End Step para capturar un timing que
-// obj_batalla_ui haya iniciado durante su propio Step.
-// =========================================================
-
-f_prepare_attack =
+f_precision_force_miss =
 function()
 {
     if (!f_refresh_refs())
         return false;
 
-    var _ui = ui_ref;
-    var _ctrl = controller_ref;
+
+    return
+        random(1.0)
+        <
+        clamp(
+            controller_ref.player_precision_reducida,
+            0,
+            0.95
+        );
+};
 
 
-    if (
-        !_ui.attack_timing_active
-        ||
-        hit_prepared
-        ||
-        circle_active
-    )
-    {
-        return false;
-    }
+// =========================================================
+// MULTIPLICADOR DE DAÑO DEL JUGADOR / GUARDIA
+// =========================================================
+
+f_apply_damage_multiplier =
+function()
+{
+    if (!f_refresh_refs())
+        return;
 
 
-    // -----------------------------------------------------
-    // NUEVA ACCIÓN COMPLETA
-    // -----------------------------------------------------
-
-    if (!chain_active)
-    {
-        weapon_mods =
-            scr_battle_get_weapon_mods();
-
-        chain_active =
-            true;
-
-        chain_total =
-            max(
-                1,
-                weapon_mods.golpes
-            );
-
-        chain_index =
-            1;
-
-        chain_target =
-            _ui.attack_target_idx;
-
-        chain_total_damage =
-            0;
-
-        chain_heal =
-            max(
-                0,
-                weapon_mods.cura
-            );
-
-        chain_waiting_feedback =
-            false;
-
-        feedback_seen =
-            false;
-    }
+    var _ui =
+        ui_ref;
 
 
-    // -----------------------------------------------------
-    // DAÑO: DEBUFF DEL JUGADOR + GUARDIA ENEMIGA
-    // -----------------------------------------------------
-
-    var _damage_mult =
+    var _mult =
         scr_battle_player_attack_multiplier(
-            _ctrl
+            controller_ref
         );
 
 
     if (
-        chain_target >= 0
+        action_target >= 0
         &&
-        chain_target < array_length(_ui.enemigos)
+        action_target < array_length(
+            _ui.enemigos
+        )
     )
     {
         var _en =
-            _ui.enemigos[chain_target];
+            _ui.enemigos[
+                action_target
+            ];
 
 
         if (
@@ -410,7 +383,7 @@ function()
             _en.guardia_activa
         )
         {
-            _damage_mult *=
+            _mult *=
                 clamp(
                     variable_struct_exists(
                         _en,
@@ -433,294 +406,116 @@ function()
             round(
                 _ui.attack_base_damage
                 *
-                _damage_mult
+                _mult
             )
         );
-
-
-    current_mode =
-        weapon_mods.modo;
-
-
-    // Toy enemigo:
-    // incluso un timing perfecto puede convertirse en MISS.
-    current_force_miss =
-        random(1.0)
-        <
-        clamp(
-            _ctrl.player_precision_reducida,
-            0,
-            0.95
-        );
-
-
-    // -----------------------------------------------------
-    // LINEAL
-    // -----------------------------------------------------
-
-    if (current_mode == "lineal")
-    {
-        f_apply_line_visual_mods();
-    }
-
-
-    // -----------------------------------------------------
-    // CIRCULAR CARGABLE
-    // -----------------------------------------------------
-
-    else if (current_mode == "circular_carga")
-    {
-        current_bar_xscale =
-            1.0;
-
-        _ui.attack_perfect_radius =
-            4.0;
-
-
-        circle_active =
-            true;
-
-        circle_started =
-            false;
-
-        circle_timer =
-            0;
-
-
-        circle_limit =
-            max(
-                8,
-                weapon_mods.carga_tiempo_frames
-            );
-
-
-        circle_radius_start =
-            weapon_mods.carga_radio_inicial;
-
-        circle_radius =
-            circle_radius_start;
-
-
-        circle_radius_target =
-            weapon_mods.carga_radio_objetivo;
-
-        circle_radius_max =
-            weapon_mods.carga_radio_max;
-
-        circle_speed =
-            weapon_mods.carga_velocidad_radio;
-
-        circle_perfect_tolerance =
-            weapon_mods.carga_tolerancia_perfecta;
-
-
-        // La UI normal no debe dibujar ni mover su barra.
-        _ui.attack_timing_active =
-            false;
-
-        _ui.attack_timing_stopped =
-            false;
-
-        _ui.attack_stop_timer =
-            0;
-    }
-
-
-    hit_prepared =
-        true;
-
-    feedback_seen =
-        false;
-
-
-    return true;
 };
 
 
 // =========================================================
-// EMPEZAR SIGUIENTE GOLPE DE LA MISMA ACCIÓN
+// RESULTADO FINAL TOTAL
 // =========================================================
 
-f_begin_next_hit =
-function()
-{
-    if (!f_refresh_refs())
-        return false;
-
-    var _ui =
-        ui_ref;
-
-
-    if (!f_target_alive())
-        return false;
-
-
-    if (chain_index >= chain_total)
-        return false;
-
-
-    chain_index++;
-
-
-    hit_prepared =
-        false;
-
-    feedback_seen =
-        false;
-
-    chain_waiting_feedback =
-        false;
-
-
-    circle_active =
-        false;
-
-    circle_started =
-        false;
-
-    circle_timer =
-        0;
-
-
-    _ui.attack_feedback_active =
-        false;
-
-    _ui.attack_feedback_timer =
-        0;
-
-    _ui.attack_feedback_damage =
-        0;
-
-    _ui.attack_feedback_miss =
-        false;
-
-
-    _ui.en_resultado_ataque =
-        false;
-
-    _ui.text_to_draw =
-        "";
-
-    _ui.text_length =
-        0;
-
-    _ui.draw_char =
-        0;
-
-    _ui.setup =
-        false;
-
-
-    // IMPORTANTE:
-    //
-    // Volvemos a lanzar SOLO LA BARRA/CARGA.
-    // El target lógico sigue siendo EXACTAMENTE el mismo.
-    //
-    // Como esto ocurre antes del siguiente Draw GUI, el
-    // target nunca desaparece entre un golpe y otro.
-    _ui.f_iniciar_timing_ataque(
-        chain_target
-    );
-
-
-    // Aplicar inmediatamente el modo del arma.
-    f_prepare_attack();
-
-
-    keyboard_clear(
-        ord("Z")
-    );
-
-    keyboard_clear(
-        vk_enter
-    );
-
-
-    return true;
-};
-
-
-// =========================================================
-// FINALIZAR VISUALMENTE TODA LA CADENA
-// =========================================================
-
-f_start_final_feedback =
+f_update_total_result_text =
 function()
 {
     if (!f_refresh_refs())
         return;
 
-    var _ui =
-        ui_ref;
-
-
-    f_update_total_result_text();
-
-
-    _ui.attack_feedback_damage =
-        max(
-            0,
-            chain_total_damage
-        );
-
-
-    _ui.attack_feedback_miss =
-        chain_total_damage <= 0;
-
-
-    _ui.attack_feedback_active =
-        true;
-
-    _ui.attack_feedback_timer =
-        0;
-
-
-    chain_waiting_feedback =
-        true;
-
-    feedback_seen =
-        true;
-
-
-    circle_active =
-        false;
-
-    circle_started =
-        false;
-
-
-    hit_prepared =
-        false;
-
-
-    keyboard_clear(
-        ord("Z")
-    );
-
-    keyboard_clear(
-        vk_enter
-    );
-};
-
-
-// =========================================================
-// RESOLVER UN GOLPE QUE AÚN NO RESOLVIÓ OBJ_BATALLA_UI
-// =========================================================
-
-f_resolve_current_hit =
-function(_miss)
-{
-    if (!f_refresh_refs())
-        return;
 
     var _ui =
         ui_ref;
 
 
-    var _real_miss =
-        _miss
+    if (
+        action_target < 0
         ||
-        current_force_miss;
+        action_target >= array_length(
+            _ui.enemigos
+        )
+    )
+    {
+        return;
+    }
+
+
+    var _en =
+        _ui.enemigos[
+            action_target
+        ];
+
+
+    var _dead =
+        (
+            variable_struct_exists(
+                _en,
+                "derrotado"
+            )
+            &&
+            _en.derrotado
+        )
+        ||
+        (
+            variable_struct_exists(
+                _en,
+                "vida_actual"
+            )
+            &&
+            _en.vida_actual <= 0
+        );
+
+
+    // Si murió, conservar el texto de muerte que ya generó
+    // f_resolver_timing_ataque().
+    if (_dead)
+        return;
+
+
+    if (action_total_damage > 0)
+    {
+        _ui.attack_result_text =
+            scr_locf(
+                "* Hiciste {damage} de daño a {enemy}!",
+                {
+                    damage:
+                        string(
+                            action_total_damage
+                        ),
+
+                    enemy:
+                        scr_loc(
+                            _en.nombre
+                        )
+                }
+            );
+    }
+    else
+    {
+        _ui.attack_result_text =
+            scr_loc_src(
+                "* Fallaste el ataque."
+            );
+    }
+};
+
+
+// =========================================================
+// RESTAURAR UI DESPUÉS DE MODO CUSTOM
+// =========================================================
+
+f_restore_ui_timing =
+function()
+{
+    if (!f_refresh_refs())
+        return;
+
+
+    var _ui =
+        ui_ref;
+
+
+    _ui.attack_bar_speed =
+        saved_ui_bar_speed;
 
 
     _ui.attack_timing_active =
@@ -731,7 +526,57 @@ function(_miss)
 
     _ui.attack_stop_timer =
         0;
+};
 
+
+// =========================================================
+// INICIAR POPUP FINAL
+// =========================================================
+
+f_start_final_feedback =
+function()
+{
+    if (!f_refresh_refs())
+        return;
+
+
+    var _ui =
+        ui_ref;
+
+
+    f_restore_ui_timing();
+
+
+    f_update_total_result_text();
+
+
+    _ui.attack_feedback_damage =
+        max(
+            0,
+            action_total_damage
+        );
+
+
+    _ui.attack_feedback_miss =
+        action_total_damage <= 0;
+
+
+    _ui.attack_feedback_active =
+        true;
+
+    _ui.attack_feedback_timer =
+        0;
+
+
+    action_feedback_started =
+        true;
+
+    action_feedback_seen =
+        true;
+
+
+    custom_mode =
+        "";
 
     circle_active =
         false;
@@ -740,49 +585,599 @@ function(_miss)
         false;
 
 
+    keyboard_clear(
+        ord("Z")
+    );
+
+    keyboard_clear(
+        vk_enter
+    );
+};
+
+
+// =========================================================
+// RESOLVER UN HIT CUSTOM
+// =========================================================
+
+f_resolve_custom_hit =
+function(
+    _bar_x,
+    _miss
+)
+{
+    if (!f_refresh_refs())
+        return;
+
+
+    var _ui =
+        ui_ref;
+
+
+    _ui.attack_target_idx =
+        action_target;
+
+
+    _ui.attack_bar_x =
+        _bar_x;
+
+
+    var _real_miss =
+        _miss
+        ||
+        f_precision_force_miss();
+
+
     _ui.f_resolver_timing_ataque(
         _real_miss
     );
 
 
-    chain_total_damage +=
+    action_total_damage +=
         max(
             0,
             _ui.attack_damage_done
         );
-
-
-    // Si aún queda enemigo + golpes:
-    // la siguiente barra/carga aparece INMEDIATAMENTE.
-    if (
-        f_target_alive()
-        &&
-        chain_index < chain_total
-    )
-    {
-        f_begin_next_hit();
-        return;
-    }
-
-
-    f_start_final_feedback();
 };
 
 
 // =========================================================
-// RESOLVER CÍRCULO
+// INICIAR MULTI-BARRA
 // =========================================================
 
-f_resolve_circle =
+f_start_multi =
 function()
 {
     if (!f_refresh_refs())
-    {
-        circle_active =
-            false;
+        return;
 
+
+    var _ui =
+        ui_ref;
+
+
+    custom_mode =
+        "multi";
+
+
+    multi_count =
+        max(
+            2,
+            round(
+                weapon_mods.golpes
+            )
+        );
+
+
+    multi_next =
+        0;
+
+
+    multi_direction =
+        _ui.attack_bar_direction;
+
+
+    multi_min_x =
+        _ui.attack_bar_min_x;
+
+    multi_max_x =
+        _ui.attack_bar_max_x;
+
+    multi_center_x =
+        _ui.attack_bar_center_x;
+
+
+    saved_ui_bar_speed =
+        max(
+            0.1,
+            _ui.attack_bar_speed
+        );
+
+
+    multi_speed =
+        saved_ui_bar_speed;
+
+
+    // Separación estilo Undertale/Deltarune:
+    // las barras salen juntas del mismo lado, pero con bastante
+    // aire entre ellas para que se lean como impactos distintos.
+    var _side_space =
+        max(
+            20,
+            abs(
+                multi_center_x
+                -
+                multi_min_x
+            )
+        );
+
+
+    multi_gap =
+        min(
+            38,
+            max(
+                26,
+                _side_space
+                /
+                (multi_count + 0.5)
+            )
+        );
+
+
+    multi_positions =
+        array_create(
+            multi_count,
+            0
+        );
+
+
+    multi_done =
+        array_create(
+            multi_count,
+            false
+        );
+
+
+    // =====================================================
+    // TODAS APARECEN A LA VEZ DESDE EL MISMO LADO
+    // =====================================================
+    //
+    // Índice 0 = barra líder.
+    // Las demás vienen detrás separadas por multi_gap.
+    // =====================================================
+
+    for (
+        var _i = 0;
+        _i < multi_count;
+        _i++
+    )
+    {
+        var _behind =
+            multi_count
+            -
+            1
+            -
+            _i;
+
+
+        if (multi_direction > 0)
+        {
+            multi_positions[_i] =
+                multi_min_x
+                +
+                (_behind * multi_gap);
+        }
+        else
+        {
+            multi_positions[_i] =
+                multi_max_x
+                -
+                (_behind * multi_gap);
+        }
+    }
+
+
+    custom_wait_release =
+        true;
+
+
+    // Mantener la UI bloqueada dentro del estado de timing,
+    // pero ocultar su barra estándar fuera de pantalla.
+    _ui.attack_bar_speed =
+        0;
+
+    _ui.attack_bar_x =
+        -9999;
+
+    _ui.attack_timing_active =
+        true;
+
+    _ui.attack_timing_stopped =
+        false;
+};
+
+
+// =========================================================
+// INICIAR CÍRCULO CARGADO
+// =========================================================
+
+f_start_circle =
+function()
+{
+    if (!f_refresh_refs())
+        return;
+
+
+    var _ui =
+        ui_ref;
+
+
+    custom_mode =
+        "circle";
+
+    circle_active =
+        true;
+
+
+    circle_total =
+        max(
+            1,
+            round(
+                weapon_mods.golpes
+            )
+        );
+
+
+    circle_index =
+        0;
+
+
+    // =====================================================
+    // INTRO: CAJA HORIZONTAL -> 128x128
+    // =====================================================
+
+    circle_intro_active =
+        true;
+
+    circle_intro_timer =
+        0;
+
+    circle_intro_progress =
+        0;
+
+    circle_ready =
+        false;
+
+
+    // =====================================================
+    // CARGA
+    // =====================================================
+
+    circle_started =
+        false;
+
+    circle_timer =
+        0;
+
+    circle_input_armed =
+        false;
+
+
+    circle_limit =
+        max(
+            8,
+            round(
+                weapon_mods.carga_tiempo_frames
+            )
+        );
+
+
+    circle_radius_start =
+        weapon_mods.carga_radio_inicial;
+
+    circle_radius =
+        circle_radius_start;
+
+
+    circle_radius_target =
+        weapon_mods.carga_radio_objetivo;
+
+    circle_radius_max =
+        weapon_mods.carga_radio_max;
+
+    circle_speed =
+        weapon_mods.carga_velocidad_radio;
+
+    circle_perfect_tolerance =
+        weapon_mods.carga_tolerancia_perfecta;
+
+
+    saved_ui_bar_speed =
+        max(
+            0.1,
+            _ui.attack_bar_speed
+        );
+
+
+    // El modo circle ya controla por sí mismo el input.
+    // NO usamos custom_wait_release porque esa era la causa
+    // de que hubiera que mantener Z desde el diálogo anterior.
+    custom_wait_release =
+        false;
+
+
+    // Mantener la UI base bloqueada dentro del timing, pero
+    // esconder su barra estándar.
+    _ui.attack_bar_speed =
+        0;
+
+    _ui.attack_bar_x =
+        -9999;
+
+    _ui.attack_timing_active =
+        true;
+
+    _ui.attack_timing_stopped =
+        false;
+};
+
+
+// =========================================================
+// PREPARAR NUEVA ACCIÓN
+// =========================================================
+
+f_prepare_attack =
+function()
+{
+    if (!f_refresh_refs())
+        return false;
+
+
+    var _ui =
+        ui_ref;
+
+
+    if (
+        action_active
+        ||
+        !_ui.attack_timing_active
+    )
+    {
+        return false;
+    }
+
+
+    weapon_mods =
+        scr_battle_get_weapon_mods();
+
+
+    action_active =
+        true;
+
+
+    action_target =
+        _ui.attack_target_idx;
+
+
+    action_total_damage =
+        0;
+
+
+    action_heal =
+        max(
+            0,
+            weapon_mods.cura
+        );
+
+
+    action_feedback_started =
+        false;
+
+    action_feedback_seen =
+        false;
+
+
+    current_mode =
+        weapon_mods.modo;
+
+
+    current_bar_xscale =
+        max(
+            1.0,
+            weapon_mods.barra_ancho_mult
+        );
+
+
+    f_apply_damage_multiplier();
+
+
+    // =====================================================
+    // CIRCULAR
+    // =====================================================
+
+    if (current_mode == "circular_carga")
+    {
+        _ui.attack_perfect_radius =
+            4.0;
+
+
+        current_bar_xscale =
+            1.0;
+
+
+        f_start_circle();
+
+        return true;
+    }
+
+
+    // =====================================================
+    // MULTI-BARRA
+    // =====================================================
+
+    if (weapon_mods.golpes > 1)
+    {
+        // Si alguna futura arma combina multi-hit + ancho,
+        // todas sus barras usarán esta escala.
+        if (current_bar_xscale > 1.0001)
+        {
+            var _normal_half =
+                sprite_get_width(
+                    spr_barra_bbs
+                )
+                *
+                _ui.attack_bar_scale_base
+                *
+                0.5;
+
+
+            _ui.attack_perfect_radius =
+                4
+                +
+                (
+                    _normal_half
+                    *
+                    (current_bar_xscale - 1)
+                );
+        }
+        else
+        {
+            _ui.attack_perfect_radius =
+                4;
+        }
+
+
+        f_start_multi();
+
+        return true;
+    }
+
+
+    // =====================================================
+    // LINEAL NORMAL / ESPADA CERTERA
+    // =====================================================
+
+    single_force_miss =
+        f_precision_force_miss();
+
+
+    _ui.attack_perfect_radius =
+        4.0;
+
+
+    if (current_bar_xscale > 1.0001)
+    {
+        // La barra se hace físicamente más ancha.
+        // La mitad del ancho extra también cuenta como
+        // tolerancia real para tocar el centro.
+        var _normal_half_w =
+            sprite_get_width(
+                spr_barra_bbs
+            )
+            *
+            _ui.attack_bar_scale_base
+            *
+            0.5;
+
+
+        var _extra_half_w =
+            _normal_half_w
+            *
+            (current_bar_xscale - 1);
+
+
+        _ui.attack_perfect_radius =
+            4.0
+            +
+            _extra_half_w;
+    }
+
+
+    return true;
+};
+
+
+// =========================================================
+// RESOLVER BARRA MULTI
+// =========================================================
+
+f_resolve_multi_bar =
+function(
+    _idx,
+    _miss
+)
+{
+    if (
+        _idx < 0
+        ||
+        _idx >= multi_count
+        ||
+        multi_done[_idx]
+    )
+    {
         return;
     }
+
+
+    var _x =
+        multi_positions[_idx];
+
+
+    if (_miss)
+    {
+        _x =
+            clamp(
+                _x,
+                multi_min_x,
+                multi_max_x
+            );
+
+
+        multi_positions[_idx] =
+            _x;
+    }
+
+
+    f_resolve_custom_hit(
+        _x,
+        _miss
+    );
+
+
+    multi_done[_idx] =
+        true;
+
+
+    multi_next =
+        _idx
+        +
+        1;
+
+
+    // Si murió antes de terminar la cadena:
+    // finalizar inmediatamente.
+    if (!f_target_alive())
+    {
+        f_start_final_feedback();
+        return;
+    }
+
+
+    if (multi_next >= multi_count)
+    {
+        f_start_final_feedback();
+    }
+};
+
+
+// =========================================================
+// RESOLVER CARGA
+// =========================================================
+
+f_resolve_circle_hit =
+function()
+{
+    if (!f_refresh_refs())
+        return;
 
 
     var _ui =
@@ -790,9 +1185,7 @@ function()
 
 
     var _miss =
-        !circle_started
-        ||
-        current_force_miss;
+        !circle_started;
 
 
     if (!_miss)
@@ -851,9 +1244,6 @@ function()
             );
 
 
-        // Convertir la precisión circular a una posición
-        // equivalente dentro del timing lineal para reutilizar
-        // exactamente la misma fórmula de daño.
         var _half_range =
             max(
                 1,
@@ -897,7 +1287,216 @@ function()
     }
 
 
-    f_resolve_current_hit(
+    f_resolve_custom_hit(
+        _ui.attack_bar_x,
         _miss
     );
+
+
+    circle_index++;
+
+
+    if (!f_target_alive())
+    {
+        f_start_final_feedback();
+        return;
+    }
+
+
+    if (circle_index >= circle_total)
+    {
+        f_start_final_feedback();
+        return;
+    }
+
+
+    // Otra carga sobre LA MISMA DIANA.
+    // No repetimos la animación de encogimiento. La diana se
+    // queda en pantalla y empieza una NUEVA ventana de tiempo.
+    circle_intro_active =
+        false;
+
+    circle_intro_progress =
+        1;
+
+    circle_ready =
+        true;
+
+    circle_started =
+        false;
+
+    circle_timer =
+        0;
+
+    circle_radius =
+        circle_radius_start;
+
+    // Exigir soltar y volver a pulsar para el siguiente aro.
+    circle_input_armed =
+        false;
+
+
+    keyboard_clear(
+        ord("Z")
+    );
+
+    keyboard_clear(
+        vk_enter
+    );
+};
+
+
+// =========================================================
+// TERMINAR ACCIÓN DESPUÉS DEL POPUP
+// =========================================================
+
+f_finish_action =
+function()
+{
+    if (!f_refresh_refs())
+        return;
+
+
+    var _ui =
+        ui_ref;
+
+
+    var _curado =
+        0;
+
+
+    if (
+        action_heal > 0
+        &&
+        action_total_damage > 0
+        &&
+        instance_exists(
+            obj_player
+        )
+    )
+    {
+        var _hp_before =
+            obj_player.hp;
+
+
+        obj_player.hp =
+            min(
+                obj_player.hp_max,
+                obj_player.hp
+                +
+                action_heal
+            );
+
+
+        _curado =
+            obj_player.hp
+            -
+            _hp_before;
+
+
+        global.player_hp_current =
+            obj_player.hp;
+    }
+
+
+    if (_curado > 0)
+    {
+        _ui.f_procesar_dialogo(
+            _ui.attack_result_text
+            +
+            "\n* Recuperaste "
+            +
+            string(_curado)
+            +
+            " HP."
+        );
+    }
+
+
+    _ui.attack_perfect_radius =
+        4.0;
+
+
+    _ui.attack_bar_speed =
+        max(
+            0.1,
+            saved_ui_bar_speed
+        );
+
+
+    action_active =
+        false;
+
+    action_target =
+        -1;
+
+    action_total_damage =
+        0;
+
+    action_heal =
+        0;
+
+    action_feedback_started =
+        false;
+
+    action_feedback_seen =
+        false;
+
+
+    custom_mode =
+        "";
+
+    custom_wait_release =
+        false;
+
+
+    current_mode =
+        "lineal";
+
+    current_bar_xscale =
+        1.0;
+
+    single_force_miss =
+        false;
+
+
+    multi_count =
+        0;
+
+    multi_next =
+        0;
+
+    multi_positions =
+        [];
+
+    multi_done =
+        [];
+
+
+    circle_active =
+        false;
+
+    circle_started =
+        false;
+
+    circle_index =
+        0;
+
+    circle_timer =
+        0;
+
+    circle_intro_active =
+        false;
+
+    circle_intro_timer =
+        0;
+
+    circle_intro_progress =
+        0;
+
+    circle_ready =
+        false;
+
+    circle_input_armed =
+        false;
 };

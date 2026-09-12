@@ -3,15 +3,10 @@
 /// BEGIN STEP COMPLETO
 /// =========================================================
 ///
-/// Modo plataformero actual + habilidades de mundo.
-///
-/// IMPORTANTE:
-/// La lógica de habilidades se ejecuta DIRECTAMENTE aquí para
-/// no volver a llamar la versión vieja de
-/// scr_player_abilities_begin_step(), que todavía contenía una
-/// referencia a obj_menu_habilidades_ext.
-///
-/// obj_menu_habilidades_ext YA NO EXISTE NI SE NECESITA.
+/// - Habilidades de mundo.
+/// - Plataformero.
+/// - snd_tensionhorn al entrar/salir.
+/// - Dash plataformero estilo Hollow Knight.
 /// =========================================================
 
 
@@ -25,8 +20,6 @@ if (
     )
 )
 {
-    // Guardar posición previa para que End Step pueda aplicar
-    // correctamente la reducción de velocidad de Sigilo.
     ability_prev_x =
         x;
 
@@ -34,17 +27,12 @@ if (
         y;
 
 
-    // Cada frame empieza sin Dash realizado.
     dash_used_this_frame =
         false;
 
 
     // =====================================================
     // SIGILO FX
-    // =====================================================
-    //
-    // El único objeto auxiliar que sí sigue siendo válido es
-    // obj_sigilo_fx.
     // =====================================================
 
     if (
@@ -130,8 +118,6 @@ if (
         );
 
 
-    // Begin Step ocurre antes del Step normal de los enemigos,
-    // por lo que sus rangos ya llegan reducidos/restaurados.
     scr_sigilo_actualizar_rangos(
         sigilo_activo
     );
@@ -139,15 +125,81 @@ if (
 
 
 // =========================================================
-// PLATAFORMERO - CÓDIGO ACTUAL CONSERVADO
+// PLATAFORMERO
 // =========================================================
 
 scr_platformer_init();
 
 
+// Estado anterior para detectar entrada/salida real.
+if (
+    !variable_instance_exists(
+        id,
+        "platformer_tension_prev_active"
+    )
+)
+{
+    platformer_tension_prev_active =
+        global.platformer_active;
+}
+
+
 // Aplicar entrada/salida pendiente DESPUÉS del room_goto.
 scr_platformer_apply_pending_mode();
 
+
+// =========================================================
+// SND_TENSIONHORN
+// =========================================================
+
+if (
+    platformer_tension_prev_active
+    !=
+    global.platformer_active
+)
+{
+    var _tensionhorn =
+        asset_get_index(
+            "snd_tensionhorn"
+        );
+
+
+    if (
+        _tensionhorn != -1
+        &&
+        audio_exists(
+            _tensionhorn
+        )
+    )
+    {
+        if (
+            audio_is_playing(
+                _tensionhorn
+            )
+        )
+        {
+            audio_stop_sound(
+                _tensionhorn
+            );
+        }
+
+
+        audio_play_sound(
+            _tensionhorn,
+            10,
+            false
+        );
+    }
+
+
+    platformer_tension_prev_active =
+        global.platformer_active;
+}
+
+
+// =========================================================
+// MODO PLATAFORMERO
+// =========================================================
 
 if (global.platformer_active)
 {
@@ -182,10 +234,34 @@ if (global.platformer_active)
     }
 
 
-    scr_platformer_player_update();
+    // =====================================================
+    // DASH PLATAFORMERO
+    // =====================================================
+    //
+    // Si devuelve true, el Dash controla toda la física de
+    // este frame y NO ejecutamos gravedad/movimiento normal.
+    // =====================================================
+
+    var _platform_dash_consumed =
+        scr_platformer_dash_update(
+            id
+        );
+
+
+    if (!_platform_dash_consumed)
+    {
+        scr_platformer_player_update();
+    }
 }
 else
 {
+    // Seguridad:
+    // restaurar alpha/visual si abandonamos la room durante Dash.
+    scr_platformer_dash_cancel(
+        id
+    );
+
+
     if (
         variable_instance_exists(
             id,

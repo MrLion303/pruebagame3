@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"scr_platformer_party_dash_ext",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"scr_platformer_party_dash_ext",
+  "parent":{
+    "name":"Mecánicas",
+    "path":"folders/Mecánicas.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

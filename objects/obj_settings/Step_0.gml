@@ -2,55 +2,30 @@
 /// OBJ_SETTINGS
 /// STEP COMPLETO
 /// =========================================================
-//
-// IMPORTANTE:
-//
-// La party NO se actualiza aquí.
-//
-// scr_party_update() debe seguir ÚNICAMENTE en:
-//
-//     obj_settings -> End Step
-//
-// =========================================================
+///
+/// Mantiene sincronizado el equipamiento persistente y limpia
+/// las dos armas eliminadas.
+/// =========================================================
 
 
 // =========================================================
-// SINCRONIZAR EQUIPAMIENTO ACTIVO CON INVENTARIO PERSISTENTE
-// =========================================================
-//
-// BUG CORREGIDO:
-//
-// Antes, al equipar una nueva arma:
-//
-//     obj_player.equipo_arma
-//
-// cambiaba correctamente, PERO:
-//
-//     global.inventory_data.equipado_arma
-//
-// podía quedarse con el arma anterior hasta guardar.
-//
-// Si Maya se recreaba al cambiar de room, el sistema de carga
-// le volvía a poner esa arma antigua. El inventario ya había
-// recibido una copia de esa arma al hacer el intercambio, así
-// que en el siguiente cambio podía aparecer OTRA copia.
-//
-// Ejemplo del bug:
-//
-//     equipada = Raqueta
-//     equipas Cuchillo
-//     inventario recibe Raqueta
-//     cambias room
-//     equipada vuelve erróneamente a Raqueta
-//     equipas otra arma
-//     inventario recibe OTRA Raqueta
-//
-// Desde ahora el equipo activo se refleja en la estructura
-// persistente continuamente.
+// INVENTARIOS
 // =========================================================
 
 scr_inventarios_data();
 
+
+// Elimina de saves existentes:
+//
+//     lanza_tardia
+//     cuchillas_tardias
+//
+scr_equips_cleanup_removed();
+
+
+// =========================================================
+// SINCRONIZAR EQUIPAMIENTO ACTIVO
+// =========================================================
 
 if (instance_exists(obj_player))
 {
@@ -97,8 +72,7 @@ if (instance_exists(obj_player))
 }
 
 
-// Mantener también el array persistente apuntando al
-// inventario de equipamiento que usa actualmente el menú/tienda.
+// Mantener ambas referencias de inventario sincronizadas.
 if (
     variable_global_exists(
         "equipment_inventory"
@@ -118,6 +92,4 @@ if (
 // CINEMÁTICA DE WARP
 // =========================================================
 
-// Gestionar una posible cinemática que quedó pendiente
-// desde el obj_warp_block utilizado.
 scr_cutscene_warp_entry_update();

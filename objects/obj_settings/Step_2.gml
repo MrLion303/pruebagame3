@@ -11,53 +11,51 @@ if (
 /// =========================================================
 /// OBJ_SETTINGS
 /// END STEP
-/// PLATAFORMERO V5
+/// PLATAFORMERO V6
 /// =========================================================
-//
-// 1. Actualizar party.
-// 2. Aplicar visual plataformero de Silicio.
-// 3. Detectar curación de Maya.
-// 4. Mantener HP global sincronizado.
-// 5. Ordenar depths.
+///
+/// RPG:
+///     scr_party_update()
+///
+/// PLATAFORMERO:
+///     scr_platformer_party_follow_update()
+///
+/// Así Silicio NO usa el follower RPG dentro del
+/// plataformero.
+/// =========================================================
+
+
+// =========================================================
+// PARTY
 // =========================================================
 
-scr_party_update();
+var _platform_party =
+    (
+        variable_global_exists(
+            "platformer_active"
+        )
+        &&
+        global.platformer_active
+    );
 
 
-if (
-    variable_global_exists(
-        "platformer_active"
-    )
-    &&
-    global.platformer_active
-)
+if (_platform_party)
 {
-    scr_platformer_party_visual_update();
+    scr_platformer_party_follow_update();
+}
+else
+{
+    // Limpiar historial plataformero y volver a preparar
+    // correctamente el historial RPG.
+    scr_platformer_party_follow_leave();
+
+
+    scr_party_update();
 }
 
 
 // =========================================================
 // HUD TEMPORAL DE CURACIÓN
-// =========================================================
-//
-// Al usar un consumible desde el menú plataformero,
-// obj_menu_manager cierra el menú inmediatamente.
-//
-// Detectamos aquí el aumento real de HP y dejamos la caja
-// de vida visible durante 90 frames = 3 segundos.
-//
-// También guardamos el aumento REAL:
-//
-// Ejemplo:
-//
-//     75 / 80
-//     Manzana +20
-//
-// solo recupera 5:
-//
-//     +5
-//
-// no +20.
 // =========================================================
 
 if (
@@ -151,7 +149,6 @@ if (instance_exists(obj_player))
         _hp_now;
 
 
-    // Mantener esta referencia sincronizada siempre.
     global.player_hp_current =
         _hp_now;
 }

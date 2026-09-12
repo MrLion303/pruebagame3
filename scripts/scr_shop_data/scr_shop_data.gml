@@ -1,25 +1,17 @@
 /// =========================================================
 /// SCR_SHOP_DATA
-/// REEMPLAZO COMPLETO
 /// =========================================================
 ///
-/// CAMBIOS:
+/// TODOS LOS PRECIOS = 0.
 ///
-/// - TODOS los precios de compra = 0.
-/// - TODOS los precios de venta = 0.
-/// - shop_1 vende TODOS los artículos actualmente definidos:
-///     consumibles
-///     Toys
-///     armas
-///     armaduras
+/// Las armas eliminadas:
 ///
-/// Los objetos técnicos del mapa NO son artículos de tienda.
+///     lanza_tardia
+///     cuchillas_tardias
+///
+/// YA NO aparecen en shop_1.
 /// =========================================================
 
-
-// =========================================================
-// LÍNEA DE DIÁLOGO
-// =========================================================
 
 function scr_shop_dialog_line(
     _texto,
@@ -30,24 +22,13 @@ function scr_shop_dialog_line(
 {
     return
     {
-        texto:
-            _texto,
-
-        cabeza:
-            _cabeza,
-
-        sonido:
-            _sonido,
-
-        color:
-            _color
+        texto: _texto,
+        cabeza: _cabeza,
+        sonido: _sonido,
+        color: _color
     };
 }
 
-
-// =========================================================
-// OPCIÓN DE TALK
-// =========================================================
 
 function scr_shop_talk_option(
     _nombre,
@@ -56,24 +37,11 @@ function scr_shop_talk_option(
 {
     return
     {
-        nombre:
-            _nombre,
-
-        dialogos:
-            _dialogos
+        nombre: _nombre,
+        dialogos: _dialogos
     };
 }
 
-
-// =========================================================
-// ARTÍCULO DE STOCK
-// =========================================================
-//
-// _tipo:
-//     "item"  -> global.item_db
-//     "toy"   -> global.toy_db
-//     "equip" -> global.equip_db
-// =========================================================
 
 function scr_shop_stock(
     _tipo,
@@ -83,28 +51,21 @@ function scr_shop_stock(
 {
     return
     {
-        tipo:
-            _tipo,
-
-        id:
-            _id,
-
-        color_nombre:
-            _color_nombre
+        tipo: _tipo,
+        id: _id,
+        color_nombre: _color_nombre
     };
 }
 
 
 // =========================================================
-// FORZAR TODOS LOS PRECIOS A 0
+// FORZAR PRECIOS
 // =========================================================
 
 function scr_shop_db_prices_zero(_db)
 {
     if (!is_struct(_db))
-    {
         return;
-    }
 
 
     var _names =
@@ -119,113 +80,63 @@ function scr_shop_db_prices_zero(_db)
         _i++
     )
     {
-        var _key =
-            _names[
-                _i
-            ];
-
-
         var _data =
             variable_struct_get(
                 _db,
-                _key
+                _names[_i]
             );
 
 
-        if (!is_struct(_data))
+        if (is_struct(_data))
         {
-            continue;
+            _data.precio_compra =
+                0;
+
+            _data.precio_venta =
+                0;
         }
-
-
-        // Aunque un artículo futuro no tenga precio todavía,
-        // se crean ambos campos a 0.
-        _data.precio_compra =
-            0;
-
-        _data.precio_venta =
-            0;
     }
 }
 
 
 function scr_shop_all_prices_zero()
 {
-    if (
-        variable_global_exists(
-            "item_db"
-        )
-    )
-    {
-        scr_shop_db_prices_zero(
-            global.item_db
-        );
-    }
+    if (variable_global_exists("item_db"))
+        scr_shop_db_prices_zero(global.item_db);
 
+    if (variable_global_exists("toy_db"))
+        scr_shop_db_prices_zero(global.toy_db);
 
-    if (
-        variable_global_exists(
-            "toy_db"
-        )
-    )
-    {
-        scr_shop_db_prices_zero(
-            global.toy_db
-        );
-    }
-
-
-    if (
-        variable_global_exists(
-            "equip_db"
-        )
-    )
-    {
-        scr_shop_db_prices_zero(
-            global.equip_db
-        );
-    }
+    if (variable_global_exists("equip_db"))
+        scr_shop_db_prices_zero(global.equip_db);
 }
 
 
 // =========================================================
-// DATOS DE TIENDA
+// TIENDA
 // =========================================================
 
 function scr_shop_data(_shop_id)
 {
-    // obj_shop_controller carga las tres DB antes de llamar
-    // esta función, así que aquí dejamos TODO a precio 0.
     scr_shop_all_prices_zero();
 
 
     switch (_shop_id)
     {
-        // =================================================
-        // SHOP 1
-        // =================================================
-
         case "shop_1":
 
             return
             {
-                // -----------------------------------------
-                // IDENTIDAD
-                // -----------------------------------------
-
                 nombre:
                     scr_loc_src(
                         "Tienda 1"
                     ),
 
-
                 caja_sprite:
                     spr_box_shop_1,
 
-
                 vendedor_sprite:
                     noone,
-
 
                 vendedor_cabeza_default:
                     noone,
@@ -236,168 +147,47 @@ function scr_shop_data(_shop_id)
                 vendedor_color_default:
                     c_white,
 
-
                 mensaje_idle:
                     scr_loc_src(
                         "* Bienvenido. Todo cuesta 0 Sueños."
                     ),
 
 
-                // =========================================
-                // TODO EL STOCK ACTUAL DEL JUEGO
-                // =========================================
-
                 items_venta:
                 [
-                    // -------------------------------------
                     // CONSUMIBLES
-                    // -------------------------------------
+                    scr_shop_stock("item", "agua"),
+                    scr_shop_stock("item", "manzana"),
+                    scr_shop_stock("item", "manzana_caramelo"),
+                    scr_shop_stock("item", "mandarina"),
+                    scr_shop_stock("item", "pastillas_curacion"),
 
-                    scr_shop_stock(
-                        "item",
-                        "agua"
-                    ),
-
-                    scr_shop_stock(
-                        "item",
-                        "manzana"
-                    ),
-
-                    scr_shop_stock(
-                        "item",
-                        "manzana_caramelo"
-                    ),
-
-                    scr_shop_stock(
-                        "item",
-                        "mandarina"
-                    ),
-
-                    scr_shop_stock(
-                        "item",
-                        "pastillas_curacion"
-                    ),
-
-
-                    // -------------------------------------
                     // TOYS
-                    // -------------------------------------
+                    scr_shop_stock("toy", "brillitos"),
+                    scr_shop_stock("toy", "pegamento"),
+                    scr_shop_stock("toy", "flash"),
+                    scr_shop_stock("toy", "rompearmadura"),
+                    scr_shop_stock("toy", "lastre"),
 
-                    scr_shop_stock(
-                        "toy",
-                        "brillitos"
-                    ),
+                    // ARMAS BASE
+                    scr_shop_stock("equip", "espada_basica"),
+                    scr_shop_stock("equip", "raqueta_tenis"),
+                    scr_shop_stock("equip", "cuchillo"),
+                    scr_shop_stock("equip", "cutter"),
 
-                    scr_shop_stock(
-                        "toy",
-                        "pegamento"
-                    ),
+                    // ARMAS MODULARES
+                    scr_shop_stock("equip", "baston_vital"),
+                    scr_shop_stock("equip", "espada_certera"),
+                    scr_shop_stock("equip", "dagas_gemelas"),
+                    scr_shop_stock("equip", "garras_triples"),
+                    scr_shop_stock("equip", "aro_cargado"),
+                    scr_shop_stock("equip", "aro_gemelo_vital"),
 
-                    scr_shop_stock(
-                        "toy",
-                        "flash"
-                    ),
-
-                    scr_shop_stock(
-                        "toy",
-                        "rompearmadura"
-                    ),
-
-                    scr_shop_stock(
-                        "toy",
-                        "lastre"
-                    ),
-
-
-                    // -------------------------------------
-                    // ARMAS ANTIGUAS
-                    // -------------------------------------
-
-                    scr_shop_stock(
-                        "equip",
-                        "espada_basica"
-                    ),
-
-                    scr_shop_stock(
-                        "equip",
-                        "raqueta_tenis"
-                    ),
-
-                    scr_shop_stock(
-                        "equip",
-                        "cuchillo"
-                    ),
-
-                    scr_shop_stock(
-                        "equip",
-                        "cutter"
-                    ),
-
-
-                    // -------------------------------------
-                    // ARMAS MODULARES NUEVAS
-                    // -------------------------------------
-
-                    scr_shop_stock(
-                        "equip",
-                        "baston_vital"
-                    ),
-
-                    scr_shop_stock(
-                        "equip",
-                        "espada_certera"
-                    ),
-
-                    scr_shop_stock(
-                        "equip",
-                        "lanza_tardia"
-                    ),
-
-                    scr_shop_stock(
-                        "equip",
-                        "dagas_gemelas"
-                    ),
-
-                    scr_shop_stock(
-                        "equip",
-                        "garras_triples"
-                    ),
-
-                    scr_shop_stock(
-                        "equip",
-                        "cuchillas_tardias"
-                    ),
-
-                    scr_shop_stock(
-                        "equip",
-                        "aro_cargado"
-                    ),
-
-                    scr_shop_stock(
-                        "equip",
-                        "aro_gemelo_vital"
-                    ),
-
-
-                    // -------------------------------------
                     // ARMADURAS
-                    // -------------------------------------
-
-                    scr_shop_stock(
-                        "equip",
-                        "armadura_basica"
-                    ),
-
-                    scr_shop_stock(
-                        "equip",
-                        "zapatos_rapidos"
-                    )
+                    scr_shop_stock("equip", "armadura_basica"),
+                    scr_shop_stock("equip", "zapatos_rapidos")
                 ],
 
-
-                // -----------------------------------------
-                // TALK
-                // -----------------------------------------
 
                 talk_options:
                 [
@@ -491,10 +281,6 @@ function scr_shop_data(_shop_id)
                     2
             };
 
-
-        // =================================================
-        // TIENDA NO CONFIGURADA
-        // =================================================
 
         default:
 
