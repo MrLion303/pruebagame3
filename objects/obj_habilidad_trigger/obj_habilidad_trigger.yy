@@ -9,8 +9,8 @@
   "name":"obj_habilidad_trigger",
   "overriddenProperties":[],
   "parent":{
-    "name":"Mecánicas",
-    "path":"folders/Mecánicas.yy",
+    "name":"Objetos",
+    "path":"folders/admin obj/Objetos.yy",
   },
   "parentObjectId":null,
   "persistent":false,

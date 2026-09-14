@@ -10,8 +10,8 @@
   "name":"obj_platformer_dash_visual",
   "overriddenProperties":[],
   "parent":{
-    "name":"Mecánicas",
-    "path":"folders/Mecánicas.yy",
+    "name":"Objetos función",
+    "path":"folders/Plataformero/Objetos función.yy",
   },
   "parentObjectId":null,
   "persistent":false,

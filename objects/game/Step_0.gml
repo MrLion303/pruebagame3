@@ -119,3 +119,10 @@ if (
     global.playtime_frames +=
         1;
 }
+
+
+// =========================================================
+// ENCUENTROS ALEATORIOS POR DISTANCIA RECORRIDA
+// =========================================================
+
+scr_random_encounter_update();

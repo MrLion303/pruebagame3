@@ -1,70 +1,74 @@
 /// =========================================================
-/// OBJ_PLATFORMER_WARP
-/// CREATE
-/// =========================================================
-///
-/// ENTRADA:
-///     platformer_enable = true
-///     Z / Enter.
-///
-/// SALIDA:
-///     platformer_enable = false
-///     golpe melee.
+/// OBJ_PLATFORMER_WARP - CREATE
 /// =========================================================
 
-target_room =
-    noone;
+if (!variable_instance_exists(id, "target_room"))
+{
+    target_room =
+        noone;
+}
 
+if (!variable_instance_exists(id, "target_x"))
+{
+    target_x =
+        0;
+}
 
-target_x =
-    0;
+if (!variable_instance_exists(id, "target_y"))
+{
+    target_y =
+        0;
+}
 
+if (!variable_instance_exists(id, "target_facing"))
+{
+    target_facing =
+        1;
+}
 
-target_y =
-    0;
+if (!variable_instance_exists(id, "target_platformer"))
+{
+    target_platformer =
+        true;
+}
 
+if (!variable_instance_exists(id, "interaction_distance"))
+{
+    // Muy cerca del trigger.
+    interaction_distance =
+        24;
+}
 
-target_face =
-    DOWN;
+if (!variable_instance_exists(id, "interaction_x_margin"))
+{
+    // Se reutiliza como tolerancia del eje perpendicular:
+    //
+    // - si miras izquierda/derecha: tolerancia vertical.
+    // - si miras arriba/abajo: tolerancia horizontal.
+    interaction_x_margin =
+        12;
+}
 
+if (!variable_instance_exists(id, "show_prompt"))
+{
+    show_prompt =
+        true;
+}
 
-target_music =
-    -1;
+if (!variable_instance_exists(id, "prompt_text"))
+{
+    prompt_text =
+        "[Z]";
+}
 
+if (!variable_instance_exists(id, "interaction_enabled"))
+{
+    interaction_enabled =
+        true;
+}
 
-keep_music =
+transitioning =
     false;
 
-
-// true = entrar.
-// false = salir.
-platformer_enable =
-    true;
-
-
-// 1 derecha.
-// -1 izquierda.
-platformer_start_facing =
-    1;
-
-
-active =
-    true;
-
-
-// Solo para la entrada con Z / Enter.
-interaction_distance =
-    48;
-
-
-interaction_locked =
+prompt_visible =
     false;
-
-
-// Fallback de hitbox para poder golpear un trigger sin sprite.
-attack_hitbox_half_width =
-    16;
-
-
-attack_hitbox_half_height =
-    24;

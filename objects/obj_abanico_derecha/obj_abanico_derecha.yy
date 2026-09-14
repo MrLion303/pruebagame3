@@ -1,18 +1,16 @@
 {
   "$GMObject":"",
-  "%Name":"obj_sigilo_fx",
+  "%Name":"obj_abanico_derecha",
   "eventList":[
     {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":0,"eventType":0,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
-    {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":0,"eventType":8,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
-    {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":2,"eventType":3,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
     {"$GMEvent":"v1","%Name":"","collisionObjectId":null,"eventNum":0,"eventType":3,"isDnD":false,"name":"","resourceType":"GMEvent","resourceVersion":"2.0",},
   ],
   "managed":true,
-  "name":"obj_sigilo_fx",
+  "name":"obj_abanico_derecha",
   "overriddenProperties":[],
   "parent":{
-    "name":"Objetos función",
-    "path":"folders/Plataformero/Objetos función.yy",
+    "name":"Abanicos",
+    "path":"folders/Mecánicas/Abanicos.yy",
   },
   "parentObjectId":null,
   "persistent":false,

@@ -9,8 +9,8 @@
   "name":"obj_cinta_derecha",
   "overriddenProperties":[],
   "parent":{
-    "name":"Mecánicas",
-    "path":"folders/Mecánicas.yy",
+    "name":"Cintas",
+    "path":"folders/Mecánicas/Cintas.yy",
   },
   "parentObjectId":null,
   "persistent":false,

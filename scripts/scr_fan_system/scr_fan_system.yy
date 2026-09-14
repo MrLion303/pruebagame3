@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"scr_fan_system",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"scr_fan_system",
+  "parent":{
+    "name":"Abanicos",
+    "path":"folders/Mecánicas/Abanicos.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

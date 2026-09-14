@@ -14,8 +14,8 @@
   "exportDir":"",
   "name":"snd_entrar_platformer",
   "parent":{
-    "name":"Plataformero",
-    "path":"folders/Plataformero.yy",
+    "name":"Sonidos",
+    "path":"folders/Plataformero/Sonidos.yy",
   },
   "preload":false,
   "resourceType":"GMSound",
