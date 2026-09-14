@@ -724,6 +724,36 @@ function scr_platformer_dash_update(_p)
 
 function scr_platformer_party_ext_init()
 {
+    // =====================================================
+    // BUFFER DE MOVIMIENTO POR FRAME
+    // =====================================================
+    //
+    // MODELO TIPO DELTARUNE:
+    //
+    // Silicio NO sigue una coordenada objetivo.
+    //
+    // Cada frame guardamos cuánto se MOVIÓ Maya:
+    //
+    //     dx
+    //     dy
+    //     facing
+    //     state
+    //
+    // Silicio reproduce exactamente esos movimientos unos
+    // frames después usando SU PROPIA hitbox contra el mundo.
+    //
+    // Consecuencia:
+    //
+    // - no existe distancia mínima;
+    // - no existe pared invisible;
+    // - Maya y Silicio se pueden superponer;
+    // - al empezar a caminar, Silicio espera por el delay;
+    // - después reproduce el recorrido;
+    // - si Maya se detiene, Silicio termina de reproducir el
+    //   buffer y puede alcanzarla completamente;
+    // - saltos y caídas se reproducen con el mismo retraso.
+    // =====================================================
+
     if (
         !variable_global_exists(
             "platform_party_history"
@@ -761,34 +791,19 @@ function scr_platformer_party_ext_init()
     }
 
 
-    // Silicio reproduce a Maya unos frames después.
-    if (
-        !variable_global_exists(
-            "platform_party_delay_frames"
-        )
-    )
-    {
-        global.platform_party_delay_frames =
-            7;
-    }
-
-
-    // Compatibilidad con builds anteriores.
-    // Ya NO forzamos separación mínima entre Maya y Silicio.
-    if (
-        !variable_global_exists(
-            "platform_party_ground_gap"
-        )
-    )
-    {
-        global.platform_party_ground_gap =
-            0;
-    }
-    else
-    {
-        global.platform_party_ground_gap =
-            0;
-    }
+    // 8 frames a 30 FPS.
+    //
+    // Maya corre hasta 5 px/frame:
+    //
+    //     8 * 5 = ~40 px
+    //
+    // caminando de forma continua.
+    //
+    // IMPORTANTE:
+    // esos 40 px NO son una regla física.
+    // Solo son el resultado natural de reproducir 8 frames tarde.
+    global.platform_party_delay_frames =
+        8;
 
 
     if (
@@ -798,8 +813,38 @@ function scr_platformer_party_ext_init()
     )
     {
         global.platform_party_history_max =
-            180;
+            240;
     }
+
+
+    if (
+        !variable_global_exists(
+            "platform_party_last_player_feet_x"
+        )
+    )
+    {
+        global.platform_party_last_player_feet_x =
+            0;
+    }
+
+
+    if (
+        !variable_global_exists(
+            "platform_party_last_player_feet_y"
+        )
+    )
+    {
+        global.platform_party_last_player_feet_y =
+            0;
+    }
+
+
+    // Compatibilidad con builds anteriores.
+    //
+    // Dejamos explícitamente desactivada cualquier antigua
+    // separación física.
+    global.platform_party_ground_gap =
+        0;
 }
 
 
@@ -980,8 +1025,54 @@ function scr_platformer_silicio_apply_extended_sprite(
     }
 
 
+    // =====================================================
+    // FACING REAL
+    // =====================================================
+    //
+    // Mientras se mueve horizontalmente, manda el movimiento
+    // REAL de Silicio.
+    //
+    // Si no hay movimiento horizontal conservamos el facing de
+    // la ruta. Esto funciona también en salto vertical.
+    // =====================================================
+
+    if (
+        variable_instance_exists(
+            _sil,
+            "platform_sil_move_x"
+        )
+        &&
+        abs(
+            _sil.platform_sil_move_x
+        )
+        >
+        0.20
+    )
+    {
+        _sil.platform_sil_facing =
+            sign(
+                _sil.platform_sil_move_x
+            );
+    }
+    else if (
+        _facing != 0
+    )
+    {
+        _sil.platform_sil_facing =
+            (
+                _facing < 0
+                ?
+                -1
+                :
+                1
+            );
+    }
+
+
     var _left =
-        _facing < 0;
+        _sil.platform_sil_facing
+        <
+        0;
 
 
     var _fallback_side =
@@ -994,58 +1085,49 @@ function scr_platformer_silicio_apply_extended_sprite(
         );
 
 
-    var _spr =
+    var _new_sprite =
         _fallback_side;
 
 
-    switch (_state)
+    var _visual_state =
+        "idle";
+
+
+    // =====================================================
+    // MISMA JERARQUÍA VISUAL QUE MAYA
+    // =====================================================
+    //
+    // Maya:
+    //
+    //     1. sentón
+    //     2. aire
+    //     3. movimiento horizontal
+    //     4. idle
+    //
+    // Aquí añadimos Dash por encima porque Silicio tiene un
+    // sprite específico para acompañar esa acción.
+    // =====================================================
+
+
+    // -----------------------------------------------------
+    // DASH
+    // -----------------------------------------------------
+
+    if (_state == "dash")
     {
-        case "dash":
-
-            _spr =
-                scr_platformer_ext_sprite(
-                    (
-                        _left
-                        ?
-                        "spr_silicio_platform_dash_izquierda"
-                        :
-                        "spr_silicio_platform_dash_derecha"
-                    ),
-                    scr_platformer_ext_sprite(
-                        "spr_silicio_platform_salto",
-                        _fallback_side
-                    )
-                );
-
-            break;
+        _visual_state =
+            "dash";
 
 
-        case "stomp":
-
-            _spr =
-                scr_platformer_ext_sprite(
-                    "spr_silicio_platform_senton",
-                    scr_platformer_ext_sprite(
-                        (
-                            _left
-                            ?
-                            "spr_silicio_platform_salto_izquierda"
-                            :
-                            "spr_silicio_platform_salto_derecha"
-                        ),
-                        scr_platformer_ext_sprite(
-                            "spr_silicio_platform_salto",
-                            _fallback_side
-                        )
-                    )
-                );
-
-            break;
-
-
-        case "jump":
-
-            _spr =
+        _new_sprite =
+            scr_platformer_ext_sprite(
+                (
+                    _left
+                    ?
+                    "spr_silicio_platform_dash_izquierda"
+                    :
+                    "spr_silicio_platform_dash_derecha"
+                ),
                 scr_platformer_ext_sprite(
                     (
                         _left
@@ -1058,54 +1140,185 @@ function scr_platformer_silicio_apply_extended_sprite(
                         "spr_silicio_platform_salto",
                         _fallback_side
                     )
-                );
-
-            break;
-
-
-        case "run":
-
-            _spr =
-                scr_platformer_ext_sprite(
-                    (
-                        _left
-                        ?
-                        "spr_silicio_platform_run_izquierda"
-                        :
-                        "spr_silicio_platform_run_derecha"
-                    ),
-                    _fallback_side
-                );
-
-            break;
-
-
-        default:
-
-            _spr =
-                scr_platformer_ext_sprite(
-                    (
-                        _left
-                        ?
-                        "spr_silicio_platform_idle_izquierda"
-                        :
-                        "spr_silicio_platform_idle_derecha"
-                    ),
-                    _fallback_side
-                );
-
-            break;
+                )
+            );
     }
 
 
-    if (
-        _spr != -1
+    // -----------------------------------------------------
+    // SENTÓN
+    // -----------------------------------------------------
+
+    else if (_state == "stomp")
+    {
+        _visual_state =
+            "stomp";
+
+
+        _new_sprite =
+            scr_platformer_ext_sprite(
+                "spr_silicio_platform_senton",
+                scr_platformer_ext_sprite(
+                    (
+                        _left
+                        ?
+                        "spr_silicio_platform_salto_izquierda"
+                        :
+                        "spr_silicio_platform_salto_derecha"
+                    ),
+                    scr_platformer_ext_sprite(
+                        "spr_silicio_platform_salto",
+                        _fallback_side
+                    )
+                )
+            );
+    }
+
+
+    // -----------------------------------------------------
+    // AIRE / SALTO
+    // -----------------------------------------------------
+
+    else if (
+        _state == "jump"
+        ||
+        (
+            variable_instance_exists(
+                _sil,
+                "platform_sil_grounded"
+            )
+            &&
+            !_sil.platform_sil_grounded
+        )
+    )
+    {
+        _visual_state =
+            "jump";
+
+
+        _new_sprite =
+            scr_platformer_ext_sprite(
+                (
+                    _left
+                    ?
+                    "spr_silicio_platform_salto_izquierda"
+                    :
+                    "spr_silicio_platform_salto_derecha"
+                ),
+                scr_platformer_ext_sprite(
+                    "spr_silicio_platform_salto",
+                    _fallback_side
+                )
+            );
+    }
+
+
+    // -----------------------------------------------------
+    // CORRIENDO
+    // -----------------------------------------------------
+
+    else if (
+        variable_instance_exists(
+            _sil,
+            "platform_sil_move_x"
+        )
         &&
-        _sil.sprite_index != _spr
+        abs(
+            _sil.platform_sil_move_x
+        )
+        >
+        0.20
+    )
+    {
+        _visual_state =
+            "run";
+
+
+        _new_sprite =
+            scr_platformer_ext_sprite(
+                (
+                    _left
+                    ?
+                    "spr_silicio_platform_run_izquierda"
+                    :
+                    "spr_silicio_platform_run_derecha"
+                ),
+                _fallback_side
+            );
+    }
+
+
+    // -----------------------------------------------------
+    // IDLE
+    // -----------------------------------------------------
+
+    else
+    {
+        _visual_state =
+            "idle";
+
+
+        _new_sprite =
+            scr_platformer_ext_sprite(
+                (
+                    _left
+                    ?
+                    "spr_silicio_platform_idle_izquierda"
+                    :
+                    "spr_silicio_platform_idle_derecha"
+                ),
+                _fallback_side
+            );
+    }
+
+
+    // =====================================================
+    // CAMBIO DE SPRITE / ESTADO
+    // =====================================================
+    //
+    // Maya reinicia image_index al cambiar sprite.
+    //
+    // Silicio además guarda el estado visual. Así, incluso si
+    // dos estados usan el MISMO fallback, al pasar:
+    //
+    //     run -> idle
+    //
+    // reiniciamos correctamente al frame 0 en vez de dejar un
+    // frame de caminata congelado.
+    // =====================================================
+
+    if (
+        !variable_instance_exists(
+            _sil,
+            "platform_sil_visual_state"
+        )
+    )
+    {
+        _sil.platform_sil_visual_state =
+            "";
+    }
+
+
+    var _state_changed =
+        _sil.platform_sil_visual_state
+        !=
+        _visual_state;
+
+
+    if (
+        _new_sprite != -1
+        &&
+        (
+            _sil.sprite_index
+            !=
+            _new_sprite
+            ||
+            _state_changed
+        )
     )
     {
         _sil.sprite_index =
-            _spr;
+            _new_sprite;
 
 
         _sil.image_index =
@@ -1113,8 +1326,31 @@ function scr_platformer_silicio_apply_extended_sprite(
     }
 
 
-    if (_state == "idle")
+    _sil.platform_sil_visual_state =
+        _visual_state;
+
+
+    // =====================================================
+    // VELOCIDAD DE ANIMACIÓN
+    // =====================================================
+    //
+    // En movimiento:
+    //     animación normal.
+    //
+    // Quieto:
+    //     frame 0 fijo.
+    //
+    // Esto también cubre el fallback: si todavía no existe un
+    // sprite idle dedicado y se usa spr_silicio_izquierda /
+    // spr_silicio_derecha, NO reproducirá frames de caminar.
+    // =====================================================
+
+    if (_visual_state == "idle")
     {
+        _sil.image_index =
+            0;
+
+
         _sil.image_speed =
             0;
     }
@@ -1125,6 +1361,8 @@ function scr_platformer_silicio_apply_extended_sprite(
     }
 
 
+    // Sprites izquierda/derecha separados.
+    // Nunca hacemos mirror automático.
     _sil.image_xscale =
         abs(
             _sil.platform_sil_saved_image_xscale
@@ -1135,34 +1373,24 @@ function scr_platformer_silicio_apply_extended_sprite(
         _sil.platform_sil_saved_image_yscale;
 
 
-    _sil.platform_sil_facing =
-        (
-            _left
-            ?
-            -1
-            :
-            1
-        );
+    if (_left)
+    {
+        _sil.facing_direction =
+            1;
 
 
-    _sil.facing_direction =
-        (
-            _left
-            ?
-            1
-            :
-            0
-        );
+        _sil.direccion =
+            "izquierda";
+    }
+    else
+    {
+        _sil.facing_direction =
+            0;
 
 
-    _sil.direccion =
-        (
-            _left
-            ?
-            "izquierda"
-            :
-            "derecha"
-        );
+        _sil.direccion =
+            "derecha";
+    }
 }
 
 
@@ -1174,16 +1402,24 @@ function scr_platformer_silicio_apply_extended_sprite(
 //
 // Durante el plataformero NO usamos scr_party_update().
 //
-// Silicio sigue un historial por FRAMES de la física ya
-// validada de Maya.
+// Silicio reproduce el MOVIMIENTO REAL de Maya con retraso.
+//
+// Se guarda un comando cada frame:
+//
+//     dx / dy / facing / state
+//
+// y Silicio ejecuta ese comando unos frames después.
+//
+// No existe ningún target de posición ni ninguna distancia
+// obligatoria entre Maya y Silicio.
 //
 // Por tanto:
 //
-// - no consulta colisión con obj_player;
-// - no intenta empujar a Maya;
-// - no se queda atorado contra ella;
-// - un sentón de 18 px/frame NO se interpreta como teleport;
-// - reproduce el mismo estado unos frames después.
+// - puede ocupar exactamente el mismo lugar que Maya;
+// - nunca consulta colisión con obj_player;
+// - al comenzar a caminar espera naturalmente por el buffer;
+// - salto/caída continúan aunque Maya deje de moverse en X;
+// - al detenerse puede terminar alcanzando completamente a Maya.
 // =========================================================
 
 function scr_platformer_party_follow_update()
@@ -1249,7 +1485,12 @@ function scr_platformer_party_follow_update()
     }
 
 
-    // Snapshot actual ANTES de inicializar el historial.
+    with (_sil)
+    {
+        scr_platformer_silicio_enter();
+    }
+
+
     var _snapshot =
         scr_platformer_party_snapshot(
             _p
@@ -1260,18 +1501,17 @@ function scr_platformer_party_follow_update()
     // NUEVA ROOM / PRIMER FRAME
     // =====================================================
     //
-    // El obj_silicio de la party es persistent. Al cambiar de
-    // room podía conservar durante un frame las coordenadas de
-    // la habitación anterior y después el antiguo bloque de
-    // separación lo empujaba automáticamente detrás de Maya.
-    // Eso producía el parpadeo + "teleport" visible.
+    // Silicio empieza exactamente encima de Maya.
     //
-    // Ahora, ANTES del primer Draw del plataformero:
+    // Después sembramos 8 frames VACÍOS.
     //
-    //     - Silicio se coloca exactamente sobre los pies de Maya;
-    //     - se permite que ambos ocupen el mismo sitio;
-    //     - sembramos el retraso con snapshots idénticos;
-    //     - NO existe empuje automático para separarlos.
+    // Eso significa:
+    //
+    //     Maya empieza a caminar
+    //     -> Silicio se queda quieto 8 frames
+    //     -> luego reproduce el primer movimiento de Maya
+    //
+    // No medimos la distancia entre ellos en ningún momento.
     // =====================================================
 
     if (
@@ -1294,12 +1534,6 @@ function scr_platformer_party_follow_update()
             true;
 
 
-        with (_sil)
-        {
-            scr_platformer_silicio_enter();
-        }
-
-
         _sil.x =
             _snapshot.x;
 
@@ -1318,22 +1552,63 @@ function scr_platformer_party_follow_update()
             _sil.y;
 
 
-        // Sembrar el buffer para que el follower empiece desde
-        // la misma posición sin esperar 7 frames ni hacer snap.
+        _sil.platform_sil_move_x =
+            0;
+
+
+        _sil.platform_sil_move_y =
+            0;
+
+
+        _sil.platform_sil_vsp =
+            0;
+
+
+        _sil.platform_sil_x_rem =
+            0;
+
+
+        _sil.platform_sil_y_rem =
+            0;
+
+
+        _sil.platform_sil_grounded =
+            scr_platformer_floor_at(
+                _sil.x,
+                _sil.y + 1,
+                _sil.platform_sil_hit_left,
+                _sil.platform_sil_hit_top,
+                _sil.platform_sil_hit_right,
+                _sil.platform_sil_hit_bottom
+            );
+
+
+        global.platform_party_last_player_feet_x =
+            _snapshot.x;
+
+
+        global.platform_party_last_player_feet_y =
+            _snapshot.y;
+
+
+        // Frames iniciales sin movimiento.
+        //
+        // Esta es TODA la "distancia del follower":
+        // un retraso temporal, no una pared.
         for (
             var _seed = 0;
-            _seed <= global.platform_party_delay_frames;
+            _seed < global.platform_party_delay_frames;
             _seed++
         )
         {
             array_push(
                 global.platform_party_history,
                 {
-                    x: _snapshot.x,
-                    y: _snapshot.y,
+                    dx: 0,
+                    dy: 0,
                     facing: _snapshot.facing,
-                    grounded: _snapshot.grounded,
-                    state: _snapshot.state
+                    grounded: true,
+                    state: "idle"
                 }
             );
         }
@@ -1341,23 +1616,80 @@ function scr_platformer_party_follow_update()
 
 
     // =====================================================
-    // REGISTRAR MAYA TODOS LOS FRAMES
+    // GRABAR MOVIMIENTO REAL DE MAYA ESTE FRAME
     // =====================================================
     //
-    // A diferencia del party RPG:
+    // A diferencia de las versiones anteriores:
     //
-    // incluso un movimiento vertical de 18 px NO significa warp.
+    // GUARDAMOS TODOS LOS FRAMES.
     //
-    // Eso permite registrar íntegro el sentón.
+    // Incluso un frame quieto:
+    //
+    //     dx = 0
+    //     dy = 0
+    //
+    // es importante porque forma parte del input/movimiento que
+    // Silicio debe reproducir después.
+    //
+    // Esta es la diferencia fundamental entre:
+    //
+    //     seguir una POSICIÓN
+    //
+    // y
+    //
+    //     reproducir el MOVIMIENTO del líder.
     // =====================================================
+
+    var _frame_dx =
+        _snapshot.x
+        -
+        global.platform_party_last_player_feet_x;
+
+
+    var _frame_dy =
+        _snapshot.y
+        -
+        global.platform_party_last_player_feet_y;
+
+
+    // Un cambio de room/warp enorme jamás debe convertirse en
+    // un movimiento reproducible.
+    if (
+        abs(_frame_dx) > 32
+        ||
+        abs(_frame_dy) > 32
+    )
+    {
+        _frame_dx =
+            0;
+
+
+        _frame_dy =
+            0;
+    }
+
 
     array_push(
         global.platform_party_history,
-        _snapshot
+        {
+            dx: _frame_dx,
+            dy: _frame_dy,
+            facing: _snapshot.facing,
+            grounded: _snapshot.grounded,
+            state: _snapshot.state
+        }
     );
 
 
-    var _over =
+    global.platform_party_last_player_feet_x =
+        _snapshot.x;
+
+
+    global.platform_party_last_player_feet_y =
+        _snapshot.y;
+
+
+    var _history_over =
         array_length(
             global.platform_party_history
         )
@@ -1365,342 +1697,365 @@ function scr_platformer_party_follow_update()
         global.platform_party_history_max;
 
 
-    if (_over > 0)
+    if (_history_over > 0)
     {
         array_delete(
             global.platform_party_history,
             0,
-            _over
+            _history_over
         );
     }
 
 
     // =====================================================
-    // AÚN NO HAY SUFICIENTE RETRASO
+    // LEER EL FRAME RETRASADO
     // =====================================================
 
-    var _count =
+    var _history_count =
         array_length(
             global.platform_party_history
         );
 
 
-    if (
-        _count
-        <=
-        global.platform_party_delay_frames
-    )
-    {
-        with (_sil)
-        {
-            scr_platformer_silicio_enter();
-
-
-            platform_sil_prev_x =
-                x;
-
-
-            platform_sil_prev_y =
-                y;
-
-
-            scr_platformer_silicio_apply_extended_sprite(
-                id,
-                "idle",
-                platform_sil_facing
-            );
-        }
-
-
-        return true;
-    }
-
-
-    var _target_index =
-        _count
-        -
-        1
-        -
-        global.platform_party_delay_frames;
-
-
-    _target_index =
-        clamp(
-            _target_index,
+    var _command_index =
+        max(
             0,
-            _count - 1
+            _history_count
+            -
+            1
+            -
+            global.platform_party_delay_frames
         );
 
 
-    var _target =
+    var _cmd =
         global.platform_party_history[
-            _target_index
+            _command_index
         ];
 
 
     // =====================================================
-    // PIES ACTUALES DE SILICIO
+    // MOVIMIENTO DE SILICIO
+    // =====================================================
+    //
+    // NO HAY TARGET X/Y.
+    //
+    // NO HAY:
+    //
+    //     point_distance(Maya, Silicio)
+    //     gap mínimo
+    //     corrección para acercarse
+    //     corrección para alejarse
+    //     clamp hacia la posición de Maya
+    //
+    // Solamente:
+    //
+    //     "Maya se movió +5 hace 8 frames"
+    //         -> Silicio intenta moverse +5 ahora.
+    //
+    //     "Maya saltó -10 hace 8 frames"
+    //         -> Silicio intenta moverse -10 ahora.
+    //
+    // Si Silicio termina encima de Maya:
+    //
+    //     no ocurre absolutamente nada.
     // =====================================================
 
-    with (_sil)
-    {
-        scr_platformer_silicio_enter();
-    }
-
-
-    var _sil_feet_x =
+    var _old_sil_x =
         _sil.x;
 
 
-    var _sil_feet_y =
-        _sil.y
-        +
-        _sil.platform_sil_hit_bottom;
+    var _old_sil_y =
+        _sil.y;
 
 
-    // =====================================================
-    // MAYA Y SILICIO PUEDEN SUPERPONERSE
-    // =====================================================
-    //
-    // No existe ninguna corrección de distancia contra Maya.
-    // Si el historial coloca a Silicio justo encima del jugador,
-    // se respeta exactamente esa posición.
-    // =====================================================
+    // -----------------------------------------------------
+    // X
+    // -----------------------------------------------------
 
-
-    // =====================================================
-    // CONSERVAR DISTANCIA AL DETENERSE HORIZONTALMENTE
-    // =====================================================
-    //
-    // Si Maya venía caminando a izquierda/derecha y se queda
-    // quieta EN SUELO, Silicio conserva la X que ya alcanzó.
-    // No intenta terminar de juntarse con Maya.
-    //
-    // Esto NO empuja ni teletransporta a Silicio: únicamente
-    // congela su objetivo X actual hasta que Maya vuelva a
-    // desplazarse lateralmente.
-    //
-    // Si Maya salta sin desplazamiento horizontal, el hold se
-    // libera. Así Silicio sí puede acomodarse con Maya durante
-    // un salto vertical en la misma posición.
-    // =====================================================
-
-    if (
-        !variable_instance_exists(
-            _sil,
-            "platform_follow_hold_x_active"
-        )
-    )
-    {
-        _sil.platform_follow_hold_x_active =
-            false;
-
-        _sil.platform_follow_hold_x =
-            _sil_feet_x;
-
-        _sil.platform_follow_was_lateral =
-            false;
-    }
-
-
-    var _player_lateral_now =
-        abs(
-            _p.platform_hsp
-        )
-        >
-        0.20;
-
-
-    var _player_grounded_now =
-        variable_instance_exists(
-            _p,
-            "platform_grounded"
-        )
-        &&
-        _p.platform_grounded;
-
-
-    var _jumping_in_place =
-        !_player_grounded_now
-        &&
-        !_player_lateral_now
-        &&
-        _snapshot.state == "jump";
-
-
-    if (_player_lateral_now)
-    {
-        _sil.platform_follow_hold_x_active =
-            false;
-
-        _sil.platform_follow_was_lateral =
-            true;
-    }
-    else if (_jumping_in_place)
-    {
-        // Un salto vertical debe permitir que Silicio se alinee
-        // con Maya; no conservar la distancia horizontal vieja.
-        _sil.platform_follow_hold_x_active =
-            false;
-
-        _sil.platform_follow_was_lateral =
-            false;
-    }
-    else if (_player_grounded_now)
-    {
-        if (
-            _sil.platform_follow_was_lateral
-            &&
-            !_sil.platform_follow_hold_x_active
-        )
-        {
-            _sil.platform_follow_hold_x =
-                _sil_feet_x;
-
-            _sil.platform_follow_hold_x_active =
-                true;
-
-            _sil.platform_follow_was_lateral =
-                false;
-        }
-
-
-        if (_sil.platform_follow_hold_x_active)
-        {
-            _target.x =
-                _sil.platform_follow_hold_x;
-        }
-    }
-
-
-    // =====================================================
-    // MOVIMIENTO REAL DE SILICIO
-    // =====================================================
-    //
-    // Máximo 20 px/frame:
-    //
-    // suficiente para reproducir:
-    //     salto,
-    //     caída,
-    //     sentón (máx. 18),
-    //     dash (10),
-    //
-    // pero evita cualquier snap gigante si algo externo altera
-    // el historial.
-    // =====================================================
-
-    var _dx =
-        _target.x
-        -
-        _sil_feet_x;
-
-
-    var _dy =
-        _target.y
-        -
-        _sil_feet_y;
-
-
-    var _distance =
-        point_distance(
-            _sil_feet_x,
-            _sil_feet_y,
-            _target.x,
-            _target.y
+    var _move_x_pixels =
+        round(
+            _cmd.dx
         );
 
 
-    var _max_follow_step =
-        20;
-
-
-    var _move_x =
-        _dx;
-
-
-    var _move_y =
-        _dy;
-
-
-    if (_distance > _max_follow_step)
+    if (_move_x_pixels != 0)
     {
-        var _ratio =
-            _max_follow_step
-            /
-            _distance;
+        var _sx =
+            sign(
+                _move_x_pixels
+            );
 
 
-        _move_x *=
-            _ratio;
-
-
-        _move_y *=
-            _ratio;
+        for (
+            var _ix = 0;
+            _ix < abs(_move_x_pixels);
+            _ix++
+        )
+        {
+            // ÚNICAMENTE colisión con el escenario.
+            //
+            // scr_platformer_collision_at() consulta "colision".
+            // Maya nunca participa aquí.
+            if (
+                !scr_platformer_collision_at(
+                    _sil.x + _sx,
+                    _sil.y,
+                    _sil.platform_sil_hit_left,
+                    _sil.platform_sil_hit_top,
+                    _sil.platform_sil_hit_right,
+                    _sil.platform_sil_hit_bottom
+                )
+            )
+            {
+                _sil.x +=
+                    _sx;
+            }
+            else
+            {
+                break;
+            }
+        }
     }
 
 
-    var _new_feet_x =
-        _sil_feet_x
-        +
-        _move_x;
-
-
-    var _new_feet_y =
-        _sil_feet_y
-        +
-        _move_y;
-
-
-    // =====================================================
-    // COLOCAR SIN COLISIÓN CONTRA MAYA
-    // =====================================================
+    // -----------------------------------------------------
+    // Y
+    // -----------------------------------------------------
     //
-    // La trayectoria viene de una ruta que Maya YA recorrió.
-    // No hace falta una segunda física que pueda pelearse con
-    // el cuerpo del jugador.
+    // Reproducimos el arco real de Maya con retraso.
+    //
+    // Como el historial guarda TODOS los frames:
+    //
+    // subida
+    // ápice
+    // caída
+    //
+    // siempre llegan después en el mismo orden.
+    //
+    // Por eso Silicio no puede quedarse flotando en el ápice.
+    // -----------------------------------------------------
+
+    var _move_y_pixels =
+        round(
+            _cmd.dy
+        );
+
+
+    var _landed =
+        false;
+
+
+    if (_move_y_pixels != 0)
+    {
+        var _sy =
+            sign(
+                _move_y_pixels
+            );
+
+
+        for (
+            var _iy = 0;
+            _iy < abs(_move_y_pixels);
+            _iy++
+        )
+        {
+            var _trampoline =
+                noone;
+
+
+            var _oneway =
+                noone;
+
+
+            // One-way y trampolines solamente bloquean al bajar.
+            if (_sy > 0)
+            {
+                _trampoline =
+                    scr_platformer_trampoline_at(
+                        _sil.x,
+                        _sil.y + _sy,
+                        _sil.platform_sil_hit_left,
+                        _sil.platform_sil_hit_top,
+                        _sil.platform_sil_hit_right,
+                        _sil.platform_sil_hit_bottom
+                    );
+
+
+                _oneway =
+                    scr_platformer_oneway_at(
+                        _sil.x,
+                        _sil.y + _sy,
+                        _sil.platform_sil_hit_left,
+                        _sil.platform_sil_hit_top,
+                        _sil.platform_sil_hit_right,
+                        _sil.platform_sil_hit_bottom
+                    );
+            }
+
+
+            if (
+                _trampoline != noone
+                ||
+                _oneway != noone
+            )
+            {
+                _landed =
+                    true;
+
+                break;
+            }
+
+
+            if (
+                !scr_platformer_collision_at(
+                    _sil.x,
+                    _sil.y + _sy,
+                    _sil.platform_sil_hit_left,
+                    _sil.platform_sil_hit_top,
+                    _sil.platform_sil_hit_right,
+                    _sil.platform_sil_hit_bottom
+                )
+            )
+            {
+                _sil.y +=
+                    _sy;
+            }
+            else
+            {
+                if (_sy > 0)
+                {
+                    _landed =
+                        true;
+                }
+
+                break;
+            }
+        }
+    }
+
+
+    // =====================================================
+    // ESTADO FÍSICO FINAL
     // =====================================================
 
-    _sil.x =
-        _new_feet_x;
-
-
-    _sil.y =
-        _new_feet_y
+    var _actual_move_x =
+        _sil.x
         -
-        _sil.platform_sil_hit_bottom;
+        _old_sil_x;
+
+
+    var _actual_move_y =
+        _sil.y
+        -
+        _old_sil_y;
 
 
     _sil.platform_sil_move_x =
-        _move_x;
+        _actual_move_x;
 
 
     _sil.platform_sil_move_y =
-        _move_y;
+        _actual_move_y;
+
+
+    // Solo se conserva para compatibilidad con otros efectos.
+    _sil.platform_sil_vsp =
+        _actual_move_y;
+
+
+    _sil.platform_sil_x_rem =
+        0;
+
+
+    _sil.platform_sil_y_rem =
+        0;
 
 
     _sil.platform_sil_grounded =
-        _target.grounded;
+        (
+            _landed
+            ||
+            (
+                _actual_move_y >= 0
+                &&
+                scr_platformer_floor_at(
+                    _sil.x,
+                    _sil.y + 1,
+                    _sil.platform_sil_hit_left,
+                    _sil.platform_sil_hit_top,
+                    _sil.platform_sil_hit_right,
+                    _sil.platform_sil_hit_bottom
+                )
+            )
+        );
 
 
     _sil.movimiento =
         (
-            abs(_move_x) > 0.001
+            abs(_actual_move_x) > 0.001
             ||
-            abs(_move_y) > 0.001
+            abs(_actual_move_y) > 0.001
         );
 
 
-    // En plataformero Silicio siempre se dibuja detrás de Maya.
+    // En plataformero Silicio siempre detrás de Maya.
     _sil.depth =
         _p.depth
         +
         1;
 
 
+    // =====================================================
+    // SPRITE
+    // =====================================================
+    //
+    // El estado viene del mismo frame retrasado de Maya.
+    //
+    // Pero la física real tiene prioridad si una colisión hizo
+    // que Silicio ya estuviera en suelo.
+    // =====================================================
+
+    var _visual_state =
+        _cmd.state;
+
+
+    if (
+        _sil.platform_sil_grounded
+        &&
+        (
+            _visual_state == "jump"
+            ||
+            _visual_state == "stomp"
+        )
+    )
+    {
+        _visual_state =
+            (
+                abs(_actual_move_x) > 0.20
+                ?
+                "run"
+                :
+                "idle"
+            );
+    }
+
+
+    if (
+        !_sil.platform_sil_grounded
+        &&
+        _visual_state == "idle"
+    )
+    {
+        _visual_state =
+            "jump";
+    }
+
+
     scr_platformer_silicio_apply_extended_sprite(
         _sil,
-        _target.state,
-        _target.facing
+        _visual_state,
+        _cmd.facing
     );
 
 
@@ -1823,15 +2178,231 @@ function scr_silicio_visibility_update(_p)
         );
 
 
+    // =====================================================
+    // HIELO: MANTENER OCULTO HASTA QUE SILICIO TAMBIÉN SALGA
+    // =====================================================
+
+    if (
+        !variable_instance_exists(
+            _sil,
+            "party_ice_hide_latched"
+        )
+    )
+    {
+        _sil.party_ice_hide_latched =
+            false;
+
+
+        _sil.party_ice_player_was_on =
+            false;
+
+
+        _sil.party_ice_exit_distance =
+            0;
+
+
+        _sil.party_ice_exit_required =
+            0;
+
+
+        _sil.party_ice_last_player_x =
+            _p.x;
+
+
+        _sil.party_ice_last_player_y =
+            _p.y;
+
+
+        _sil.party_ice_hide_room =
+            room;
+    }
+
+
+    if (_sil.party_ice_hide_room != room)
+    {
+        _sil.party_ice_hide_room =
+            room;
+
+
+        _sil.party_ice_hide_latched =
+            false;
+
+
+        _sil.party_ice_player_was_on =
+            false;
+
+
+        _sil.party_ice_exit_distance =
+            0;
+
+
+        _sil.party_ice_exit_required =
+            0;
+    }
+
+
+    var _sil_on_ice =
+        false;
+
+
+    var _ice_normal_obj =
+        asset_get_index(
+            "obj_hielo"
+        );
+
+
+    var _ice_blue_obj =
+        asset_get_index(
+            "obj_hielo_azul"
+        );
+
+
+    if (
+        _ice_normal_obj != -1
+        &&
+        scr_party_actor_overlaps(
+            _sil,
+            _ice_normal_obj
+        )
+    )
+    {
+        _sil_on_ice =
+            true;
+    }
+
+
+    if (
+        !_sil_on_ice
+        &&
+        _ice_blue_obj != -1
+        &&
+        scr_party_actor_overlaps(
+            _sil,
+            _ice_blue_obj
+        )
+    )
+    {
+        _sil_on_ice =
+            true;
+    }
+
+
+    if (_on_ice)
+    {
+        _sil.party_ice_hide_latched =
+            true;
+
+
+        _sil.party_ice_player_was_on =
+            true;
+
+
+        _sil.party_ice_exit_distance =
+            0;
+
+
+        _sil.party_ice_last_player_x =
+            _p.x;
+
+
+        _sil.party_ice_last_player_y =
+            _p.y;
+
+
+        var _ice_gap =
+            0;
+
+
+        if (
+            variable_global_exists(
+                "party_history"
+            )
+            &&
+            is_array(
+                global.party_history
+            )
+        )
+        {
+            _ice_gap =
+                scr_party_history_gap_for_delay(
+                    0
+                );
+        }
+
+
+        _sil.party_ice_exit_required =
+            max(
+                16,
+                _ice_gap
+            );
+    }
+    else if (_sil.party_ice_hide_latched)
+    {
+        if (_sil.party_ice_player_was_on)
+        {
+            _sil.party_ice_player_was_on =
+                false;
+
+
+            _sil.party_ice_exit_distance =
+                0;
+
+
+            _sil.party_ice_last_player_x =
+                _p.x;
+
+
+            _sil.party_ice_last_player_y =
+                _p.y;
+        }
+        else
+        {
+            var _ice_step_distance =
+                point_distance(
+                    _sil.party_ice_last_player_x,
+                    _sil.party_ice_last_player_y,
+                    _p.x,
+                    _p.y
+                );
+
+
+            if (_ice_step_distance <= 24)
+            {
+                _sil.party_ice_exit_distance +=
+                    _ice_step_distance;
+            }
+
+
+            _sil.party_ice_last_player_x =
+                _p.x;
+
+
+            _sil.party_ice_last_player_y =
+                _p.y;
+        }
+
+
+        if (
+            _sil.party_ice_exit_distance
+            >=
+            _sil.party_ice_exit_required
+            &&
+            !_sil_on_ice
+        )
+        {
+            _sil.party_ice_hide_latched =
+                false;
+        }
+    }
+
+
     if (_force_visible_recovery)
     {
         _hide =
             false;
     }
-    else if (_on_ice)
+    else if (_sil.party_ice_hide_latched)
     {
-        // Ambos hielos del sistema actual:
-        // obj_hielo y obj_hielo_azul.
         _hide =
             true;
     }
@@ -2110,18 +2681,7 @@ function scr_platformer_void_store_safe(_p)
 
 function scr_platformer_void_seed_party(_p)
 {
-    if (
-        !variable_global_exists(
-            "platform_party_history"
-        )
-        ||
-        !is_array(
-            global.platform_party_history
-        )
-    )
-    {
-        return;
-    }
+    scr_platformer_party_ext_init();
 
 
     var _snap =
@@ -2142,17 +2702,29 @@ function scr_platformer_void_seed_party(_p)
         true;
 
 
+    global.platform_party_last_player_feet_x =
+        _snap.x;
+
+
+    global.platform_party_last_player_feet_y =
+        _snap.y;
+
+
+    // Después del rescate volvemos a empezar con un buffer
+    // completamente quieto.
+    //
+    // Silicio no recibe ningún target ni corrección de distancia.
     for (
         var _i = 0;
-        _i <= global.platform_party_delay_frames;
+        _i < global.platform_party_delay_frames;
         _i++
     )
     {
         array_push(
             global.platform_party_history,
             {
-                x: _snap.x,
-                y: _snap.y,
+                dx: 0,
+                dy: 0,
                 facing: _snap.facing,
                 grounded: true,
                 state: "idle"
@@ -2911,6 +3483,23 @@ function scr_platformer_attack_los_prepare(_p)
 
 
     // -----------------------------------------------------
+    // ORIGEN SEGURO PARA BLOQUES WITH()
+    // -----------------------------------------------------
+    //
+    // _sx / _sy son variables locales de esta función.
+    // Dentro de with(), usamos copias guardadas explícitamente
+    // en la instancia del player para que GameMaker no intente
+    // resolverlas como variables inexistentes del objeto.
+    // -----------------------------------------------------
+
+    _p.platform_attack_los_origin_x =
+        _sx;
+
+    _p.platform_attack_los_origin_y =
+        _sy;
+
+
+    // -----------------------------------------------------
     // ENEMIGOS
     // -----------------------------------------------------
 
@@ -2945,8 +3534,8 @@ function scr_platformer_attack_los_prepare(_p)
 
         if (
             scr_platformer_attack_los_blocked(
-                other._sx,
-                other._sy,
+                other.platform_attack_los_origin_x,
+                other.platform_attack_los_origin_y,
                 _tx,
                 _ty
             )

@@ -11,7 +11,7 @@ if (
 /// =========================================================
 /// OBJ_SETTINGS
 /// END STEP
-/// PLATAFORMERO V6
+/// PLATAFORMERO V7
 /// =========================================================
 ///
 /// RPG:
@@ -19,9 +19,6 @@ if (
 ///
 /// PLATAFORMERO:
 ///     scr_platformer_party_follow_update()
-///
-/// Así Silicio NO usa el follower RPG dentro del
-/// plataformero.
 /// =========================================================
 
 
@@ -83,7 +80,7 @@ else
 
 
 // =========================================================
-// FADE DE SILICIO POR SIGILO / DASH
+// FADE DE SILICIO
 // =========================================================
 
 if (instance_exists(obj_player))
@@ -95,6 +92,13 @@ if (instance_exists(obj_player))
         )
     );
 }
+
+
+// =========================================================
+// DIÁLOGO AL USAR CONSUMIBLE DESDE EL INVENTARIO
+// =========================================================
+
+scr_item_use_dialog_update();
 
 
 // =========================================================
