@@ -1,6 +1,6 @@
 /// =========================================================
 /// OBJ_MAPA_COMBATE_FX
-/// STEP
+/// STEP COMPLETO
 /// =========================================================
 
 
@@ -78,20 +78,6 @@ with (obj_enemigo_mapa_parent)
 }
 
 
-// =========================================================
-// BLOQUEAR MENÚ DE PAUSA DURANTE PELIGRO
-// =========================================================
-//
-// MODO NORMAL:
-//     Conserva el comportamiento actual del juego. Si hay
-//     un enemigo en alerta, C/Ctrl se bloquean y el menú se
-//     cierra.
-//
-// MODO PLATAFORMERO:
-//     NO cerramos el menú. Enemigos, proyectiles, i-frames y
-//     el resto del mundo siguen avanzando detrás de él.
-// =========================================================
-
 var _platformer_mode =
 (
     variable_global_exists(
@@ -101,6 +87,26 @@ var _platformer_mode =
     global.platformer_active
 );
 
+
+var _platformer_menu_open =
+(
+    _platformer_mode
+    &&
+    instance_exists(obj_menu_manager)
+    &&
+    obj_menu_manager.state != MENU_STATE.CLOSED
+);
+
+
+// =========================================================
+// BLOQUEAR MENÚ DE PAUSA DURANTE PELIGRO
+// =========================================================
+//
+// En RPG se conserva el bloqueo antiguo.
+// En plataformero el cierre real lo gestiona obj_menu_manager
+// End Step según el rango de ataque, para poder cerrarlo incluso
+// si el enemigo entra al rango DESPUÉS de abrir el menú.
+// =========================================================
 
 if (
     danger_active
@@ -152,23 +158,30 @@ if (
 // FADE DEL EFECTO DE PELIGRO
 // =========================================================
 //
-// La oscuridad y el rojo de Maya usan la misma transición.
-// Si sales y vuelves a entrar durante el fade, se invierte
-// desde el punto exacto en el que se encontraba.
+// CORRECCIÓN DEL PARPADEO/DESFASE EN PLATAFORMERO:
+//
+// Si un enemigo entra al rango mientras el inventario está
+// abierto, obj_menu_manager lo cierra en End Step. Antes, este
+// objeto ya había avanzado fx_anim durante Step y Draw GUI podía
+// mostrar durante ese único frame una copia roja desfasada.
+//
+// Mientras el menú plataforma siga abierto EN STEP, mantenemos
+// el FX visual en 0. El enemigo y toda su lógica siguen activos.
+// Cuando el menú ya está cerrado, el fade comienza limpio desde
+// el frame siguiente.
 // =========================================================
 
-if (danger_active)
+if (_platformer_menu_open)
 {
+    fx_anim =
+        0;
+
+
     oscuridad_base =
-        max(
-            oscuridad_base,
-            oscuridad_actual
-        );
-
-
-    // Si aparece un enemigo con una oscuridad distinta
-    // mientras ya estamos dentro del peligro, actualizar
-    // también hacia su valor actual.
+        0;
+}
+else if (danger_active)
+{
     oscuridad_base =
         oscuridad_actual;
 
@@ -204,7 +217,20 @@ else
 // ANIMACIÓN DEL HUD
 // =========================================================
 
-if (danger_active)
+if (_platformer_menu_open)
+{
+    hud_anim =
+        0;
+
+
+    hud_hp_anterior =
+        -1;
+
+
+    hud_timer_dolor =
+        0;
+}
+else if (danger_active)
 {
     hud_anim =
         min(
@@ -234,42 +260,6 @@ else
         hud_timer_dolor =
             0;
     }
-}
-
-
-// =========================================================
-// EN PLATAFORMERO, EL HUD DEL ENEMIGO NO SE DUPLICA
-// =========================================================
-//
-// El menú de plataforma ya dibuja su propia ventana de HP
-// debajo del panel izquierdo usando el mismo estilo.
-//
-// El mundo / enemigos siguen vivos: SOLO ocultamos el HUD
-// flotante original mientras el menú esté abierto.
-// =========================================================
-
-var _platformer_menu_open =
-(
-    _platformer_mode
-    &&
-    instance_exists(obj_menu_manager)
-    &&
-    obj_menu_manager.state != MENU_STATE.CLOSED
-);
-
-
-if (_platformer_menu_open)
-{
-    hud_anim =
-        0;
-
-
-    hud_hp_anterior =
-        -1;
-
-
-    hud_timer_dolor =
-        0;
 }
 
 

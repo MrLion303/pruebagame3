@@ -48,6 +48,41 @@ action_feedback_seen =
     false;
 
 
+// =========================================================
+// ESPERA FINAL DE ATAQUES CUSTOM
+// =========================================================
+//
+// Multi-hit / cargado conservan target/diana durante 1 segundo
+// después del último input antes de aplicar la muerte y pasar al
+// popup de resultado.
+// =========================================================
+
+custom_hold_active =
+    false;
+
+custom_hold_timer =
+    0;
+
+custom_hold_duration =
+    max(
+        1,
+        game_get_speed(
+            gamespeed_fps
+        )
+    );
+
+
+// =========================================================
+// MEMORIA DEL ÚLTIMO BOTÓN DE ACCIÓN
+// =========================================================
+
+last_action_button =
+    0;
+
+phase_was_player_menu =
+    false;
+
+
 weapon_mods =
     scr_battle_get_weapon_mods();
 
@@ -87,6 +122,12 @@ custom_accept_pressed =
 custom_accept_held =
     false;
 
+// Estado físico REAL de Z/Enter del frame anterior.
+// keyboard_check_direct() no pierde el HOLD aunque limpiemos
+// la tecla virtual para bloquear obj_batalla_ui.
+custom_accept_prev_direct_held =
+    false;
+
 
 // Guardamos la velocidad real de la UI mientras la bloqueamos.
 saved_ui_bar_speed =
@@ -107,7 +148,7 @@ multi_direction =
     1;
 
 multi_gap =
-    38;
+    60;
 
 multi_min_x =
     0;
@@ -124,8 +165,17 @@ multi_positions =
 multi_done =
     [];
 
+// Daño máximo TOTAL de la acción antes de dividirlo.
+multi_base_damage_total =
+    0;
+
+// Daño máximo asignado a cada barra.
+// La suma de todas las partes es EXACTAMENTE el daño normal.
+multi_damage_parts =
+    [];
+
 multi_speed =
-    7;
+    5;
 
 
 // =========================================================
@@ -613,6 +663,24 @@ function(
         ui_ref;
 
 
+    if (
+        action_target < 0
+        ||
+        action_target >= array_length(
+            _ui.enemigos
+        )
+    )
+    {
+        return;
+    }
+
+
+    var _en =
+        _ui.enemigos[
+            action_target
+        ];
+
+
     _ui.attack_target_idx =
         action_target;
 
@@ -627,16 +695,338 @@ function(
         f_precision_force_miss();
 
 
+    // =====================================================
+    // CALCULAR EL HIT SIN MATAR TODAVÍA
+    // =====================================================
+    //
+    // El resolvedor normal también contiene calidad de timing,
+    // sonidos y datos de feedback. Le damos temporalmente HP muy
+    // alto para que calcule el golpe SIN activar muerte.
+    // Después restauramos el HP real.
+    //
+    // Así, si al enemigo le queda 1 HP y el primer golpe de una
+    // cadena de 3 acierta, las otras 2 barras siguen existiendo.
+    // La vida real solo cambia cuando termina TODA la acción.
+    // =====================================================
+
+    var _hp_before =
+        _en.vida_actual;
+
+
+    var _defeated_before =
+        variable_struct_exists(
+            _en,
+            "derrotado"
+        )
+        ?
+        _en.derrotado
+        :
+        false;
+
+
+    if (!_real_miss)
+    {
+        _en.vida_actual =
+            max(
+                1000000,
+                _hp_before + 1000000
+            );
+
+
+        _en.derrotado =
+            false;
+    }
+
+
     _ui.f_resolver_timing_ataque(
         _real_miss
     );
 
 
-    action_total_damage +=
+    var _damage_this_hit =
         max(
             0,
             _ui.attack_damage_done
         );
+
+
+    _en.vida_actual =
+        _hp_before;
+
+
+    _en.derrotado =
+        _defeated_before;
+
+
+    action_total_damage +=
+        _damage_this_hit;
+};
+
+
+// =========================================================
+// COMENZAR ESPERA DE 1 SEGUNDO
+// =========================================================
+
+f_begin_custom_hold =
+function()
+{
+    custom_hold_active =
+        true;
+
+
+    custom_hold_timer =
+        0;
+
+
+    custom_hold_duration =
+        max(
+            1,
+            game_get_speed(
+                gamespeed_fps
+            )
+        );
+
+
+    keyboard_clear(
+        ord("Z")
+    );
+
+
+    keyboard_clear(
+        vk_enter
+    );
+};
+
+
+// =========================================================
+// APLICAR AL FINAL TODO EL DAÑO CUSTOM ACUMULADO
+// =========================================================
+
+f_apply_custom_damage_final =
+function()
+{
+    if (!f_refresh_refs())
+        return;
+
+
+    var _ui =
+        ui_ref;
+
+
+    if (
+        action_target < 0
+        ||
+        action_target >= array_length(
+            _ui.enemigos
+        )
+    )
+    {
+        return;
+    }
+
+
+    var _en =
+        _ui.enemigos[
+            action_target
+        ];
+
+
+    if (action_total_damage <= 0)
+    {
+        _ui.attack_damage_done =
+            0;
+
+
+        _ui.attack_result_text =
+            scr_loc_src(
+                "* Fallaste el ataque."
+            );
+
+
+        return;
+    }
+
+
+    _en.vida_actual =
+        max(
+            0,
+            _en.vida_actual
+            -
+            action_total_damage
+        );
+
+
+    _en.shake_timer =
+        15;
+
+
+    _ui.attack_damage_done =
+        action_total_damage;
+
+
+    // =====================================================
+    // MUERTE SOLO AQUÍ, DESPUÉS DE TODAS LAS BARRAS
+    // =====================================================
+
+    if (_en.vida_actual <= 0)
+    {
+        _en.vida_actual =
+            0;
+
+
+        _en.derrotado =
+            true;
+
+
+        if (
+            instance_exists(
+                obj_batalla_controller
+            )
+            &&
+            variable_instance_exists(
+                obj_batalla_controller,
+                "mapa_enemigos_muertos"
+            )
+        )
+        {
+            scr_marcar_enemigo_muerto(
+                obj_batalla_controller.mapa_enemigos_muertos,
+                action_target
+            );
+        }
+
+
+        audio_play_sound(
+            snd_enemy_killed,
+            10,
+            false
+        );
+
+
+        _ui.attack_result_text =
+            variable_struct_exists(
+                _en,
+                "texto_muerte"
+            )
+            ?
+            string_replace_all(
+                _en.texto_muerte,
+                "\n",
+                " "
+            )
+            :
+            scr_locf(
+                "* Venciste a {enemy}!",
+                {
+                    enemy:
+                        scr_loc(
+                            _en.nombre
+                        )
+                }
+            );
+
+
+        var _todos_muertos =
+            true;
+
+
+        for (
+            var _i = 0;
+            _i < array_length(
+                _ui.enemigos
+            );
+            _i++
+        )
+        {
+            if (
+                !variable_struct_exists(
+                    _ui.enemigos[_i],
+                    "derrotado"
+                )
+                ||
+                !_ui.enemigos[_i].derrotado
+            )
+            {
+                _todos_muertos =
+                    false;
+
+                break;
+            }
+        }
+
+
+        if (_todos_muertos)
+        {
+            if (audio_is_playing(snd_bbs_start))
+            {
+                audio_stop_sound(
+                    snd_bbs_start
+                );
+            }
+
+
+            if (
+                instance_exists(
+                    obj_batalla_controller
+                )
+                &&
+                variable_instance_exists(
+                    obj_batalla_controller,
+                    "musica_batalla_actual"
+                )
+            )
+            {
+                var _musica_real =
+                    obj_batalla_controller.musica_batalla_actual;
+
+
+                if (
+                    _musica_real != noone
+                    &&
+                    audio_is_playing(
+                        _musica_real
+                    )
+                )
+                {
+                    audio_stop_sound(
+                        _musica_real
+                    );
+                }
+            }
+
+
+            if (
+                _ui.musica_batalla_actual != noone
+                &&
+                audio_is_playing(
+                    _ui.musica_batalla_actual
+                )
+            )
+            {
+                audio_stop_sound(
+                    _ui.musica_batalla_actual
+                );
+            }
+        }
+    }
+    else
+    {
+        _ui.attack_result_text =
+            scr_locf(
+                "* Hiciste {damage} de daño a {enemy}!",
+                {
+                    damage:
+                        string(
+                            action_total_damage
+                        ),
+
+                    enemy:
+                        scr_loc(
+                            _en.nombre
+                        )
+                }
+            );
+    }
 };
 
 
@@ -693,8 +1083,12 @@ function()
         );
 
 
+    // Un poco más lento que la barra normal.
     multi_speed =
-        saved_ui_bar_speed;
+        max(
+            3.5,
+            saved_ui_bar_speed * 0.72
+        );
 
 
     // Separación estilo Undertale/Deltarune:
@@ -713,12 +1107,15 @@ function()
 
     multi_gap =
         min(
-            38,
+            60,
             max(
-                26,
+                42,
                 _side_space
                 /
-                (multi_count + 0.5)
+                max(
+                    1.6,
+                    multi_count - 0.8
+                )
             )
         );
 
@@ -738,11 +1135,86 @@ function()
 
 
     // =====================================================
-    // TODAS APARECEN A LA VEZ DESDE EL MISMO LADO
+    // DIVIDIR EL DAÑO NORMAL ENTRE LAS BARRAS
+    // =====================================================
+    //
+    // Ejemplo:
+    //     daño normal = 20
+    //     2 barras     = 10 + 10
+    //
+    //     daño normal = 20
+    //     3 barras     = 7 + 7 + 6
+    //
+    // Con timings perfectos, la suma NUNCA supera el daño
+    // que habría hecho un ataque normal de una sola barra.
+    // =====================================================
+
+    multi_base_damage_total =
+        max(
+            1,
+            round(
+                _ui.attack_base_damage
+            )
+        );
+
+
+    multi_damage_parts =
+        array_create(
+            multi_count,
+            0
+        );
+
+
+    var _damage_floor =
+        floor(
+            multi_base_damage_total
+            /
+            multi_count
+        );
+
+
+    var _damage_remainder =
+        multi_base_damage_total
+        mod
+        multi_count;
+
+
+    for (
+        var _di = 0;
+        _di < multi_count;
+        _di++
+    )
+    {
+        multi_damage_parts[_di] =
+            _damage_floor
+            +
+            (
+                _di < _damage_remainder
+                ?
+                1
+                :
+                0
+            );
+    }
+
+
+    // =====================================================
+    // SALIR UNA TRAS OTRA DESDE LA ORILLA DEL TEXTBOX
     // =====================================================
     //
     // Índice 0 = barra líder.
-    // Las demás vienen detrás separadas por multi_gap.
+    //
+    // La primera nace EXACTAMENTE en la orilla de entrada.
+    // Las demás nacen FUERA de la caja, detrás de ella:
+    //
+    //     [ caja / target ]
+    //     barra 1 |          <- ya entra
+    //     barra 2             <- todavía fuera
+    //     barra 3             <- todavía más atrás
+    //
+    // TODAS avanzan simultáneamente. Por eso la segunda y la
+    // tercera entran después automáticamente, SIN esperar a que
+    // la anterior sea detenida.
     // =====================================================
 
     for (
@@ -751,27 +1223,19 @@ function()
         _i++
     )
     {
-        var _behind =
-            multi_count
-            -
-            1
-            -
-            _i;
-
-
         if (multi_direction > 0)
         {
             multi_positions[_i] =
                 multi_min_x
-                +
-                (_behind * multi_gap);
+                -
+                (_i * multi_gap);
         }
         else
         {
             multi_positions[_i] =
                 multi_max_x
-                -
-                (_behind * multi_gap);
+                +
+                (_i * multi_gap);
         }
     }
 
@@ -881,8 +1345,14 @@ function()
     circle_radius_target =
         weapon_mods.carga_radio_objetivo;
 
+    // El tamaño máximo ES el tamaño completo de la diana.
+    // Ya no existe "pasarse" del punto perfecto.
+    // Llegar a este tamaño = 100% del daño normal.
     circle_radius_max =
-        weapon_mods.carga_radio_max;
+        max(
+            circle_radius_start + 1,
+            circle_radius_target
+        );
 
     circle_speed =
         weapon_mods.carga_velocidad_radio;
@@ -1137,6 +1607,25 @@ function(
     }
 
 
+    // Cada barra usa SOLO su fracción del daño máximo.
+    // La calidad individual del timing se aplica después
+    // dentro de f_resolver_timing_ataque().
+    if (
+        _idx >= 0
+        &&
+        _idx < array_length(
+            multi_damage_parts
+        )
+    )
+    {
+        ui_ref.attack_base_damage =
+            max(
+                1,
+                multi_damage_parts[_idx]
+            );
+    }
+
+
     f_resolve_custom_hit(
         _x,
         _miss
@@ -1153,18 +1642,12 @@ function(
         1;
 
 
-    // Si murió antes de terminar la cadena:
-    // finalizar inmediatamente.
-    if (!f_target_alive())
-    {
-        f_start_final_feedback();
-        return;
-    }
-
-
+    // La muerte se difiere hasta que TODA la cadena termine.
+    // Aunque el daño acumulado ya sea letal, las barras que
+    // faltan siguen ejecutándose normalmente.
     if (multi_next >= multi_count)
     {
-        f_start_final_feedback();
+        f_begin_custom_hold();
     }
 };
 
@@ -1190,60 +1673,41 @@ function()
 
     if (!_miss)
     {
-        var _error =
-            abs(
-                circle_radius
-                -
-                circle_radius_target
-            );
+        // =================================================
+        // DAÑO = PORCENTAJE REAL DE CARGA
+        // =================================================
+        //
+        // Aro mínimo  -> daño mínimo.
+        // Aro máximo  -> daño completo.
+        //
+        // NO existe ya una "zona perfecta" por coincidir y
+        // después perder daño por seguir creciendo.
+        // El aro jamás supera circle_radius_max.
+        // =================================================
 
-
-        var _quality =
-            1;
-
-
-        if (_error > circle_perfect_tolerance)
-        {
-            var _max_error =
-                max(
-                    circle_radius_target
+        var _charge_ratio =
+            clamp(
+                (
+                    circle_radius
                     -
-                    circle_radius_start,
-
+                    circle_radius_start
+                )
+                /
+                max(
+                    1,
                     circle_radius_max
                     -
-                    circle_radius_target,
-
-                    circle_perfect_tolerance
-                    +
-                    1
-                );
-
-
-            _quality =
-                1
-                -
-                (
-                    (_error - circle_perfect_tolerance)
-                    /
-                    max(
-                        1,
-                        _max_error
-                        -
-                        circle_perfect_tolerance
-                    )
-                );
-        }
-
-
-        _quality =
-            clamp(
-                _quality,
+                    circle_radius_start
+                ),
                 0,
                 1
             );
 
 
+        // f_resolver_timing_ataque() ya contiene toda la lógica
+        // de daño, defensa, muerte, popup, etc.
+        // Convertimos el porcentaje de carga a una distancia
+        // lineal equivalente para reutilizar esa misma fórmula.
         var _half_range =
             max(
                 1,
@@ -1262,14 +1726,14 @@ function()
 
 
         var _fake_distance =
-            (_quality >= 1)
+            (_charge_ratio >= 1)
             ?
             0
             :
             _perfect
             +
             (
-                (1 - _quality)
+                (1 - _charge_ratio)
                 *
                 max(
                     0,
@@ -1296,16 +1760,10 @@ function()
     circle_index++;
 
 
-    if (!f_target_alive())
-    {
-        f_start_final_feedback();
-        return;
-    }
-
-
+    // Igual que multi-hit: no aplicar muerte entre cargas.
     if (circle_index >= circle_total)
     {
-        f_start_final_feedback();
+        f_begin_custom_hold();
         return;
     }
 
@@ -1443,6 +1901,13 @@ function()
         false;
 
 
+    custom_hold_active =
+        false;
+
+    custom_hold_timer =
+        0;
+
+
     custom_mode =
         "";
 
@@ -1470,6 +1935,12 @@ function()
         [];
 
     multi_done =
+        [];
+
+    multi_base_damage_total =
+        0;
+
+    multi_damage_parts =
         [];
 
 

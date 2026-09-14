@@ -31,13 +31,22 @@ var _left =
 
 var _fallback =
     scr_platformer_ext_sprite(
-        "spr_maya_platform_salto",
         (
             _left
             ?
-            pendejo_izquierda
+            "spr_maya_platform_salto_izquierda"
             :
-            pendejo_derecha
+            "spr_maya_platform_salto_derecha"
+        ),
+        scr_platformer_ext_sprite(
+            "spr_maya_platform_salto",
+            (
+                _left
+                ?
+                pendejo_izquierda
+                :
+                pendejo_derecha
+            )
         )
     );
 

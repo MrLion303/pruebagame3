@@ -149,7 +149,17 @@ scr_platformer_apply_pending_mode();
 
 
 // =========================================================
-// SND_TENSIONHORN
+// SONIDO DE ENTRADA / SALIDA DEL PLATAFORMERO
+// =========================================================
+//
+// Entrar:
+//     snd_entrar_platformer
+//
+// Salir:
+//     snd_salir_platformer
+//
+// snd_salir_platformer debe ser el mismo WAV invertido.
+// El LEEME incluye un .BAT para generarlo con FFmpeg.
 // =========================================================
 
 if (
@@ -158,34 +168,47 @@ if (
     global.platformer_active
 )
 {
-    var _tensionhorn =
-        asset_get_index(
-            "snd_tensionhorn"
+    var _sound_name =
+        (
+            global.platformer_active
+            ?
+            "snd_entrar_platformer"
+            :
+            "snd_salir_platformer"
         );
 
 
+    var _platform_transition_sound =
+        asset_get_index(
+            _sound_name
+        );
+
+
+    // Fallback seguro mientras todavía no se haya importado
+    // el WAV invertido como snd_salir_platformer.
     if (
-        _tensionhorn != -1
+        _platform_transition_sound == -1
+        &&
+        !global.platformer_active
+    )
+    {
+        _platform_transition_sound =
+            asset_get_index(
+                "snd_entrar_platformer"
+            );
+    }
+
+
+    if (
+        _platform_transition_sound != -1
         &&
         audio_exists(
-            _tensionhorn
+            _platform_transition_sound
         )
     )
     {
-        if (
-            audio_is_playing(
-                _tensionhorn
-            )
-        )
-        {
-            audio_stop_sound(
-                _tensionhorn
-            );
-        }
-
-
         audio_play_sound(
-            _tensionhorn,
+            _platform_transition_sound,
             10,
             false
         );
@@ -216,41 +239,68 @@ if (global.platformer_active)
     }
 
 
-    // Pogo = misma física vertical que un salto normal.
-    if (
-        variable_instance_exists(
-            id,
-            "platform_jump_speed"
-        )
-        &&
-        variable_instance_exists(
-            id,
-            "platform_pogo_bounce_speed"
-        )
-    )
-    {
-        platform_pogo_bounce_speed =
-            platform_jump_speed;
-    }
-
-
     // =====================================================
-    // DASH PLATAFORMERO
+    // RECUPERACIÓN DEL VACÍO
     // =====================================================
     //
-    // Si devuelve true, el Dash controla toda la física de
-    // este frame y NO ejecutamos gravedad/movimiento normal.
+    // Si está arrastrando a Maya/Silicio al último suelo,
+    // consume TODA la física del frame.
     // =====================================================
 
-    var _platform_dash_consumed =
-        scr_platformer_dash_update(
+    var _platform_void_consumed =
+        scr_platformer_void_recovery_update(
             id
         );
 
 
-    if (!_platform_dash_consumed)
+    if (!_platform_void_consumed)
     {
-        scr_platformer_player_update();
+        // Pogo = misma física vertical que un salto normal.
+        if (
+            variable_instance_exists(
+                id,
+                "platform_jump_speed"
+            )
+            &&
+            variable_instance_exists(
+                id,
+                "platform_pogo_bounce_speed"
+            )
+        )
+        {
+            platform_pogo_bounce_speed =
+                platform_jump_speed;
+        }
+
+
+        // =================================================
+        // DASH PLATAFORMERO
+        // =================================================
+        //
+        // Si devuelve true, el Dash controla toda la física de
+        // este frame y NO ejecutamos gravedad/movimiento normal.
+        // =================================================
+
+        var _platform_dash_consumed =
+            scr_platformer_dash_update(
+                id
+            );
+
+
+        if (!_platform_dash_consumed)
+        {
+            // Evitar que el hitbox melee atraviese colision o
+            // colision_rampa hacia enemigos/triggers del otro lado.
+            scr_platformer_attack_los_prepare(
+                id
+            );
+
+
+            scr_platformer_player_update();
+
+
+            scr_platformer_attack_los_restore();
+        }
     }
 }
 else

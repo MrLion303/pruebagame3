@@ -16,6 +16,36 @@ var _ui =
 
 
 // =========================================================
+// ESPERA FINAL: 1 SEGUNDO CON TARGET / DIANA EN PANTALLA
+// =========================================================
+
+if (custom_hold_active)
+{
+    custom_hold_timer++;
+
+
+    if (
+        custom_hold_timer
+        >=
+        custom_hold_duration
+    )
+    {
+        custom_hold_active =
+            false;
+
+
+        f_apply_custom_damage_final();
+
+
+        f_start_final_feedback();
+    }
+
+
+    exit;
+}
+
+
+// =========================================================
 // MULTI-BARRA
 // =========================================================
 
@@ -209,7 +239,11 @@ if (custom_mode == "circle")
 
 
         // -------------------------------------------------
-        // AGRANDAR ARO
+        // AGRANDAR ARO CONTINUAMENTE MIENTRAS Z SIGA ABAJO
+        // -------------------------------------------------
+        //
+        // custom_accept_held viene de keyboard_check_direct(),
+        // así keyboard_clear() ya NO corta la carga.
         // -------------------------------------------------
 
         if (

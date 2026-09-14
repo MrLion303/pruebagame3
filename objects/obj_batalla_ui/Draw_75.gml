@@ -17,37 +17,23 @@
 ///
 /// =========================================================
 
-if (
-    room != bbs
-    ||
-    !instance_exists(
-        obj_batalla_attack_mods
-    )
-)
+if (room != bbs)
 {
     exit;
 }
 
 
 var _mods =
+    instance_exists(
+        obj_batalla_attack_mods
+    )
+    ?
     instance_find(
         obj_batalla_attack_mods,
         0
-    );
-
-
-if (
-    _mods == noone
-    ||
-    !instance_exists(
-        _mods
     )
-    ||
-    !_mods.action_active
-)
-{
-    exit;
-}
+    :
+    noone;
 
 
 // =========================================================
@@ -99,6 +85,340 @@ _alpha_final =
 
 var _s =
     2;
+
+
+// =========================================================
+// BOTONES PRINCIPALES - FRAMES CORREGIDOS
+// =========================================================
+//
+// Frame 0:
+//     normal / ya elegiste una acción.
+//
+// Frame 1:
+//     SOLO mientras estás decidiendo en el menú principal y
+//     ese botón es el seleccionado.
+//
+// Frame 2:
+//     ITEM o TOY sin ningún recurso disponible.
+//
+// Draw GUI normal todavía dibuja sus botones. Los redibujamos
+// aquí al final para imponer el frame correcto sin tener que
+// reemplazar el enorme Draw GUI principal.
+// =========================================================
+
+var _has_item =
+    false;
+
+
+if (
+    instance_exists(obj_player)
+    &&
+    variable_instance_exists(
+        obj_player,
+        "inventory"
+    )
+)
+{
+    for (
+        var _bi = 0;
+        _bi < array_length(
+            obj_player.inventory
+        );
+        _bi++
+    )
+    {
+        var _bk =
+            obj_player.inventory[_bi];
+
+
+        if (
+            _bk != -1
+            &&
+            _bk != undefined
+            &&
+            variable_global_exists(
+                "item_db"
+            )
+        )
+        {
+            var _bd =
+                global.item_db[$ _bk];
+
+
+            if (
+                _bd != undefined
+                &&
+                (
+                    !variable_struct_exists(
+                        _bd,
+                        "tipo"
+                    )
+                    ||
+                    _bd.tipo == "consumible"
+                )
+            )
+            {
+                _has_item =
+                    true;
+
+                break;
+            }
+        }
+    }
+}
+
+
+var _has_toy =
+    false;
+
+
+if (
+    variable_global_exists(
+        "toy_inventory"
+    )
+    &&
+    is_array(
+        global.toy_inventory
+    )
+)
+{
+    for (
+        var _bt = 0;
+        _bt < array_length(
+            global.toy_inventory
+        );
+        _bt++
+    )
+    {
+        var _tk =
+            global.toy_inventory[_bt];
+
+
+        if (
+            _tk != -1
+            &&
+            _tk != undefined
+            &&
+            variable_global_exists(
+                "toy_db"
+            )
+            &&
+            global.toy_db[$ _tk]
+            !=
+            undefined
+        )
+        {
+            _has_toy =
+                true;
+
+            break;
+        }
+    }
+}
+
+
+var _main_action_deciding =
+    (
+        !en_menu_fight
+        &&
+        !en_seleccion_enemigo
+        &&
+        !en_menu_inventario
+        &&
+        !en_menu_toys
+        &&
+        (
+            !variable_instance_exists(
+                id,
+                "en_resultado_ataque"
+            )
+            ||
+            !en_resultado_ataque
+        )
+        &&
+        !attack_timing_active
+        &&
+        !attack_timing_stopped
+        &&
+        !attack_feedback_active
+    );
+
+
+if (instance_exists(obj_batalla_controller))
+{
+    _main_action_deciding =
+        _main_action_deciding
+        &&
+        obj_batalla_controller.fase_actual
+        ==
+        FASE_BATALLA.JUGADOR_MENU;
+}
+
+
+var _victory_keep_selected =
+    variable_instance_exists(
+        id,
+        "en_dialogo_victoria_final"
+    )
+    &&
+    en_dialogo_victoria_final
+    &&
+    _mods != noone
+    &&
+    instance_exists(
+        _mods
+    );
+
+
+var _button_selected_for_draw =
+    _victory_keep_selected
+    ?
+    clamp(
+        _mods.last_action_button,
+        0,
+        3
+    )
+    :
+    opcion_seleccionada;
+
+
+var _btn_scale =
+    1.310613
+    *
+    _s;
+
+
+var _btn_x =
+    [
+        132.371,
+        177.0,
+        221.0769,
+        265.0
+    ];
+
+
+for (
+    var _b = 0;
+    _b < 4;
+    _b++
+)
+{
+    var _spr_btn =
+        opciones[_b];
+
+
+    var _btn_frame =
+        0;
+
+
+    var _btn_blend =
+        c_white;
+
+
+    var _disabled =
+        (
+            _b == 1
+            &&
+            !_has_item
+        )
+        ||
+        (
+            _b == 2
+            &&
+            !_has_toy
+        );
+
+
+    // Durante el diálogo final de XP/SO conservamos el frame 1
+    // del ÚLTIMO botón utilizado, aunque Item/Toy se hayan vaciado.
+    if (
+        _victory_keep_selected
+        &&
+        _button_selected_for_draw
+        ==
+        _b
+    )
+    {
+        _btn_frame =
+            1;
+    }
+    else if (_disabled)
+    {
+        // Frame 2 = gris/deshabilitado cuando el sprite ya tiene
+        // el tercer frame añadido por el usuario.
+        if (
+            sprite_get_number(
+                _spr_btn
+            )
+            >=
+            3
+        )
+        {
+            _btn_frame =
+                2;
+        }
+        else
+        {
+            _btn_frame =
+                0;
+
+            _btn_blend =
+                make_color_rgb(
+                    110,
+                    110,
+                    110
+                );
+        }
+    }
+    else if (
+        _main_action_deciding
+        &&
+        _button_selected_for_draw
+        ==
+        _b
+    )
+    {
+        _btn_frame =
+            1;
+    }
+
+
+    draw_sprite_ext(
+        _spr_btn,
+        _btn_frame,
+        _btn_x[_b]
+        *
+        _s,
+        192
+        *
+        _s,
+        _btn_scale,
+        _btn_scale,
+        0,
+        _btn_blend,
+        _alpha_final
+    );
+}
+
+
+// =========================================================
+// A PARTIR DE AQUÍ SOLO HAY EFECTOS ESPECIALES DE ATAQUE
+// =========================================================
+
+if (
+    _mods == noone
+    ||
+    !instance_exists(
+        _mods
+    )
+    ||
+    !_mods.action_active
+)
+{
+    draw_set_alpha(1);
+    draw_set_color(c_white);
+    exit;
+}
 
 
 // =========================================================
@@ -382,6 +702,29 @@ if (_mods.custom_mode == "multi")
         _i++
     )
     {
+        // Barras que todavía están FUERA del textbox no se
+        // dibujan. Así visualmente emergen desde su orilla una
+        // tras otra, aunque internamente ya se estén moviendo.
+        var _inside_box =
+            (
+                _mods.multi_positions[_i]
+                >=
+                _mods.multi_min_x
+            )
+            &&
+            (
+                _mods.multi_positions[_i]
+                <=
+                _mods.multi_max_x
+            );
+
+
+        if (!_inside_box)
+        {
+            continue;
+        }
+
+
         var _bar_center =
             _mods.multi_positions[_i]
             *
@@ -476,26 +819,122 @@ if (_mods.custom_mode == "multi")
 if (_mods.custom_mode == "circle")
 {
     // -----------------------------------------------------
-    // TAPAR CAJA / TARGET DE LA UI NORMAL
+    // BORRAR LA CAJA NORMAL SIN DEJAR UN RECTÁNGULO NEGRO
+    // -----------------------------------------------------
+    //
+    // Draw GUI normal ya dibujó el textbox horizontal y el
+    // target. Antes los tapábamos con un rectángulo negro más
+    // grande que la caja, de ahí el bloque negro visible.
+    //
+    // Ahora restauramos SOLO el trozo correspondiente del
+    // application_surface (la escena sin GUI) y encima dibujamos
+    // la caja animada. Así detrás se ve el fondo real de batalla.
     // -----------------------------------------------------
 
-    draw_set_color(
-        c_black
-    );
+    if (
+        surface_exists(
+            application_surface
+        )
+    )
+    {
+        var _gui_w =
+            max(
+                1,
+                display_get_gui_width()
+            );
 
 
-    draw_set_alpha(
-        _alpha_final
-    );
+        var _gui_h =
+            max(
+                1,
+                display_get_gui_height()
+            );
 
 
-    draw_rectangle(
-        _box_left - 5,
-        _box_top - 16,
-        _box_left + _box_w + 5,
-        _box_top + max(_box_h, 128) + 16,
-        false
-    );
+        var _app_w =
+            surface_get_width(
+                application_surface
+            );
+
+
+        var _app_h =
+            surface_get_height(
+                application_surface
+            );
+
+
+        var _source_scale_x =
+            _app_w
+            /
+            _gui_w;
+
+
+        var _source_scale_y =
+            _app_h
+            /
+            _gui_h;
+
+
+        var _src_x =
+            _box_left
+            *
+            _source_scale_x;
+
+
+        var _src_y =
+            _box_top
+            *
+            _source_scale_y;
+
+
+        var _src_w =
+            _box_w
+            *
+            _source_scale_x;
+
+
+        var _src_h =
+            _box_h
+            *
+            _source_scale_y;
+
+
+        draw_surface_part_ext(
+            application_surface,
+            _src_x,
+            _src_y,
+            _src_w,
+            _src_h,
+            _box_left,
+            _box_top,
+            1 / _source_scale_x,
+            1 / _source_scale_y,
+            c_white,
+            1
+        );
+    }
+    else
+    {
+        // Fallback únicamente si application_surface estuviera
+        // desactivada. Se limita al tamaño EXACTO del textbox.
+        draw_set_color(
+            c_black
+        );
+
+
+        draw_set_alpha(
+            _alpha_final
+        );
+
+
+        draw_rectangle(
+            _box_left,
+            _box_top,
+            _box_left + _box_w,
+            _box_top + _box_h,
+            false
+        );
+    }
 
 
     // -----------------------------------------------------

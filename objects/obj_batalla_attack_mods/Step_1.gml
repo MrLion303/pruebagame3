@@ -22,36 +22,97 @@ var _ui =
 
 
 // =========================================================
+// ESPERA FINAL DE 1 SEGUNDO
+// =========================================================
+
+if (custom_hold_active)
+{
+    custom_accept_pressed =
+        false;
+
+    custom_accept_held =
+        false;
+
+
+    keyboard_clear(
+        ord("Z")
+    );
+
+    keyboard_clear(
+        vk_enter
+    );
+
+
+    // Mantener la interfaz custom congelada y visible.
+    _ui.attack_timing_active =
+        true;
+
+    _ui.attack_timing_stopped =
+        false;
+
+    _ui.attack_bar_speed =
+        0;
+
+    _ui.attack_bar_x =
+        -9999;
+
+
+    exit;
+}
+
+
+// =========================================================
 // INPUT PARA MODOS CUSTOM
+// =========================================================
+//
+// IMPORTANTE:
+//
+// obj_batalla_ui también lee Z/Enter durante su Step.
+// Necesitamos seguir limpiando la tecla VIRTUAL para que esa UI
+// no detenga su barra invisible.
+//
+// Pero para el Aro Cargado usamos keyboard_check_direct(), que
+// sigue leyendo el estado FÍSICO real mientras mantienes Z.
+//
+// Resultado:
+//     pulsas Z -> comienza carga
+//     mantienes Z -> NO deja de cargar
+//     sueltas Z -> se resuelve
 // =========================================================
 
 if (custom_mode != "")
 {
-    custom_accept_pressed =
-        keyboard_check_pressed(
+    var _direct_held =
+        keyboard_check_direct(
             ord("Z")
         )
         ||
-        keyboard_check_pressed(
+        keyboard_check_direct(
             vk_enter
+        );
+
+
+    custom_accept_pressed =
+        (
+            _direct_held
+            &&
+            !custom_accept_prev_direct_held
         );
 
 
     custom_accept_held =
-        keyboard_check(
-            ord("Z")
-        )
-        ||
-        keyboard_check(
-            vk_enter
-        );
+        _direct_held;
+
+
+    custom_accept_prev_direct_held =
+        _direct_held;
 
 
     // =====================================================
     // MULTI-BARRA
     // =====================================================
-    // La pulsación que eligió Atacar no debe detener la
-    // primera barra. Esperamos únicamente a que se suelte.
+    // La Z que confirmó "Atacar" no cuenta para la primera
+    // barra. Primero debe soltarse.
     // =====================================================
 
     if (custom_mode == "multi")
@@ -67,9 +128,6 @@ if (custom_mode != "")
 
             custom_accept_pressed =
                 false;
-
-            custom_accept_held =
-                false;
         }
     }
 
@@ -77,14 +135,14 @@ if (custom_mode != "")
     // =====================================================
     // ARO CARGADO
     // =====================================================
-    // Durante la animación de encogimiento no aceptamos input.
+    // Durante el encogimiento ignoramos input.
     //
-    // Cuando la DIANA ya apareció:
-    //     - el cronómetro ya está corriendo;
-    //     - primero debe existir un frame con Z/Enter suelto;
-    //     - después se exige una pulsación NUEVA.
-    //
-    // Así mantener Z desde el diálogo anterior NO sirve.
+    // Cuando la diana aparece y el tiempo empieza:
+    //     1) si venías sosteniendo Z, primero debes soltar;
+    //     2) después haces una NUEVA pulsación;
+    //     3) desde ahí la carga continúa mientras Z siga
+    //        FÍSICAMENTE mantenida;
+    //     4) solo se resuelve al soltar o agotar el tiempo.
     // =====================================================
 
     else if (custom_mode == "circle")
@@ -93,32 +151,24 @@ if (custom_mode != "")
         {
             custom_accept_pressed =
                 false;
-
-            custom_accept_held =
-                false;
         }
-        else
+        else if (!circle_input_armed)
         {
-            if (!circle_input_armed)
+            if (!custom_accept_held)
             {
-                if (!custom_accept_held)
-                {
-                    circle_input_armed =
-                        true;
-                }
-
-
-                custom_accept_pressed =
-                    false;
-
-                custom_accept_held =
-                    false;
+                circle_input_armed =
+                    true;
             }
+
+
+            custom_accept_pressed =
+                false;
         }
     }
 
 
-    // Consumir input ANTES del Step de obj_batalla_ui.
+    // Bloquear únicamente la lectura VIRTUAL de la UI base.
+    // keyboard_check_direct() seguirá viendo el HOLD real.
     keyboard_clear(
         ord("Z")
     );
@@ -127,10 +177,6 @@ if (custom_mode != "")
         vk_enter
     );
 
-
-    // Mantener a la UI base bloqueada en estado de timing.
-    attack_timing_active =
-        true;
 
     _ui.attack_timing_active =
         true;

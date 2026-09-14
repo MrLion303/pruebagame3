@@ -108,6 +108,16 @@ function scr_platformer_dash_prepare(_p)
 
         _p.platform_dash_saved_alpha =
             _p.image_alpha;
+
+
+        // Silicio permanece oculto si el Dash se inició en el
+        // aire y después Maya sigue cayendo.
+        _p.platform_dash_started_in_air =
+            false;
+
+
+        _p.platform_dash_wait_silicio_ground =
+            false;
     }
 
 
@@ -231,6 +241,13 @@ function scr_platformer_dash_finish(_p)
         _p.platform_dash_saved_alpha;
 
 
+    if (_p.platform_dash_started_in_air)
+    {
+        _p.platform_dash_wait_silicio_ground =
+            true;
+    }
+
+
     scr_platformer_dash_visual_destroy(
         _p
     );
@@ -274,6 +291,14 @@ function scr_platformer_dash_cancel(_p)
 
     _p.platform_dash_air_available =
         true;
+
+
+    _p.platform_dash_started_in_air =
+        false;
+
+
+    _p.platform_dash_wait_silicio_ground =
+        false;
 }
 
 
@@ -593,6 +618,14 @@ function scr_platformer_dash_update(_p)
         true;
 
 
+    _p.platform_dash_started_in_air =
+        !_grounded_now;
+
+
+    _p.platform_dash_wait_silicio_ground =
+        false;
+
+
     _p.platform_dash_timer =
         _p.platform_dash_duration;
 
@@ -740,7 +773,8 @@ function scr_platformer_party_ext_init()
     }
 
 
-    // Separación mínima al quedar ambos en suelo.
+    // Compatibilidad con builds anteriores.
+    // Ya NO forzamos separación mínima entre Maya y Silicio.
     if (
         !variable_global_exists(
             "platform_party_ground_gap"
@@ -748,7 +782,12 @@ function scr_platformer_party_ext_init()
     )
     {
         global.platform_party_ground_gap =
-            30;
+            0;
+    }
+    else
+    {
+        global.platform_party_ground_gap =
+            0;
     }
 
 
@@ -987,8 +1026,17 @@ function scr_platformer_silicio_apply_extended_sprite(
                 scr_platformer_ext_sprite(
                     "spr_silicio_platform_senton",
                     scr_platformer_ext_sprite(
-                        "spr_silicio_platform_salto",
-                        _fallback_side
+                        (
+                            _left
+                            ?
+                            "spr_silicio_platform_salto_izquierda"
+                            :
+                            "spr_silicio_platform_salto_derecha"
+                        ),
+                        scr_platformer_ext_sprite(
+                            "spr_silicio_platform_salto",
+                            _fallback_side
+                        )
                     )
                 );
 
@@ -999,8 +1047,17 @@ function scr_platformer_silicio_apply_extended_sprite(
 
             _spr =
                 scr_platformer_ext_sprite(
-                    "spr_silicio_platform_salto",
-                    _fallback_side
+                    (
+                        _left
+                        ?
+                        "spr_silicio_platform_salto_izquierda"
+                        :
+                        "spr_silicio_platform_salto_derecha"
+                    ),
+                    scr_platformer_ext_sprite(
+                        "spr_silicio_platform_salto",
+                        _fallback_side
+                    )
                 );
 
             break;
@@ -1192,8 +1249,29 @@ function scr_platformer_party_follow_update()
     }
 
 
+    // Snapshot actual ANTES de inicializar el historial.
+    var _snapshot =
+        scr_platformer_party_snapshot(
+            _p
+        );
+
+
     // =====================================================
     // NUEVA ROOM / PRIMER FRAME
+    // =====================================================
+    //
+    // El obj_silicio de la party es persistent. Al cambiar de
+    // room podía conservar durante un frame las coordenadas de
+    // la habitación anterior y después el antiguo bloque de
+    // separación lo empujaba automáticamente detrás de Maya.
+    // Eso producía el parpadeo + "teleport" visible.
+    //
+    // Ahora, ANTES del primer Draw del plataformero:
+    //
+    //     - Silicio se coloca exactamente sobre los pies de Maya;
+    //     - se permite que ambos ocupen el mismo sitio;
+    //     - sembramos el retraso con snapshots idénticos;
+    //     - NO existe empuje automático para separarlos.
     // =====================================================
 
     if (
@@ -1219,14 +1297,45 @@ function scr_platformer_party_follow_update()
         with (_sil)
         {
             scr_platformer_silicio_enter();
+        }
 
 
-            platform_sil_prev_x =
-                x;
+        _sil.x =
+            _snapshot.x;
 
 
-            platform_sil_prev_y =
-                y;
+        _sil.y =
+            _snapshot.y
+            -
+            _sil.platform_sil_hit_bottom;
+
+
+        _sil.platform_sil_prev_x =
+            _sil.x;
+
+
+        _sil.platform_sil_prev_y =
+            _sil.y;
+
+
+        // Sembrar el buffer para que el follower empiece desde
+        // la misma posición sin esperar 7 frames ni hacer snap.
+        for (
+            var _seed = 0;
+            _seed <= global.platform_party_delay_frames;
+            _seed++
+        )
+        {
+            array_push(
+                global.platform_party_history,
+                {
+                    x: _snapshot.x,
+                    y: _snapshot.y,
+                    facing: _snapshot.facing,
+                    grounded: _snapshot.grounded,
+                    state: _snapshot.state
+                }
+            );
         }
     }
 
@@ -1241,12 +1350,6 @@ function scr_platformer_party_follow_update()
     //
     // Eso permite registrar íntegro el sentón.
     // =====================================================
-
-    var _snapshot =
-        scr_platformer_party_snapshot(
-            _p
-        );
-
 
     array_push(
         global.platform_party_history,
@@ -1356,89 +1459,116 @@ function scr_platformer_party_follow_update()
 
 
     // =====================================================
-    // EVITAR QUE TERMINE ENCIMA DE MAYA EN SUELO
+    // MAYA Y SILICIO PUEDEN SUPERPONERSE
     // =====================================================
     //
-    // Esto NO es una colisión con el jugador.
+    // No existe ninguna corrección de distancia contra Maya.
+    // Si el historial coloca a Silicio justo encima del jugador,
+    // se respeta exactamente esa posición.
+    // =====================================================
+
+
+    // =====================================================
+    // CONSERVAR DISTANCIA AL DETENERSE HORIZONTALMENTE
+    // =====================================================
     //
-    // Solo modificamos el punto de formación cuando ambos ya
-    // están en suelo y el historial los haría terminar casi
-    // exactamente superpuestos.
+    // Si Maya venía caminando a izquierda/derecha y se queda
+    // quieta EN SUELO, Silicio conserva la X que ya alcanzó.
+    // No intenta terminar de juntarse con Maya.
+    //
+    // Esto NO empuja ni teletransporta a Silicio: únicamente
+    // congela su objetivo X actual hasta que Maya vuelva a
+    // desplazarse lateralmente.
+    //
+    // Si Maya salta sin desplazamiento horizontal, el hold se
+    // libera. Así Silicio sí puede acomodarse con Maya durante
+    // un salto vertical en la misma posición.
     // =====================================================
 
     if (
-        _target.grounded
-        &&
-        _snapshot.grounded
+        !variable_instance_exists(
+            _sil,
+            "platform_follow_hold_x_active"
+        )
     )
     {
-        var _player_feet_x =
-            _snapshot.x;
+        _sil.platform_follow_hold_x_active =
+            false;
+
+        _sil.platform_follow_hold_x =
+            _sil_feet_x;
+
+        _sil.platform_follow_was_lateral =
+            false;
+    }
 
 
-        var _player_feet_y =
-            _snapshot.y;
+    var _player_lateral_now =
+        abs(
+            _p.platform_hsp
+        )
+        >
+        0.20;
 
 
-        var _horizontal_gap =
-            abs(
-                _sil_feet_x
-                -
-                _player_feet_x
-            );
+    var _player_grounded_now =
+        variable_instance_exists(
+            _p,
+            "platform_grounded"
+        )
+        &&
+        _p.platform_grounded;
 
 
+    var _jumping_in_place =
+        !_player_grounded_now
+        &&
+        !_player_lateral_now
+        &&
+        _snapshot.state == "jump";
+
+
+    if (_player_lateral_now)
+    {
+        _sil.platform_follow_hold_x_active =
+            false;
+
+        _sil.platform_follow_was_lateral =
+            true;
+    }
+    else if (_jumping_in_place)
+    {
+        // Un salto vertical debe permitir que Silicio se alinee
+        // con Maya; no conservar la distancia horizontal vieja.
+        _sil.platform_follow_hold_x_active =
+            false;
+
+        _sil.platform_follow_was_lateral =
+            false;
+    }
+    else if (_player_grounded_now)
+    {
         if (
-            _horizontal_gap
-            <
-            global.platform_party_ground_gap
+            _sil.platform_follow_was_lateral
+            &&
+            !_sil.platform_follow_hold_x_active
         )
         {
-            var _behind_x =
-                _player_feet_x
-                -
-                (
-                    _snapshot.facing
-                    *
-                    global.platform_party_ground_gap
-                );
+            _sil.platform_follow_hold_x =
+                _sil_feet_x;
+
+            _sil.platform_follow_hold_x_active =
+                true;
+
+            _sil.platform_follow_was_lateral =
+                false;
+        }
 
 
-            // Comprobar SOLO escenario.
-            //
-            // Nunca obj_player.
-            var _origin_y =
-                _player_feet_y
-                -
-                _sil.platform_sil_hit_bottom;
-
-
-            if (
-                !scr_platformer_collision_at(
-                    _behind_x,
-                    _origin_y,
-                    _sil.platform_sil_hit_left,
-                    _sil.platform_sil_hit_top,
-                    _sil.platform_sil_hit_right,
-                    _sil.platform_sil_hit_bottom
-                )
-            )
-            {
-                _target.x =
-                    _behind_x;
-
-
-                _target.y =
-                    _player_feet_y;
-
-
-                _target.state =
-                    "idle";
-
-
-                _target.facing =
-                    _snapshot.facing;
-            }
+        if (_sil.platform_follow_hold_x_active)
+        {
+            _target.x =
+                _sil.platform_follow_hold_x;
         }
     }
 
@@ -1583,4 +1713,1402 @@ function scr_platformer_party_follow_update()
 
 
     return true;
+}
+
+
+// =========================================================
+// SILICIO - FADE POR SIGILO / DASH
+// =========================================================
+//
+// RPG:
+//     Sigilo (S)      -> desaparecer suavemente.
+//     Dash del mapa   -> desaparecer suavemente.
+//
+// Plataformero:
+//     Dash            -> desaparecer suavemente.
+//     Si empezó en el aire, permanece oculto hasta aterrizar.
+//
+// Durante recuperación del vacío se fuerza visible porque
+// Maya y Silicio son arrastrados juntos.
+// =========================================================
+
+function scr_silicio_visibility_update(_p)
+{
+    if (
+        _p == noone
+        ||
+        !instance_exists(_p)
+        ||
+        !scr_party_has("silicio")
+    )
+    {
+        return;
+    }
+
+
+    var _sil =
+        scr_party_get_instance(
+            "silicio"
+        );
+
+
+    if (
+        _sil == noone
+        ||
+        !instance_exists(_sil)
+    )
+    {
+        return;
+    }
+
+
+    if (
+        !variable_instance_exists(
+            _sil,
+            "party_fx_alpha"
+        )
+    )
+    {
+        _sil.party_fx_alpha =
+            clamp(
+                _sil.image_alpha,
+                0,
+                1
+            );
+
+
+        _sil.party_fx_fade_speed =
+            0.18;
+    }
+
+
+    var _platformer =
+        variable_global_exists(
+            "platformer_active"
+        )
+        &&
+        global.platformer_active;
+
+
+    var _force_visible_recovery =
+        variable_instance_exists(
+            _p,
+            "platform_void_recover_active"
+        )
+        &&
+        _p.platform_void_recover_active;
+
+
+    var _hide =
+        false;
+
+
+    var _on_ice =
+        (
+            variable_instance_exists(
+                _p,
+                "ice_on_normal"
+            )
+            &&
+            _p.ice_on_normal
+        )
+        ||
+        (
+            variable_instance_exists(
+                _p,
+                "ice_on_blue"
+            )
+            &&
+            _p.ice_on_blue
+        );
+
+
+    if (_force_visible_recovery)
+    {
+        _hide =
+            false;
+    }
+    else if (_on_ice)
+    {
+        // Ambos hielos del sistema actual:
+        // obj_hielo y obj_hielo_azul.
+        _hide =
+            true;
+    }
+    else if (_platformer)
+    {
+        var _platform_dash =
+            variable_instance_exists(
+                _p,
+                "platform_dash_active"
+            )
+            &&
+            _p.platform_dash_active;
+
+
+        if (_platform_dash)
+        {
+            _hide =
+                true;
+        }
+        else if (
+            variable_instance_exists(
+                _p,
+                "platform_dash_wait_silicio_ground"
+            )
+            &&
+            _p.platform_dash_wait_silicio_ground
+        )
+        {
+            var _landed =
+                variable_instance_exists(
+                    _p,
+                    "platform_grounded"
+                )
+                &&
+                _p.platform_grounded;
+
+
+            if (_landed)
+            {
+                _p.platform_dash_wait_silicio_ground =
+                    false;
+
+
+                _p.platform_dash_started_in_air =
+                    false;
+
+
+                _hide =
+                    false;
+            }
+            else
+            {
+                _hide =
+                    true;
+            }
+        }
+    }
+    else
+    {
+        var _crouched =
+            variable_instance_exists(
+                _p,
+                "sigilo_activo"
+            )
+            &&
+            _p.sigilo_activo;
+
+
+        var _map_dash =
+            variable_instance_exists(
+                _p,
+                "dash_anim_active"
+            )
+            &&
+            _p.dash_anim_active;
+
+
+        _hide =
+            _crouched
+            ||
+            _map_dash;
+    }
+
+
+    var _target_alpha =
+        _hide
+        ?
+        0
+        :
+        1;
+
+
+    _sil.party_fx_alpha +=
+        clamp(
+            _target_alpha
+            -
+            _sil.party_fx_alpha,
+            -_sil.party_fx_fade_speed,
+            _sil.party_fx_fade_speed
+        );
+
+
+    _sil.party_fx_alpha =
+        clamp(
+            _sil.party_fx_alpha,
+            0,
+            1
+        );
+
+
+    _sil.image_alpha =
+        _sil.party_fx_alpha;
+}
+
+
+// =========================================================
+// VACÍO - PREPARAR CHECKPOINT
+// =========================================================
+
+function scr_platformer_void_prepare(_p)
+{
+    if (
+        _p == noone
+        ||
+        !instance_exists(_p)
+    )
+    {
+        return false;
+    }
+
+
+    if (
+        !variable_instance_exists(
+            _p,
+            "platform_void_ready"
+        )
+    )
+    {
+        _p.platform_void_ready =
+            true;
+
+
+        _p.platform_void_room =
+            -1;
+
+
+        _p.platform_void_safe_valid =
+            false;
+
+
+        _p.platform_void_safe_x =
+            _p.x;
+
+
+        _p.platform_void_safe_y =
+            _p.y;
+
+
+        _p.platform_void_safe_feet_x =
+            _p.x;
+
+
+        _p.platform_void_safe_feet_y =
+            _p.y;
+
+
+        _p.platform_void_recover_active =
+            false;
+
+
+        _p.platform_void_recover_timer =
+            0;
+
+
+        _p.platform_void_recover_duration =
+            24;
+
+
+        _p.platform_void_start_x =
+            _p.x;
+
+
+        _p.platform_void_start_y =
+            _p.y;
+
+
+        _p.platform_void_saved_blend =
+            _p.image_blend;
+
+
+        _p.platform_void_saved_alpha =
+            _p.image_alpha;
+
+
+        _p.platform_void_saved_puede_moverse =
+            true;
+
+
+        _p.platform_void_silicio =
+            noone;
+
+
+        _p.platform_void_sil_start_x =
+            0;
+
+
+        _p.platform_void_sil_start_y =
+            0;
+
+
+        _p.platform_void_sil_target_x =
+            0;
+
+
+        _p.platform_void_sil_target_y =
+            0;
+
+
+        _p.platform_void_sil_saved_blend =
+            c_white;
+    }
+
+
+    return true;
+}
+
+
+// =========================================================
+// VACÍO - GUARDAR ÚLTIMO PISO PISADO
+// =========================================================
+
+function scr_platformer_void_store_safe(_p)
+{
+    if (!scr_platformer_void_prepare(_p))
+        return;
+
+
+    var _center_x =
+        (
+            _p.platform_hit_left
+            +
+            _p.platform_hit_right
+        )
+        *
+        0.5;
+
+
+    _p.platform_void_safe_x =
+        _p.x;
+
+
+    _p.platform_void_safe_y =
+        _p.y;
+
+
+    _p.platform_void_safe_feet_x =
+        _p.x
+        +
+        _center_x;
+
+
+    _p.platform_void_safe_feet_y =
+        _p.y
+        +
+        _p.platform_hit_bottom;
+
+
+    _p.platform_void_safe_valid =
+        true;
+}
+
+
+// =========================================================
+// VACÍO - RESEMILLAR HISTORIAL DE SILICIO
+// =========================================================
+
+function scr_platformer_void_seed_party(_p)
+{
+    if (
+        !variable_global_exists(
+            "platform_party_history"
+        )
+        ||
+        !is_array(
+            global.platform_party_history
+        )
+    )
+    {
+        return;
+    }
+
+
+    var _snap =
+        scr_platformer_party_snapshot(
+            _p
+        );
+
+
+    global.platform_party_history =
+        [];
+
+
+    global.platform_party_room =
+        room;
+
+
+    global.platform_party_was_active =
+        true;
+
+
+    for (
+        var _i = 0;
+        _i <= global.platform_party_delay_frames;
+        _i++
+    )
+    {
+        array_push(
+            global.platform_party_history,
+            {
+                x: _snap.x,
+                y: _snap.y,
+                facing: _snap.facing,
+                grounded: true,
+                state: "idle"
+            }
+        );
+    }
+}
+
+
+// =========================================================
+// VACÍO - COMENZAR RESCATE
+// =========================================================
+
+function scr_platformer_void_begin(_p)
+{
+    if (
+        !scr_platformer_void_prepare(_p)
+        ||
+        !_p.platform_void_safe_valid
+    )
+    {
+        return false;
+    }
+
+
+    // Si cayó mientras todavía hacía Dash, cerrar ese estado
+    // antes de empezar a arrastrarlo de vuelta.
+    if (
+        variable_instance_exists(
+            _p,
+            "platform_dash_active"
+        )
+        &&
+        _p.platform_dash_active
+    )
+    {
+        scr_platformer_dash_finish(
+            _p
+        );
+    }
+
+
+    _p.platform_dash_wait_silicio_ground =
+        false;
+
+
+    _p.platform_dash_started_in_air =
+        false;
+
+
+    _p.platform_void_recover_active =
+        true;
+
+
+    _p.platform_void_recover_timer =
+        0;
+
+
+    _p.platform_void_start_x =
+        _p.x;
+
+
+    _p.platform_void_start_y =
+        _p.y;
+
+
+    _p.platform_void_saved_blend =
+        _p.image_blend;
+
+
+    _p.platform_void_saved_alpha =
+        _p.image_alpha;
+
+
+    _p.platform_void_saved_puede_moverse =
+        variable_instance_exists(
+            _p,
+            "puede_moverse"
+        )
+        ?
+        _p.puede_moverse
+        :
+        true;
+
+
+    var _distance =
+        point_distance(
+            _p.platform_void_start_x,
+            _p.platform_void_start_y,
+            _p.platform_void_safe_x,
+            _p.platform_void_safe_y
+        );
+
+
+    _p.platform_void_recover_duration =
+        clamp(
+            round(
+                _distance
+                /
+                10
+            ),
+            18,
+            36
+        );
+
+
+    _p.platform_hsp =
+        0;
+
+
+    _p.platform_vsp =
+        0;
+
+
+    _p.platform_x_rem =
+        0;
+
+
+    _p.platform_y_rem =
+        0;
+
+
+    _p.platform_stomp_active =
+        false;
+
+
+    _p.platform_stomp_available =
+        false;
+
+
+    // -----------------------------------------------------
+    // SILICIO
+    // -----------------------------------------------------
+
+    _p.platform_void_silicio =
+        noone;
+
+
+    if (scr_party_has("silicio"))
+    {
+        var _sil =
+            scr_party_get_instance(
+                "silicio"
+            );
+
+
+        if (
+            _sil != noone
+            &&
+            instance_exists(_sil)
+        )
+        {
+            with (_sil)
+            {
+                scr_platformer_silicio_enter();
+            }
+
+
+            _p.platform_void_silicio =
+                _sil;
+
+
+            _p.platform_void_sil_start_x =
+                _sil.x;
+
+
+            _p.platform_void_sil_start_y =
+                _sil.y;
+
+
+            _p.platform_void_sil_target_x =
+                _p.platform_void_safe_feet_x;
+
+
+            _p.platform_void_sil_target_y =
+                _p.platform_void_safe_feet_y
+                -
+                _sil.platform_sil_hit_bottom;
+
+
+            _p.platform_void_sil_saved_blend =
+                _sil.image_blend;
+
+
+            // Durante el rescate ambos deben verse.
+            _sil.image_alpha =
+                1;
+
+
+            if (
+                variable_instance_exists(
+                    _sil,
+                    "party_fx_alpha"
+                )
+            )
+            {
+                _sil.party_fx_alpha =
+                    1;
+            }
+        }
+    }
+
+
+    return true;
+}
+
+
+// =========================================================
+// VACÍO - UPDATE
+// =========================================================
+//
+// Devuelve TRUE mientras el rescate consume completamente la
+// física del jugador.
+// =========================================================
+
+function scr_platformer_void_recovery_update(_p)
+{
+    if (!scr_platformer_void_prepare(_p))
+        return false;
+
+
+    // Nueva room: el punto seguro anterior NO es válido aquí.
+    if (_p.platform_void_room != room)
+    {
+        _p.platform_void_room =
+            room;
+
+
+        _p.platform_void_recover_active =
+            false;
+
+
+        _p.platform_void_safe_valid =
+            false;
+
+
+        // La posición de entrada sirve como fallback hasta que
+        // realmente pise un suelo.
+        scr_platformer_void_store_safe(
+            _p
+        );
+    }
+
+
+    // =====================================================
+    // FUERA DEL RESCATE
+    // =====================================================
+
+    if (!_p.platform_void_recover_active)
+    {
+        var _grounded =
+            (
+                variable_instance_exists(
+                    _p,
+                    "platform_grounded"
+                )
+                &&
+                _p.platform_grounded
+            )
+            ||
+            (
+                _p.platform_vsp >= 0
+                &&
+                scr_platformer_floor_at(
+                    _p.x,
+                    _p.y + 1,
+                    _p.platform_hit_left,
+                    _p.platform_hit_top,
+                    _p.platform_hit_right,
+                    _p.platform_hit_bottom
+                )
+            );
+
+
+        if (
+            _grounded
+            &&
+            !(
+                variable_instance_exists(
+                    _p,
+                    "platform_dash_active"
+                )
+                &&
+                _p.platform_dash_active
+            )
+            &&
+            !(
+                variable_instance_exists(
+                    _p,
+                    "platform_stomp_active"
+                )
+                &&
+                _p.platform_stomp_active
+            )
+        )
+        {
+            // Esto hace que "última ubicación donde pisó" sea
+            // literalmente el último punto estable del suelo.
+            scr_platformer_void_store_safe(
+                _p
+            );
+        }
+
+
+        // Consideramos vacío cuando todo el cuerpo ya cayó por
+        // debajo del room. También cubrimos salidas laterales
+        // extremas por un Dash sin pared.
+        var _body_top =
+            _p.y
+            +
+            _p.platform_hit_top;
+
+
+        var _body_right =
+            _p.x
+            +
+            _p.platform_hit_right;
+
+
+        var _body_left =
+            _p.x
+            +
+            _p.platform_hit_left;
+
+
+        var _outside =
+            (
+                _body_top
+                >
+                room_height
+                +
+                24
+            )
+            ||
+            (
+                _body_right
+                <
+                -64
+            )
+            ||
+            (
+                _body_left
+                >
+                room_width
+                +
+                64
+            );
+
+
+        if (_outside)
+        {
+            if (
+                scr_platformer_void_begin(
+                    _p
+                )
+            )
+            {
+                return true;
+            }
+        }
+
+
+        return false;
+    }
+
+
+    // =====================================================
+    // RESCATE ACTIVO
+    // =====================================================
+
+    _p.platform_void_recover_timer++;
+
+
+    var _t =
+        clamp(
+            _p.platform_void_recover_timer
+            /
+            max(
+                1,
+                _p.platform_void_recover_duration
+            ),
+            0,
+            1
+        );
+
+
+    // Ease-out cúbico: acelera al empezar y llega suave.
+    var _ease =
+        1
+        -
+        power(
+            1 - _t,
+            3
+        );
+
+
+    // Pequeño bamboleo que hace que parezca arrastrado/llevado.
+    var _drag_wave =
+        sin(
+            _t
+            *
+            pi
+            *
+            6
+        )
+        *
+        (1 - _t)
+        *
+        2.5;
+
+
+    _p.x =
+        lerp(
+            _p.platform_void_start_x,
+            _p.platform_void_safe_x,
+            _ease
+        )
+        +
+        _drag_wave;
+
+
+    _p.y =
+        lerp(
+            _p.platform_void_start_y,
+            _p.platform_void_safe_y,
+            _ease
+        )
+        -
+        abs(_drag_wave)
+        *
+        0.35;
+
+
+    _p.platform_hsp =
+        0;
+
+
+    _p.platform_vsp =
+        0;
+
+
+    _p.platform_x_rem =
+        0;
+
+
+    _p.platform_y_rem =
+        0;
+
+
+    if (
+        variable_instance_exists(
+            _p,
+            "puede_moverse"
+        )
+    )
+    {
+        _p.puede_moverse =
+            false;
+    }
+
+
+    _p.movimiento =
+        false;
+
+
+    _p.image_alpha =
+        1;
+
+
+    _p.image_blend =
+        make_color_rgb(
+            165,
+            165,
+            165
+        );
+
+
+    // -----------------------------------------------------
+    // SILICIO VIAJA CON MAYA
+    // -----------------------------------------------------
+
+    var _sil =
+        _p.platform_void_silicio;
+
+
+    if (
+        _sil != noone
+        &&
+        instance_exists(_sil)
+    )
+    {
+        _sil.x =
+            lerp(
+                _p.platform_void_sil_start_x,
+                _p.platform_void_sil_target_x,
+                _ease
+            )
+            -
+            (_drag_wave * 0.55);
+
+
+        _sil.y =
+            lerp(
+                _p.platform_void_sil_start_y,
+                _p.platform_void_sil_target_y,
+                _ease
+            )
+            -
+            abs(_drag_wave)
+            *
+            0.20;
+
+
+        _sil.image_alpha =
+            1;
+
+
+        _sil.image_blend =
+            make_color_rgb(
+                165,
+                165,
+                165
+            );
+    }
+
+
+    // =====================================================
+    // FIN DEL ARRASTRE
+    // =====================================================
+
+    if (_t >= 1)
+    {
+        _p.x =
+            _p.platform_void_safe_x;
+
+
+        _p.y =
+            _p.platform_void_safe_y;
+
+
+        _p.image_blend =
+            _p.platform_void_saved_blend;
+
+
+        _p.image_alpha =
+            _p.platform_void_saved_alpha;
+
+
+        if (
+            variable_instance_exists(
+                _p,
+                "puede_moverse"
+            )
+        )
+        {
+            _p.puede_moverse =
+                _p.platform_void_saved_puede_moverse;
+        }
+
+
+        _p.platform_grounded =
+            true;
+
+
+        _p.platform_vsp =
+            0;
+
+
+        _p.platform_hsp =
+            0;
+
+
+        _p.platform_stomp_active =
+            false;
+
+
+        _p.platform_stomp_available =
+            true;
+
+
+        _p.platform_dash_air_available =
+            true;
+
+
+        _p.platform_dash_wait_silicio_ground =
+            false;
+
+
+        _p.platform_dash_started_in_air =
+            false;
+
+
+        if (
+            _sil != noone
+            &&
+            instance_exists(_sil)
+        )
+        {
+            _sil.x =
+                _p.platform_void_sil_target_x;
+
+
+            _sil.y =
+                _p.platform_void_sil_target_y;
+
+
+            _sil.image_blend =
+                _p.platform_void_sil_saved_blend;
+
+
+            _sil.image_alpha =
+                1;
+
+
+            if (
+                variable_instance_exists(
+                    _sil,
+                    "party_fx_alpha"
+                )
+            )
+            {
+                _sil.party_fx_alpha =
+                    1;
+            }
+        }
+
+
+        _p.platform_void_recover_active =
+            false;
+
+
+        scr_platformer_void_seed_party(
+            _p
+        );
+
+
+        // Actualizar otra vez el mismo punto seguro ya colocado.
+        scr_platformer_void_store_safe(
+            _p
+        );
+    }
+
+
+    return true;
+}
+
+
+
+
+// =========================================================
+// ATAQUE PLATAFORMERO - BLOQUEO POR PARED
+// =========================================================
+//
+// scr_platformer_system usa una hitbox rectangular para dañar
+// enemigos. Eso permitía que la hitbox atravesara una pared.
+//
+// Antes de ejecutar la física/ataque del frame deshabilitamos
+// temporalmente enemigos y warps cuyo centro no tenga línea de
+// visión limpia desde el centro físico de Maya.
+//
+// Al terminar scr_platformer_player_update() restauramos todos
+// los valores exactamente como estaban.
+// =========================================================
+
+function scr_platformer_attack_los_blocked(
+    _x1,
+    _y1,
+    _x2,
+    _y2
+)
+{
+    if (
+        collision_line(
+            _x1,
+            _y1,
+            _x2,
+            _y2,
+            colision,
+            false,
+            true
+        )
+        !=
+        noone
+    )
+    {
+        return true;
+    }
+
+
+    if (
+        collision_line(
+            _x1,
+            _y1,
+            _x2,
+            _y2,
+            colision_rampa,
+            false,
+            true
+        )
+        !=
+        noone
+    )
+    {
+        return true;
+    }
+
+
+    return false;
+}
+
+
+function scr_platformer_attack_los_prepare(_p)
+{
+    if (
+        _p == noone
+        ||
+        !instance_exists(_p)
+        ||
+        !variable_global_exists(
+            "platformer_active"
+        )
+        ||
+        !global.platformer_active
+    )
+    {
+        return;
+    }
+
+
+    var _sx =
+        _p.x
+        +
+        (
+            (
+                _p.platform_hit_left
+                +
+                _p.platform_hit_right
+            )
+            *
+            0.5
+        );
+
+
+    var _sy =
+        _p.y
+        +
+        (
+            (
+                _p.platform_hit_top
+                +
+                _p.platform_hit_bottom
+            )
+            *
+            0.5
+        );
+
+
+    // -----------------------------------------------------
+    // ENEMIGOS
+    // -----------------------------------------------------
+
+    with (obj_enemigo_mapa_parent)
+    {
+        los_restore_pending =
+            true;
+
+
+        los_prev_can_attack =
+            variable_instance_exists(
+                id,
+                "platform_can_be_attacked"
+            )
+            ?
+            platform_can_be_attacked
+            :
+            true;
+
+
+        var _tx =
+            (bbox_left + bbox_right)
+            *
+            0.5;
+
+
+        var _ty =
+            (bbox_top + bbox_bottom)
+            *
+            0.5;
+
+
+        if (
+            scr_platformer_attack_los_blocked(
+                other._sx,
+                other._sy,
+                _tx,
+                _ty
+            )
+        )
+        {
+            platform_can_be_attacked =
+                false;
+        }
+    }
+
+
+    // -----------------------------------------------------
+    // TRIGGERS DE SALIDA GOLPEABLES
+    // -----------------------------------------------------
+
+    var _warp_obj =
+        asset_get_index(
+            "obj_platformer_warp"
+        );
+
+
+    if (_warp_obj != -1)
+    {
+        var _n =
+            instance_number(
+                _warp_obj
+            );
+
+
+        for (
+            var _i = 0;
+            _i < _n;
+            _i++
+        )
+        {
+            var _w =
+                instance_find(
+                    _warp_obj,
+                    _i
+                );
+
+
+            if (
+                _w == noone
+                ||
+                !instance_exists(_w)
+            )
+            {
+                continue;
+            }
+
+
+            _w.los_restore_pending =
+                true;
+
+
+            _w.los_prev_active =
+                variable_instance_exists(
+                    _w,
+                    "active"
+                )
+                ?
+                _w.active
+                :
+                true;
+
+
+            var _blocked =
+                scr_platformer_attack_los_blocked(
+                    _sx,
+                    _sy,
+                    _w.x,
+                    _w.y
+                );
+
+
+            if (_blocked)
+            {
+                _w.active =
+                    false;
+            }
+        }
+    }
+}
+
+
+function scr_platformer_attack_los_restore()
+{
+    with (obj_enemigo_mapa_parent)
+    {
+        if (
+            variable_instance_exists(
+                id,
+                "los_restore_pending"
+            )
+            &&
+            los_restore_pending
+        )
+        {
+            platform_can_be_attacked =
+                los_prev_can_attack;
+
+
+            los_restore_pending =
+                false;
+        }
+    }
+
+
+    var _warp_obj =
+        asset_get_index(
+            "obj_platformer_warp"
+        );
+
+
+    if (_warp_obj != -1)
+    {
+        var _n =
+            instance_number(
+                _warp_obj
+            );
+
+
+        for (
+            var _i = 0;
+            _i < _n;
+            _i++
+        )
+        {
+            var _w =
+                instance_find(
+                    _warp_obj,
+                    _i
+                );
+
+
+            if (
+                _w == noone
+                ||
+                !instance_exists(_w)
+            )
+            {
+                continue;
+            }
+
+
+            if (
+                variable_instance_exists(
+                    _w,
+                    "los_restore_pending"
+                )
+                &&
+                _w.los_restore_pending
+            )
+            {
+                _w.active =
+                    _w.los_prev_active;
+
+
+                _w.los_restore_pending =
+                    false;
+            }
+        }
+    }
 }

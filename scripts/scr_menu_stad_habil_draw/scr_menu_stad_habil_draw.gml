@@ -108,8 +108,43 @@ function scr_menu_stad_habil_draw(_menu)
             _tab_t
         );
 
+    var _habilidades_tabs =
+        scr_habilidades_lista_obtenidas();
+
+
+    var _habil_tab_available =
+        array_length(
+            _habilidades_tabs
+        )
+        >
+        0;
+
+
+    // Sin habilidades:
+    //     una sola pestaña STAD de medio ancho, centrada.
+    //
+    // Con habilidades:
+    //     exactamente el diseño actual de dos pestañas.
     var _tabs_w =
-        _box_w;
+        _habil_tab_available
+        ?
+        _box_w
+        :
+        (_box_w * 0.5);
+
+
+    if (!_habil_tab_available)
+    {
+        _tabs_x =
+            _box_x
+            +
+            ((_box_w - _tabs_w) * 0.5);
+
+
+        _menu.stad_tab =
+            0;
+    }
+
 
     var _tabs_h =
         44;
@@ -139,15 +174,23 @@ function scr_menu_stad_habil_draw(_menu)
     ];
 
 
+    var _tab_count =
+        _habil_tab_available
+        ?
+        2
+        :
+        1;
+
+
     var _slot_w =
         _tabs_w
         /
-        2;
+        _tab_count;
 
 
     for (
         var _i = 0;
-        _i < 2;
+        _i < _tab_count;
         _i++
     )
     {

@@ -41,7 +41,35 @@ var _platform_party =
 
 if (_platform_party)
 {
-    scr_platformer_party_follow_update();
+    var _platform_recovering =
+        false;
+
+
+    if (instance_exists(obj_player))
+    {
+        var _platform_party_player =
+            instance_find(
+                obj_player,
+                0
+            );
+
+
+        _platform_recovering =
+            variable_instance_exists(
+                _platform_party_player,
+                "platform_void_recover_active"
+            )
+            &&
+            _platform_party_player.platform_void_recover_active;
+    }
+
+
+    // Durante el rescate del vacío, Begin Step mueve a Maya y
+    // Silicio manualmente. El follower no debe pisar esa animación.
+    if (!_platform_recovering)
+    {
+        scr_platformer_party_follow_update();
+    }
 }
 else
 {
@@ -51,6 +79,21 @@ else
 
 
     scr_party_update();
+}
+
+
+// =========================================================
+// FADE DE SILICIO POR SIGILO / DASH
+// =========================================================
+
+if (instance_exists(obj_player))
+{
+    scr_silicio_visibility_update(
+        instance_find(
+            obj_player,
+            0
+        )
+    );
 }
 
 

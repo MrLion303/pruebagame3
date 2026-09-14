@@ -9,6 +9,176 @@
 
 
 // =========================================================
+// RANGO DE ENEMIGO -> BLOQUEAR / CERRAR SOLO EL MENÚ
+// =========================================================
+//
+// Ya no dependemos únicamente de "consumir C".
+//
+// En End Step comprobamos el estado REAL cada frame:
+//
+// - Si Step intentó abrir el menú estando dentro del rango,
+//   lo cerramos antes de Draw.
+// - Si el menú YA estaba abierto y un enemigo entra en rango,
+//   se cierra automáticamente ese mismo frame.
+//
+// La geometría sigue siendo la actual del proyecto:
+//
+//     distancia <= rango_ataque
+// =========================================================
+
+if (
+    !variable_instance_exists(
+        id,
+        "pause_enemy_range_was_inside"
+    )
+)
+{
+    pause_enemy_range_was_inside =
+        false;
+}
+
+
+var _pause_enemy_inside =
+    false;
+
+
+if (instance_exists(obj_player))
+{
+    var _pause_p =
+        instance_find(
+            obj_player,
+            0
+        );
+
+
+    pause_range_player_x =
+        _pause_p.x;
+
+
+    pause_range_player_y =
+        _pause_p.y;
+
+
+    pause_range_detected =
+        false;
+
+
+    with (obj_enemigo_mapa_parent)
+    {
+        var _alive_for_pause =
+            true;
+
+
+        if (
+            variable_instance_exists(
+                id,
+                "platform_dying"
+            )
+            &&
+            platform_dying
+        )
+        {
+            _alive_for_pause =
+                false;
+        }
+
+
+        if (
+            _alive_for_pause
+            &&
+            variable_instance_exists(
+                id,
+                "rango_ataque"
+            )
+            &&
+            rango_ataque >= 0
+            &&
+            point_distance(
+                x,
+                y,
+                other.pause_range_player_x,
+                other.pause_range_player_y
+            )
+            <=
+            rango_ataque
+        )
+        {
+            other.pause_range_detected =
+                true;
+        }
+    }
+
+
+    _pause_enemy_inside =
+        pause_range_detected;
+}
+
+
+if (_pause_enemy_inside)
+{
+    var _pause_was_open =
+        state
+        !=
+        MENU_STATE.CLOSED;
+
+
+    if (_pause_was_open)
+    {
+        state =
+            MENU_STATE.CLOSED;
+
+
+        inventory_tab_focus =
+            false;
+
+
+        if (
+            variable_instance_exists(
+                id,
+                "habil_info_open"
+            )
+        )
+        {
+            habil_info_open =
+                false;
+        }
+
+
+        if (
+            variable_instance_exists(
+                id,
+                "controls_listening"
+            )
+        )
+        {
+            controls_listening =
+                false;
+        }
+
+
+        // Solo sonar cuando realmente acabamos de cerrar el menú.
+        if (audio_is_playing(snd_error))
+        {
+            audio_stop_sound(
+                snd_error
+            );
+        }
+
+
+        audio_play_sound(
+            snd_error,
+            10,
+            false
+        );
+    }
+}
+
+
+pause_enemy_range_was_inside =
+    _pause_enemy_inside;
+
+
+// =========================================================
 // STAD / HABIL - INICIALIZACIÓN
 // =========================================================
 
@@ -174,11 +344,25 @@ if (_stad_active)
 
     if (_habil_total <= 0)
     {
+        // Mientras no exista ninguna habilidad:
+        //
+        //     - HABIL no existe como pestaña navegable;
+        //     - STAD queda forzado;
+        //     - cualquier detalle HABIL abierto se cierra.
+        stad_tab =
+            0;
+
         habil_index =
             0;
 
         habil_scroll =
             0;
+
+        habil_info_open =
+            false;
+
+        habil_info_id =
+            "";
     }
     else
     {
@@ -239,35 +423,44 @@ if (_stad_active)
             false;
 
 
-        if (
-            keyboard_check_pressed(
-                vk_right
-            )
-        )
+        // HABIL solo existe cuando hay al menos una habilidad.
+        if (_habil_total > 0)
         {
-            stad_tab =
-                (stad_tab + 1)
-                mod
-                2;
+            if (
+                keyboard_check_pressed(
+                    vk_right
+                )
+            )
+            {
+                stad_tab =
+                    (stad_tab + 1)
+                    mod
+                    2;
 
-            _tab_changed =
-                true;
+                _tab_changed =
+                    true;
+            }
+
+
+            if (
+                keyboard_check_pressed(
+                    vk_left
+                )
+            )
+            {
+                stad_tab =
+                    (stad_tab - 1 + 2)
+                    mod
+                    2;
+
+                _tab_changed =
+                    true;
+            }
         }
-
-
-        if (
-            keyboard_check_pressed(
-                vk_left
-            )
-        )
+        else
         {
             stad_tab =
-                (stad_tab - 1 + 2)
-                mod
-                2;
-
-            _tab_changed =
-                true;
+                0;
         }
 
 
