@@ -234,24 +234,49 @@ function scr_random_encounter_start(_enemy_id)
     }
 
 
-    // Posición exacta a la que se regresará.
-    global.battle_return_room =
+    // =====================================================
+    // DATOS DE RETORNO
+    // =====================================================
+    //
+    // Mismos nombres que usa obj_batalla_prob.
+    // =====================================================
+
+    global.return_room =
         room;
 
 
-    global.battle_return_x =
+    global.return_x =
         _p.x;
 
 
-    global.battle_return_y =
+    global.return_y =
         _p.y;
 
 
-    global.battle_return_face =
-        _p.face;
+    if (
+        variable_instance_exists(
+            _p,
+            "face"
+        )
+    )
+    {
+        global.return_face =
+            _p.face;
+    }
 
 
-    // Batalla seleccionada desde la configuración de la room.
+    // =====================================================
+    // BATALLA CONFIGURADA
+    // =====================================================
+    //
+    // El controller de batalla hace:
+    //
+    //     scr_enemigos_data(global.enemigo_actual_id)
+    //
+    // así que "toby" cargará directamente el case "toby"
+    // definido en scr_enemigos_data.
+    // =====================================================
+
     global.enemigo_actual_id =
         string(_enemy_id);
 
@@ -260,41 +285,112 @@ function scr_random_encounter_start(_enemy_id)
         true;
 
 
+    // =====================================================
+    // BLOQUEAR MOVIMIENTO
+    // =====================================================
+
     if (
-        snd_batalla_iniciar != -1
-        &&
-        audio_exists(
-            snd_batalla_iniciar
+        variable_instance_exists(
+            _p,
+            "puede_moverse"
         )
     )
     {
+        _p.puede_moverse =
+            false;
+    }
+
+
+    if (
+        variable_instance_exists(
+            _p,
+            "can_move"
+        )
+    )
+    {
+        _p.can_move =
+            false;
+    }
+
+
+    if (
+        variable_instance_exists(
+            _p,
+            "movimiento"
+        )
+    )
+    {
+        _p.movimiento =
+            false;
+    }
+
+
+    if (
+        variable_instance_exists(
+            _p,
+            "hsp"
+        )
+    )
+    {
+        _p.hsp =
+            0;
+    }
+
+
+    if (
+        variable_instance_exists(
+            _p,
+            "vsp"
+        )
+    )
+    {
+        _p.vsp =
+            0;
+    }
+
+
+    // =====================================================
+    // SONIDO DE BATALLA
+    // =====================================================
+    //
+    // Es el mismo sonido que usa obj_batalla_prob.
+    // =====================================================
+
+    if (audio_exists(snd_bbs_start))
+    {
         audio_play_sound(
-            snd_batalla_iniciar,
-            0,
+            snd_bbs_start,
+            10,
             false
         );
     }
 
 
-    _p.puede_moverse =
-        false;
-
-
-    _p.movimiento =
-        false;
-
+    // =====================================================
+    // TRANSICIÓN A BBS
+    // =====================================================
+    //
+    // Antes se intentaba crear en una layer fija por nombre.
+    // Esa layer no existe necesariamente en todas las rooms,
+    // por lo que GameMaker terminaba recibiendo -1.
+    //
+    // El jugador ya está en una layer válida de la room,
+    // así que usamos su layer real.
+    //
+    // obj_transicion_bbs establece su propio depth en Create,
+    // es persistent y después ejecuta room_goto(bbs).
+    // =====================================================
 
     instance_create_layer(
         0,
         0,
-        "Transicion",
+        _p.layer,
         obj_transicion_bbs
     );
 
 
     return true;
 }
-
 
 // =========================================================
 // UPDATE GLOBAL
