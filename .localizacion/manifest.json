@@ -1,5 +1,5 @@
 {
-    "total":  258,
+    "total":  290,
     "fuentes":  {
                     "Jugador X: ":  [
                                         "objects\\game\\Draw_64.gml:36"
@@ -48,6 +48,20 @@
                     "↑ ↓ Elegir espacio   Z Sacar   ← Inventario   X Cerrar":  [
                                                                                    "objects\\game\\Draw_64.gml:1070"
                                                                                ],
+                    "* Hiciste {damage} de daño a {enemy}!":  [
+                                                                  "objects\\obj_batalla_attack_mods\\Create_0.gml:527",
+                                                                  "objects\\obj_batalla_attack_mods\\Create_0.gml:1015",
+                                                                  "objects\\obj_batalla_ui\\Create_0.gml:713"
+                                                              ],
+                    "* Fallaste el ataque.":  [
+                                                  "objects\\obj_batalla_attack_mods\\Create_0.gml:545",
+                                                  "objects\\obj_batalla_attack_mods\\Create_0.gml:841",
+                                                  "objects\\obj_batalla_ui\\Create_0.gml:494"
+                                              ],
+                    "* Venciste a {enemy}!":  [
+                                                  "objects\\obj_batalla_attack_mods\\Create_0.gml:918",
+                                                  "objects\\obj_batalla_ui\\Create_0.gml:635"
+                                              ],
                     "* {enemy} está aturdido y no puede atacar!":  [
                                                                        "objects\\obj_batalla_controller\\Step_0.gml:413"
                                                                    ],
@@ -58,15 +72,15 @@
                     "* ¡Hiciste parry al ataque de {enemy}!":  [
                                                                    "objects\\obj_batalla_controller\\Step_0.gml:879"
                                                                ],
-                    "* Fallaste el ataque.":  [
-                                                  "objects\\obj_batalla_ui\\Create_0.gml:494"
-                                              ],
-                    "* Venciste a {enemy}!":  [
-                                                  "objects\\obj_batalla_ui\\Create_0.gml:635"
-                                              ],
-                    "* Hiciste {damage} de daño a {enemy}!":  [
-                                                                  "objects\\obj_batalla_ui\\Create_0.gml:713"
-                                                              ],
+                    "* El Toy enemigo te inmoviliza. ¡Pierdes este turno!":  [
+                                                                                 "objects\\obj_batalla_controller\\Step_1.gml:60"
+                                                                             ],
+                    "* {enemy} entra en guardia y recibirá menos daño durante tu próximo turno.":  [
+                                                                                                       "objects\\obj_batalla_controller\\Step_1.gml:256"
+                                                                                                   ],
+                    "* {enemy} intenta atacar, ¡pero falla!":  [
+                                                                   "objects\\obj_batalla_controller\\Step_1.gml:335"
+                                                               ],
                     "* ¡Has ganado la batalla! Conseguiste {xp} de XP y {so} de SO":  [
                                                                                           "objects\\obj_batalla_ui\\Create_0.gml:896"
                                                                                       ],
@@ -160,7 +174,8 @@
                                  "objects\\obj_menu_manager\\Create_0.gml:2"
                              ],
                     "STAD":  [
-                                 "objects\\obj_menu_manager\\Create_0.gml:2"
+                                 "objects\\obj_menu_manager\\Create_0.gml:2",
+                                 "scripts\\scr_menu_stad_habil_draw\\scr_menu_stad_habil_draw.gml:167"
                              ],
                     "CONFIG":  [
                                    "objects\\obj_menu_manager\\Create_0.gml:2"
@@ -204,8 +219,8 @@
                                "objects\\obj_menu_manager\\Draw_64.gml:1033",
                                "objects\\obj_menu_manager\\Draw_64.gml:1493",
                                "objects\\obj_menu_manager\\Draw_64.gml:1494",
-                               "objects\\obj_menu_manager\\Draw_75.gml:1101",
-                               "objects\\obj_menu_manager\\Draw_75.gml:1107",
+                               "objects\\obj_menu_manager\\Draw_75.gml:1116",
+                               "objects\\obj_menu_manager\\Draw_75.gml:1122",
                                "scripts\\scr_game_text\\scr_game_text.gml:366"
                            ],
                     "No":  [
@@ -215,8 +230,8 @@
                                "objects\\obj_menu_manager\\Draw_64.gml:1033",
                                "objects\\obj_menu_manager\\Draw_64.gml:1493",
                                "objects\\obj_menu_manager\\Draw_64.gml:1494",
-                               "objects\\obj_menu_manager\\Draw_75.gml:1103",
-                               "objects\\obj_menu_manager\\Draw_75.gml:1109",
+                               "objects\\obj_menu_manager\\Draw_75.gml:1118",
+                               "objects\\obj_menu_manager\\Draw_75.gml:1124",
                                "objects\\obj_shop_controller\\Draw_64.gml:890",
                                "scripts\\scr_game_text\\scr_game_text.gml:367"
                            ],
@@ -258,7 +273,7 @@
                     "Sin bonificacion":  [
                                              "objects\\obj_menu_manager\\Draw_64.gml:926",
                                              "objects\\obj_menu_manager\\Draw_74.gml:337",
-                                             "objects\\obj_menu_manager\\Draw_75.gml:1714"
+                                             "objects\\obj_menu_manager\\Draw_75.gml:1715"
                                          ],
                     "Uso: ":  [
                                   "objects\\obj_menu_manager\\Draw_64.gml:1431"
@@ -477,153 +492,195 @@
                                      "scripts\\scr_cutscene_data\\scr_cutscene_data.gml:844"
                                  ],
                     "El... keke? Oh! Claro que me gusta!":  [
-                                                                "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:92",
-                                                                "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:113",
+                                                                "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:38",
+                                                                "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:84",
                                                                 "scripts\\scr_game_text\\scr_game_text.gml:45",
                                                                 "scripts\\scr_game_text\\scr_game_text.gml:146"
                                                             ],
                     "* El viento sopla con fuerza en este lugar.":  [
-                                                                        "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:93"
+                                                                        "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:47"
                                                                     ],
                     "* El enemigo te mira fijamente y sonríe.":  [
-                                                                     "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:94"
+                                                                     "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:56"
                                                                  ],
                     "* Toby acomoda su postura de combate.":  [
-                                                                  "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:114"
+                                                                  "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:93"
                                                               ],
                     "* Toby bosteza aburrido.":  [
-                                                     "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:115"
+                                                     "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:102"
                                                  ],
                     "Toby":  [
-                                 "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:119"
+                                 "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:113"
                              ],
                     "Hola, esta es mi descripcion":  [
-                                                         "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:126"
+                                                         "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:124"
                                                      ],
                     "* Un Toby salvaje aparece de su escondite!":  [
-                                                                       "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:127"
+                                                                       "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:129"
                                                                    ],
                     "* Acabaste con Toby.":  [
-                                                 "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:128"
+                                                 "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:134"
                                              ],
                     "¡Cuidado con este viscoso amigo!":  [
-                                                             "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:147"
+                                                             "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:189"
                                                          ],
                     "* El Slime gotea líquido viscoso.":  [
-                                                              "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:148"
+                                                              "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:198"
                                                           ],
                     "* Burbujas de aire estallan en el cuerpo del Slime.":  [
-                                                                                "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:149"
+                                                                                "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:207"
                                                                             ],
                     "Slime Verdoso":  [
-                                          "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:153",
-                                          "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:293"
+                                          "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:218",
+                                          "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:420"
                                       ],
                     "Un pequeño monstruo gelatinoso.":  [
-                                                            "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:160",
-                                                            "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:300"
+                                                            "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:229",
+                                                            "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:431"
                                                         ],
                     "Un Slime gelatinoso bloquea el paso!":  [
-                                                                 "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:161"
+                                                                 "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:234"
                                                              ],
                     "* Derrotaste al Slime Verdoso.":  [
-                                                           "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:162",
-                                                           "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:301"
+                                                           "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:239",
+                                                           "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:436"
                                                        ],
                     "¡Cuidado! Este enemigo no parece estar jugando.":  [
-                                                                            "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:240"
+                                                                            "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:286"
                                                                         ],
                     "* Jevil se mueve de forma impredecible.":  [
-                                                                    "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:241"
+                                                                    "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:295"
                                                                 ],
                     "* Una sonrisa extraña aparece en su rostro.":  [
-                                                                        "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:242"
+                                                                        "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:304"
                                                                     ],
                     "Jevil":  [
-                                  "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:246"
+                                  "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:315"
                               ],
                     "Un enemigo impredecible que parece disfrutar el combate.":  [
-                                                                                     "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:253"
+                                                                                     "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:326"
                                                                                  ],
                     "* Jevil aparece frente a ti!":  [
-                                                         "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:254"
+                                                         "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:331"
                                                      ],
                     "* Derrotaste a Jevil.":  [
-                                                  "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:255"
+                                                  "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:336"
                                               ],
                     "¿Estás seguro de que podemos con todos?":  [
-                                                                    "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:274"
+                                                                    "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:361"
                                                                 ],
                     "* Los enemigos se coordinan para rodearte.":  [
-                                                                       "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:275"
+                                                                       "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:370"
                                                                    ],
                     "¡Mira cómo se mueven!":  [
-                                                  "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:276"
+                                                  "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:379"
                                               ],
                     "Toby A":  [
-                                   "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:280"
+                                   "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:390"
                                ],
                     "El primer Toby de la banda.":  [
-                                                        "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:287"
+                                                        "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:401"
                                                     ],
                     "Una pandilla de monstruos salvajes aparece!":  [
-                                                                        "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:288"
+                                                                        "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:406"
                                                                     ],
                     "* Acabaste con Toby A.":  [
-                                                   "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:289"
+                                                   "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:411"
                                                ],
                     "Toby B":  [
-                                   "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:305"
+                                   "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:445"
                                ],
                     "El segundo Toby de refuerzo.":  [
-                                                         "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:312"
+                                                         "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:456"
                                                      ],
                     "* Acabaste con Toby B.":  [
-                                                   "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:313"
+                                                   "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:461"
                                                ],
                     "Desconocido":  [
-                                        "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:332",
+                                        "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:485",
                                         "scripts\\scr_save_room_names\\scr_save_room_names.gml:117"
                                     ],
                     "Un error en la matrix.":  [
-                                                   "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:339"
+                                                   "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:496"
                                                ],
                     "Algo extraño emerge de la oscuridad...":  [
-                                                                   "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:340"
+                                                                   "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:501"
                                                                ],
                     "* El enemigo desconocido se desvanece.":  [
-                                                                   "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:341"
+                                                                   "scripts\\scr_enemigos_data\\scr_enemigos_data.gml:506"
                                                                ],
                     "Palo":  [
-                                 "scripts\\scr_equips_data\\scr_equips_data.gml:23"
+                                 "scripts\\scr_equips_data\\scr_equips_data.gml:233"
                              ],
                     "Un palo de madera sencillo.":  [
-                                                        "scripts\\scr_equips_data\\scr_equips_data.gml:37"
+                                                        "scripts\\scr_equips_data\\scr_equips_data.gml:237"
                                                     ],
                     "Raqueta Tenis":  [
-                                          "scripts\\scr_equips_data\\scr_equips_data.gml:68"
+                                          "scripts\\scr_equips_data\\scr_equips_data.gml:247"
                                       ],
                     "Una raqueta ligera. Permite hacer parry a los ataques enemigos.":  [
-                                                                                            "scripts\\scr_equips_data\\scr_equips_data.gml:85"
+                                                                                            "scripts\\scr_equips_data\\scr_equips_data.gml:254"
                                                                                         ],
                     "Cuchillo":  [
-                                     "scripts\\scr_equips_data\\scr_equips_data.gml:111"
+                                     "scripts\\scr_equips_data\\scr_equips_data.gml:267"
                                  ],
                     "Un cuchillo afilado.":  [
-                                                 "scripts\\scr_equips_data\\scr_equips_data.gml:125"
+                                                 "scripts\\scr_equips_data\\scr_equips_data.gml:271"
                                              ],
                     "Cutter":  [
-                                   "scripts\\scr_equips_data\\scr_equips_data.gml:151"
+                                   "scripts\\scr_equips_data\\scr_equips_data.gml:281"
                                ],
                     "Una herramienta con una hoja retráctil.":  [
-                                                                    "scripts\\scr_equips_data\\scr_equips_data.gml:165"
+                                                                    "scripts\\scr_equips_data\\scr_equips_data.gml:287"
                                                                 ],
+                    "Bastón Vital":  [
+                                         "scripts\\scr_equips_data\\scr_equips_data.gml:300"
+                                     ],
+                    "Recupera 6 HP después de una acción de ataque que haya hecho daño.":  [
+                                                                                               "scripts\\scr_equips_data\\scr_equips_data.gml:308"
+                                                                                           ],
+                    "Espada Certera":  [
+                                           "scripts\\scr_equips_data\\scr_equips_data.gml:334"
+                                       ],
+                    "Su barra móvil es mucho más ancha, facilitando detenerla sobre el centro.":  [
+                                                                                                      "scripts\\scr_equips_data\\scr_equips_data.gml:342"
+                                                                                                  ],
+                    "Dagas Gemelas":  [
+                                          "scripts\\scr_equips_data\\scr_equips_data.gml:359"
+                                      ],
+                    "Lanza dos barras juntas desde el mismo lado del target.":  [
+                                                                                    "scripts\\scr_equips_data\\scr_equips_data.gml:367"
+                                                                                ],
+                    "Garras Triples":  [
+                                           "scripts\\scr_equips_data\\scr_equips_data.gml:380"
+                                       ],
+                    "Lanza tres barras juntas desde el mismo lado del target.":  [
+                                                                                     "scripts\\scr_equips_data\\scr_equips_data.gml:388"
+                                                                                 ],
+                    "Aro Cargado":  [
+                                        "scripts\\scr_equips_data\\scr_equips_data.gml:405"
+                                    ],
+                    "Mantén Z para agrandar el aro y suelta cuando coincida con la diana.":  [
+                                                                                                 "scripts\\scr_equips_data\\scr_equips_data.gml:420"
+                                                                                             ],
+                    "Aro Gemelo Vital":  [
+                                             "scripts\\scr_equips_data\\scr_equips_data.gml:433"
+                                         ],
+                    "Realiza dos cargas consecutivas sobre una misma diana y recupera 4 HP.":  [
+                                                                                                   "scripts\\scr_equips_data\\scr_equips_data.gml:450"
+                                                                                               ],
                     "Pijama":  [
-                                   "scripts\\scr_equips_data\\scr_equips_data.gml:195"
+                                   "scripts\\scr_equips_data\\scr_equips_data.gml:463"
                                ],
                     "Un pijama cómodo.":  [
-                                              "scripts\\scr_equips_data\\scr_equips_data.gml:209"
+                                              "scripts\\scr_equips_data\\scr_equips_data.gml:467"
                                           ],
+                    "Zapatos Rápidos":  [
+                                            "scripts\\scr_equips_data\\scr_equips_data.gml:477"
+                                        ],
+                    "Permiten hacer dash mientras estás dentro del rango de peligro de un enemigo del mapa.":  [
+                                                                                                                   "scripts\\scr_equips_data\\scr_equips_data.gml:485"
+                                                                                                               ],
                     "VIVAAAAAAAAAAA!!!":  [
                                               "scripts\\scr_game_text\\scr_game_text.gml:72",
                                               "scripts\\scr_game_text\\scr_game_text.gml:173"
@@ -707,6 +764,21 @@
                     "Aqui no hay nadie.":  [
                                                "scripts\\scr_game_text\\scr_game_text.gml:375"
                                            ],
+                    "Sigilo":  [
+                                   "scripts\\scr_habilidades_system\\scr_habilidades_system.gml:36"
+                               ],
+                    "Mantén S para moverte agachada. Maya camina más lento y los enemigos del mapa reducen su rango de visión.":  [
+                                                                                                                                      "scripts\\scr_habilidades_system\\scr_habilidades_system.gml:38"
+                                                                                                                                  ],
+                    "Dash":  [
+                                 "scripts\\scr_habilidades_system\\scr_habilidades_system.gml:50"
+                             ],
+                    "Con los Zapatos Rápidos equipados, pulsa Espacio dentro del rango de peligro de un enemigo para hacer un dash.":  [
+                                                                                                                                           "scripts\\scr_habilidades_system\\scr_habilidades_system.gml:52"
+                                                                                                                                       ],
+                    "Habilidad obtenida.":  [
+                                                "scripts\\scr_habilidades_system\\scr_habilidades_system.gml:64"
+                                            ],
                     "Nombre":  [
                                    "scripts\\scr_itemclave_data\\scr_itemclave_data.gml:48"
                                ],
@@ -755,6 +827,18 @@
                     "Pastillas que ayudan a recuperar energía.":  [
                                                                       "scripts\\scr_items_data\\scr_items_data.gml:287"
                                                                   ],
+                    "HABIL":  [
+                                  "scripts\\scr_menu_stad_habil_draw\\scr_menu_stad_habil_draw.gml:171"
+                              ],
+                    "Permite hacer dash dentro del rango de peligro de un enemigo. Funciona con la habilidad Dash o con los Zapatos Rápidos.":  [
+                                                                                                                                                    "scripts\\scr_menu_stad_habil_draw\\scr_menu_stad_habil_draw.gml:333"
+                                                                                                                                                ],
+                    "Z / X - Cerrar":  [
+                                           "scripts\\scr_menu_stad_habil_draw\\scr_menu_stad_habil_draw.gml:553"
+                                       ],
+                    "Todavía no tienes habilidades.":  [
+                                                           "scripts\\scr_menu_stad_habil_draw\\scr_menu_stad_habil_draw.gml:617"
+                                                       ],
                     "* Sientes que este lugar quedará grabado en tu memoria.":  [
                                                                                     "scripts\\scr_save_dialogues\\scr_save_dialogues.gml:124",
                                                                                     "scripts\\scr_save_dialogues\\scr_save_dialogues.gml:236"
@@ -793,61 +877,79 @@
                                  "scripts\\scr_save_room_names\\scr_save_room_names.gml:87"
                              ],
                     "Tienda 1":  [
-                                     "scripts\\scr_shop_data\\scr_shop_data.gml:127"
+                                     "scripts\\scr_shop_data\\scr_shop_data.gml:131"
                                  ],
-                    "* Bienvenido. ¿Qué puedo hacer por ti?":  [
-                                                                   "scripts\\scr_shop_data\\scr_shop_data.gml:174"
-                                                               ],
+                    "* Bienvenido. Todo cuesta 0 Sueños.":  [
+                                                                "scripts\\scr_shop_data\\scr_shop_data.gml:151"
+                                                            ],
                     "Saludos":  [
-                                    "scripts\\scr_shop_data\\scr_shop_data.gml:265"
+                                    "scripts\\scr_shop_data\\scr_shop_data.gml:195"
                                 ],
                     "* ¡Hola! Bienvenido a la tienda.":  [
-                                                             "scripts\\scr_shop_data\\scr_shop_data.gml:271"
+                                                             "scripts\\scr_shop_data\\scr_shop_data.gml:201"
                                                          ],
                     "* Mira todo lo que quieras.":  [
-                                                        "scripts\\scr_shop_data\\scr_shop_data.gml:277"
+                                                        "scripts\\scr_shop_data\\scr_shop_data.gml:207"
                                                     ],
                     "Sobre esta tienda":  [
-                                              "scripts\\scr_shop_data\\scr_shop_data.gml:290"
+                                              "scripts\\scr_shop_data\\scr_shop_data.gml:216"
                                           ],
                     "* Aquí vendo algunas cosas que podrían serte útiles.":  [
-                                                                                 "scripts\\scr_shop_data\\scr_shop_data.gml:296"
+                                                                                 "scripts\\scr_shop_data\\scr_shop_data.gml:222"
                                                                              ],
                     "* También puedo comprarte objetos que ya no necesites.":  [
-                                                                                   "scripts\\scr_shop_data\\scr_shop_data.gml:302"
+                                                                                   "scripts\\scr_shop_data\\scr_shop_data.gml:228"
                                                                                ],
                     "¿Qué son los Sueños?":  [
-                                                 "scripts\\scr_shop_data\\scr_shop_data.gml:315"
+                                                 "scripts\\scr_shop_data\\scr_shop_data.gml:237"
                                              ],
                     "* Los Sueños son la moneda que usamos por aquí.":  [
-                                                                            "scripts\\scr_shop_data\\scr_shop_data.gml:321"
+                                                                            "scripts\\scr_shop_data\\scr_shop_data.gml:243"
                                                                         ],
                     "* Puedes conseguirlos en tus aventuras y gastarlos en tiendas.":  [
-                                                                                           "scripts\\scr_shop_data\\scr_shop_data.gml:330"
+                                                                                           "scripts\\scr_shop_data\\scr_shop_data.gml:252"
                                                                                        ],
                     "* Gracias por venir. Vuelve pronto.":  [
-                                                                "scripts\\scr_shop_data\\scr_shop_data.gml:353"
+                                                                "scripts\\scr_shop_data\\scr_shop_data.gml:264"
                                                             ],
                     "Tienda sin configurar":  [
-                                                  "scripts\\scr_shop_data\\scr_shop_data.gml:398"
+                                                  "scripts\\scr_shop_data\\scr_shop_data.gml:290"
                                               ],
                     "* Esta tienda todavía no está configurada.":  [
-                                                                       "scripts\\scr_shop_data\\scr_shop_data.gml:418"
+                                                                       "scripts\\scr_shop_data\\scr_shop_data.gml:310"
                                                                    ],
                     "* Hasta luego.":  [
-                                           "scripts\\scr_shop_data\\scr_shop_data.gml:431"
+                                           "scripts\\scr_shop_data\\scr_shop_data.gml:323"
                                        ],
                     "Brillitos":  [
-                                      "scripts\\scr_toys_data\\scr_toys_data.gml:13"
+                                      "scripts\\scr_toys_data\\scr_toys_data.gml:96"
                                   ],
-                    "Aturde y debilita al enemigo.":  [
-                                                          "scripts\\scr_toys_data\\scr_toys_data.gml:15"
-                                                      ],
+                    "Aturde por 2 turnos y debilita ataque y defensa.":  [
+                                                                             "scripts\\scr_toys_data\\scr_toys_data.gml:99"
+                                                                         ],
                     "Pegamento":  [
-                                      "scripts\\scr_toys_data\\scr_toys_data.gml:76"
+                                      "scripts\\scr_toys_data\\scr_toys_data.gml:124"
                                   ],
-                    "Hace perder un turno al enemigo.":  [
-                                                             "scripts\\scr_toys_data\\scr_toys_data.gml:78"
-                                                         ]
+                    "Hace perder 2 turnos al enemigo.":  [
+                                                             "scripts\\scr_toys_data\\scr_toys_data.gml:127"
+                                                         ],
+                    "Flash":  [
+                                  "scripts\\scr_toys_data\\scr_toys_data.gml:152"
+                              ],
+                    "Desorienta al enemigo y aumenta 30% su probabilidad de fallar.":  [
+                                                                                           "scripts\\scr_toys_data\\scr_toys_data.gml:155"
+                                                                                       ],
+                    "Rompearmadura":  [
+                                          "scripts\\scr_toys_data\\scr_toys_data.gml:181"
+                                      ],
+                    "Reduce bastante la defensa del enemigo durante esta batalla.":  [
+                                                                                         "scripts\\scr_toys_data\\scr_toys_data.gml:184"
+                                                                                     ],
+                    "Lastre":  [
+                                   "scripts\\scr_toys_data\\scr_toys_data.gml:210"
+                               ],
+                    "Reduce bastante el ataque del enemigo durante esta batalla.":  [
+                                                                                        "scripts\\scr_toys_data\\scr_toys_data.gml:213"
+                                                                                    ]
                 }
 }
