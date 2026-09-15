@@ -1,0 +1,2 @@
+fan_distance = 180;
+fan_force = 3.5;

@@ -1,14 +1,33 @@
 /// =========================================================
 /// OBJ_PLAYER
-/// DRAW - NUEVO
+/// DRAW COMPLETO
 /// =========================================================
 ///
-/// Parent:
-///     no aplica; es evento del obj_player existente.
+/// El obj_player es PERSISTENT.
 ///
-/// Solo cambia el DIBUJO del salto plataformero.
-/// El sprite_index real sigue gestionado por el sistema actual.
+/// Por eso viaja físicamente también a la room BBS aunque la
+/// batalla solo necesite sus datos (HP, inventario, equipo...).
+///
+/// En BBS Maya JAMÁS debe dibujarse como sprite del mundo.
+/// El objeto continúa existiendo y todos los sistemas de
+/// batalla pueden seguir leyendo sus variables normalmente.
+///
 /// =========================================================
+
+
+// =========================================================
+// BBS - NO DIBUJAR AL PLAYER DEL MAPA
+// =========================================================
+
+if (room == bbs)
+{
+    exit;
+}
+
+
+// =========================================================
+// DIBUJO DEL MODO PLATAFORMERO
+// =========================================================
 
 var _drawn =
     false;

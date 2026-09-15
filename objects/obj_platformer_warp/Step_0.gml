@@ -1,20 +1,50 @@
 /// =========================================================
-/// OBJ_PLATFORMER_WARP - STEP
+/// OBJ_PLATFORMER_WARP
+/// STEP COMPLETO
+/// =========================================================
+///
+/// PARA ACTIVARSE:
+///
+///     1. Maya debe tocar la zona FIJA 20x20 del centro.
+///     2. Maya debe estar mirando directamente al objeto.
+///     3. Debe pulsar Z o Enter.
+///     4. No debe haber un menú/cinemática bloqueando.
+///
+/// La transición y el cambio de modo los realiza el sistema
+/// oficial actual:
+//
+///     scr_platformer_warp_activate(id)
+///
 /// =========================================================
 
 scr_platformer_init();
+
 
 prompt_visible =
     false;
 
 
-if (!interaction_enabled)
+// =========================================================
+// ESTADO DEL OBJETO
+// =========================================================
+
+if (
+    !active
+    ||
+    !interaction_enabled
+    ||
+    interaction_locked
+)
 {
     exit;
 }
 
 
-if (transitioning)
+if (
+    target_room == noone
+    ||
+    target_room == -1
+)
 {
     exit;
 }
@@ -26,11 +56,73 @@ if (!instance_exists(obj_player))
 }
 
 
-if (target_room == noone)
+// No crear dos transiciones a la vez.
+if (instance_exists(obj_warp))
 {
     exit;
 }
 
+
+// =========================================================
+// BLOQUEOS
+// =========================================================
+
+if (
+    variable_global_exists(
+        "gameover_death_freeze_active"
+    )
+    &&
+    global.gameover_death_freeze_active
+)
+{
+    exit;
+}
+
+
+if (
+    variable_global_exists(
+        "cutscene_active"
+    )
+    &&
+    global.cutscene_active
+)
+{
+    exit;
+}
+
+
+if (
+    instance_exists(obj_textbox)
+    ||
+    instance_exists(obj_save_menu)
+    ||
+    instance_exists(obj_pauser)
+    ||
+    instance_exists(obj_hoja_problema_ui)
+)
+{
+    exit;
+}
+
+
+// obj_menu_manager puede existir durante gameplay.
+//
+// SOLO debe bloquear el warp si el menú realmente está abierto.
+if (
+    instance_exists(obj_menu_manager)
+    &&
+    obj_menu_manager.state
+    !=
+    MENU_STATE.CLOSED
+)
+{
+    exit;
+}
+
+
+// =========================================================
+// PLAYER
+// =========================================================
 
 var _p =
     instance_find(
@@ -50,49 +142,7 @@ if (
 
 
 // =========================================================
-// BLOQUEOS DE INTERACCIÓN
-// =========================================================
-
-if (
-    variable_global_exists(
-        "cutscene_active"
-    )
-    &&
-    global.cutscene_active
-)
-{
-    exit;
-}
-
-
-if (
-    instance_exists(
-        obj_textbox
-    )
-    ||
-    instance_exists(
-        obj_save_menu
-    )
-    ||
-    instance_exists(
-        obj_menu_manager
-    )
-    ||
-    instance_exists(
-        obj_pauser
-    )
-    ||
-    instance_exists(
-        obj_hoja_problema_ui
-    )
-)
-{
-    exit;
-}
-
-
-// =========================================================
-// HITBOX FÍSICA / CENTRO DE MAYA
+// HITBOX REAL DE MAYA
 // =========================================================
 
 var _player_left =
@@ -111,13 +161,28 @@ var _player_bottom =
     _p.bbox_bottom;
 
 
-// En modo plataformero usar su rectángulo físico real.
+// En modo plataformero usamos su rectángulo físico propio.
 if (
     global.platformer_active
     &&
     variable_instance_exists(
         _p,
         "platform_hit_left"
+    )
+    &&
+    variable_instance_exists(
+        _p,
+        "platform_hit_top"
+    )
+    &&
+    variable_instance_exists(
+        _p,
+        "platform_hit_right"
+    )
+    &&
+    variable_instance_exists(
+        _p,
+        "platform_hit_bottom"
     )
 )
 {
@@ -166,24 +231,122 @@ var _player_center_y =
     0.5;
 
 
+// =========================================================
+// CENTRO DEL WARP
+// =========================================================
+//
+// El área de interacción NO depende del tamaño del sprite.
+//
+// Si existe sprite usamos el centro real de su bbox para que
+// la zona quede visualmente centrada sobre el objeto.
+//
+// =========================================================
+
 var _warp_center_x =
-    (
-        bbox_left
-        +
-        bbox_right
-    )
-    *
-    0.5;
+    x;
 
 
 var _warp_center_y =
-    (
-        bbox_top
-        +
-        bbox_bottom
-    )
-    *
-    0.5;
+    y;
+
+
+if (
+    sprite_index != -1
+    &&
+    sprite_exists(sprite_index)
+)
+{
+    _warp_center_x =
+        (
+            bbox_left
+            +
+            bbox_right
+        )
+        *
+        0.5;
+
+
+    _warp_center_y =
+        (
+            bbox_top
+            +
+            bbox_bottom
+        )
+        *
+        0.5;
+}
+
+
+// =========================================================
+// ZONA FIJA 20x20
+// =========================================================
+
+var _half_size =
+    max(
+        1,
+        interaction_size
+        *
+        0.5
+    );
+
+
+var _zone_left =
+    _warp_center_x
+    -
+    _half_size;
+
+
+var _zone_right =
+    _warp_center_x
+    +
+    _half_size;
+
+
+var _zone_top =
+    _warp_center_y
+    -
+    _half_size;
+
+
+var _zone_bottom =
+    _warp_center_y
+    +
+    _half_size;
+
+
+// No exigimos que el CENTRO de Maya entre dentro de la zona.
+//
+// Basta con que su hitbox real toque el rectángulo 20x20.
+var _touching =
+(
+    _player_right
+    >=
+    _zone_left
+
+    &&
+
+    _player_left
+    <=
+    _zone_right
+
+    &&
+
+    _player_bottom
+    >=
+    _zone_top
+
+    &&
+
+    _player_top
+    <=
+    _zone_bottom
+);
+
+
+if (!_touching)
+{
+    exit;
+}
 
 
 // =========================================================
@@ -215,140 +378,77 @@ if (
 
 
 // =========================================================
-// MUY CERCA + DIRECTAMENTE MIRANDO AL TRIGGER
+// MIRAR DIRECTAMENTE AL OBJETO
 // =========================================================
-//
-// La distancia se mide DESDE EL BORDE de Maya hasta el borde
-// del trigger, no entre centros.
-//
-// Así un trigger grande sigue requiriendo estar pegado a él.
-//
-// =========================================================
+
+var _dx =
+    _warp_center_x
+    -
+    _player_center_x;
+
+
+var _dy =
+    _warp_center_y
+    -
+    _player_center_y;
+
 
 var _facing_ok =
     false;
 
 
-var _forward_gap =
-    999999;
-
-
 switch (_face)
 {
     case RIGHT:
-        _forward_gap =
-            bbox_left
-            -
-            _player_right;
-
-
         _facing_ok =
-            (
-                _warp_center_x
-                >
-                _player_center_x
-                &&
-                abs(
-                    _warp_center_y
-                    -
-                    _player_center_y
-                )
-                <=
-                interaction_x_margin
-            );
+        (
+            _dx > 0
+            &&
+            abs(_dy)
+            <=
+            _half_size
+        );
         break;
 
 
     case LEFT:
-        _forward_gap =
-            _player_left
-            -
-            bbox_right;
-
-
         _facing_ok =
-            (
-                _warp_center_x
-                <
-                _player_center_x
-                &&
-                abs(
-                    _warp_center_y
-                    -
-                    _player_center_y
-                )
-                <=
-                interaction_x_margin
-            );
+        (
+            _dx < 0
+            &&
+            abs(_dy)
+            <=
+            _half_size
+        );
         break;
 
 
     case DOWN:
-        _forward_gap =
-            bbox_top
-            -
-            _player_bottom;
-
-
         _facing_ok =
-            (
-                _warp_center_y
-                >
-                _player_center_y
-                &&
-                abs(
-                    _warp_center_x
-                    -
-                    _player_center_x
-                )
-                <=
-                interaction_x_margin
-            );
+        (
+            _dy > 0
+            &&
+            abs(_dx)
+            <=
+            _half_size
+        );
         break;
 
 
     case UP:
-        _forward_gap =
-            _player_top
-            -
-            bbox_bottom;
-
-
         _facing_ok =
-            (
-                _warp_center_y
-                <
-                _player_center_y
-                &&
-                abs(
-                    _warp_center_x
-                    -
-                    _player_center_x
-                )
-                <=
-                interaction_x_margin
-            );
+        (
+            _dy < 0
+            &&
+            abs(_dx)
+            <=
+            _half_size
+        );
         break;
 }
 
 
-var _near =
-    (
-        _forward_gap
-        >=
-        -2
-        &&
-        _forward_gap
-        <=
-        interaction_distance
-    );
-
-
-if (
-    !_facing_ok
-    ||
-    !_near
-)
+if (!_facing_ok)
 {
     exit;
 }
@@ -363,7 +463,7 @@ prompt_visible =
 
 
 // =========================================================
-// CONFIRMAR
+// INPUT
 // =========================================================
 
 var _confirm =
@@ -382,14 +482,33 @@ if (!_confirm)
 }
 
 
-transitioning =
-    true;
+// =========================================================
+// ACTIVAR
+// =========================================================
+//
+// Esta función:
+//
+//     - bloquea esta instancia;
+//     - deja pendiente platformer_enable;
+//     - crea obj_warp;
+//     - configura target_room/x/y/face;
+//     - conserva o cambia música;
+//     - aplica el modo al llegar a la room destino.
+//
+// =========================================================
+
+if (
+    scr_platformer_warp_activate(
+        id
+    )
+)
+{
+    keyboard_clear(
+        ord("Z")
+    );
 
 
-scr_platformer_request_room_mode(
-    target_room,
-    target_platformer,
-    target_x,
-    target_y,
-    target_facing
-);
+    keyboard_clear(
+        vk_enter
+    );
+}

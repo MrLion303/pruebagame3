@@ -2,15 +2,6 @@
 /// OBJ_HOJA_PROBLEMA_UI - STEP
 /// =========================================================
 
-// =========================================================
-// INICIALIZACIÓN TARDÍA
-// =========================================================
-//
-// El objeto del mundo asigna sheet_config_id DESPUÉS de que
-// Create se ejecuta.
-//
-// =========================================================
-
 if (!sheet_initialized)
 {
     sheet_config =
@@ -18,23 +9,17 @@ if (!sheet_initialized)
             sheet_config_id
         );
 
-
     if (is_undefined(sheet_config))
     {
         show_debug_message(
             "[HOJA] Configuración inexistente: "
             +
-            string(
-                sheet_config_id
-            )
+            string(sheet_config_id)
         );
 
-
         instance_destroy();
-
         exit;
     }
-
 
     if (
         !variable_struct_exists(
@@ -51,26 +36,44 @@ if (!sheet_initialized)
             "[HOJA] La configuración no tiene problems[]."
         );
 
-
         instance_destroy();
-
         exit;
     }
 
+    var _raw_problem_count =
+        array_length(
+            sheet_config.problems
+        );
+
+    if (_raw_problem_count <= 0)
+    {
+        show_debug_message(
+            "[HOJA] La configuración no contiene ningún problema."
+        );
+
+        instance_destroy();
+        exit;
+    }
 
     problem_count =
-        clamp(
-            array_length(
-                sheet_config.problems
-            ),
-            1,
+        min(
+            _raw_problem_count,
             3
         );
 
+    answer_texts =
+        array_create(
+            problem_count,
+            ""
+        );
 
-    selected_problem =
-        0;
+    problem_status =
+        array_create(
+            problem_count,
+            0
+        );
 
+    selected_problem = 0;
 
     if (instance_exists(obj_player))
     {
@@ -80,28 +83,39 @@ if (!sheet_initialized)
                 0
             );
 
-
         if (
             saved_player != noone
             &&
             instance_exists(saved_player)
         )
         {
-            saved_player_can_move =
-                saved_player.puede_moverse;
+            if (
+                variable_instance_exists(
+                    saved_player,
+                    "puede_moverse"
+                )
+            )
+            {
+                saved_player_can_move =
+                    saved_player.puede_moverse;
 
+                saved_player.puede_moverse =
+                    false;
+            }
 
-            saved_player.puede_moverse =
-                false;
-
-
-            saved_player.movimiento =
-                false;
+            if (
+                variable_instance_exists(
+                    saved_player,
+                    "movimiento"
+                )
+            )
+            {
+                saved_player.movimiento =
+                    false;
+            }
         }
     }
 
-
-    // Si el puzzle ya estaba resuelto, mostrar la hoja resuelta.
     if (
         variable_struct_exists(
             sheet_config,
@@ -119,9 +133,7 @@ if (!sheet_initialized)
             _i++
         )
         {
-            problem_status[_i] =
-                1;
-
+            problem_status[_i] = 1;
 
             answer_texts[_i] =
                 string(
@@ -129,20 +141,11 @@ if (!sheet_initialized)
                 );
         }
 
-
-        sheet_completed_sent =
-            true;
+        sheet_completed_sent = true;
     }
 
-
-    sheet_initialized =
-        true;
+    sheet_initialized = true;
 }
-
-
-// =========================================================
-// MANTENER MAYA BLOQUEADA
-// =========================================================
 
 if (
     saved_player != noone
@@ -150,26 +153,32 @@ if (
     instance_exists(saved_player)
 )
 {
-    saved_player.puede_moverse =
-        false;
+    if (
+        variable_instance_exists(
+            saved_player,
+            "puede_moverse"
+        )
+    )
+    {
+        saved_player.puede_moverse = false;
+    }
 
-
-    saved_player.movimiento =
-        false;
+    if (
+        variable_instance_exists(
+            saved_player,
+            "movimiento"
+        )
+    )
+    {
+        saved_player.movimiento = false;
+    }
 }
-
 
 if (input_lock > 0)
 {
     input_lock--;
-
     exit;
 }
-
-
-// =========================================================
-// CERRAR
-// =========================================================
 
 if (
     keyboard_check_pressed(
@@ -186,20 +195,10 @@ if (
 )
 {
     instance_destroy();
-
     exit;
 }
 
-
-// =========================================================
-// CAMBIAR PROBLEMA SELECCIONADO
-// =========================================================
-
-if (
-    keyboard_check_pressed(
-        vk_up
-    )
-)
+if (keyboard_check_pressed(vk_up))
 {
     selected_problem =
         max(
@@ -208,12 +207,7 @@ if (
         );
 }
 
-
-if (
-    keyboard_check_pressed(
-        vk_down
-    )
-)
+if (keyboard_check_pressed(vk_down))
 {
     selected_problem =
         min(
@@ -221,11 +215,6 @@ if (
             selected_problem + 1
         );
 }
-
-
-// =========================================================
-// ESCRIBIR NÚMEROS
-// =========================================================
 
 if (
     problem_status[
@@ -243,9 +232,7 @@ if (
     {
         if (
             keyboard_check_pressed(
-                ord("0")
-                +
-                _digit
+                ord("0") + _digit
             )
         )
         {
@@ -263,15 +250,11 @@ if (
                     selected_problem
                 ]
                 +=
-                string(
-                    _digit
-                );
+                string(_digit);
             }
         }
     }
 
-
-    // Permitir respuestas negativas.
     if (
         keyboard_check_pressed(
             ord("-")
@@ -291,7 +274,6 @@ if (
         "-";
     }
 
-
     if (
         keyboard_check_pressed(
             vk_backspace
@@ -303,12 +285,10 @@ if (
                 selected_problem
             ];
 
-
         var _len =
             string_length(
                 _txt
             );
-
 
         if (_len > 0)
         {
@@ -325,11 +305,6 @@ if (
     }
 }
 
-
-// =========================================================
-// CONFIRMAR RESPUESTA
-// =========================================================
-
 var _confirm =
     keyboard_check_pressed(
         ord("Z")
@@ -339,12 +314,10 @@ var _confirm =
         vk_enter
     );
 
-
 if (_confirm)
 {
     var _index =
         selected_problem;
-
 
     if (
         problem_status[_index]
@@ -357,12 +330,31 @@ if (_confirm)
                 _index
             ];
 
+        if (
+            !is_struct(_problem)
+            ||
+            !variable_struct_exists(
+                _problem,
+                "answer"
+            )
+        )
+        {
+            show_debug_message(
+                "[HOJA] El problema "
+                +
+                string(_index)
+                +
+                " no tiene answer."
+            );
+
+            problem_status[_index] = -1;
+            exit;
+        }
 
         var _answer_text =
             answer_texts[
                 _index
             ];
-
 
         var _valid_input =
             (
@@ -371,10 +363,7 @@ if (_confirm)
                 _answer_text != "-"
             );
 
-
-        var _correct =
-            false;
-
+        var _correct = false;
 
         if (_valid_input)
         {
@@ -383,12 +372,10 @@ if (_confirm)
                     _answer_text
                 );
 
-
             var _expected =
                 real(
                     _problem.answer
                 );
-
 
             _correct =
                 abs(
@@ -400,12 +387,9 @@ if (_confirm)
                 0.0001;
         }
 
-
         if (_correct)
         {
-            problem_status[_index] =
-                1;
-
+            problem_status[_index] = 1;
 
             if (
                 variable_struct_exists(
@@ -419,8 +403,6 @@ if (_confirm)
                 );
             }
 
-
-            // Seleccionar el siguiente pendiente.
             for (
                 var _next = _index + 1;
                 _next < problem_count;
@@ -433,18 +415,14 @@ if (_confirm)
                     1
                 )
                 {
-                    selected_problem =
-                        _next;
-
+                    selected_problem = _next;
                     break;
                 }
             }
         }
         else
         {
-            problem_status[_index] =
-                -1;
-
+            problem_status[_index] = -1;
 
             if (
                 variable_struct_exists(
@@ -460,14 +438,7 @@ if (_confirm)
         }
     }
 
-
-    // =====================================================
-    // ¿TODOS RESUELTOS?
-    // =====================================================
-
-    var _all_correct =
-        true;
-
+    var _all_correct = true;
 
     for (
         var _i = 0;
@@ -481,13 +452,10 @@ if (_confirm)
             1
         )
         {
-            _all_correct =
-                false;
-
+            _all_correct = false;
             break;
         }
     }
-
 
     if (
         _all_correct
@@ -508,8 +476,6 @@ if (_confirm)
             );
         }
 
-
-        sheet_completed_sent =
-            true;
+        sheet_completed_sent = true;
     }
 }

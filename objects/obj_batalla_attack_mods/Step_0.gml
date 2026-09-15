@@ -16,6 +16,123 @@ var _ui =
 
 
 // =========================================================
+// OUTRO DEL ARO CARGADO
+// =========================================================
+//
+// La entrada del ataque circular ya usa:
+//
+//     circle_intro_progress
+//
+// de 0 -> 1.
+//
+// Draw GUI End utiliza ese valor para convertir suavemente:
+//
+//     caja horizontal -> caja 128x128
+//
+// Para volver al estado normal NO necesitamos otro sistema
+// visual: recorremos exactamente el mismo valor al revés:
+//
+//     1 -> 0
+//
+// mientras custom_mode sigue siendo "circle".
+//
+// La diana desaparece al comenzar este OUTRO y la caja vuelve
+// suavemente a su tamaño horizontal original.
+//
+// =========================================================
+
+if (
+    !variable_instance_exists(
+        id,
+        "circle_outro_active"
+    )
+)
+{
+    circle_outro_active =
+        false;
+
+    circle_outro_timer =
+        0;
+
+    circle_outro_frames =
+        max(
+            1,
+            circle_intro_frames
+        );
+}
+
+
+if (circle_outro_active)
+{
+    circle_outro_timer++;
+
+
+    var _outro_t =
+        clamp(
+            circle_outro_timer
+            /
+            max(
+                1,
+                circle_outro_frames
+            ),
+            0,
+            1
+        );
+
+
+    // 1 -> 0.
+    //
+    // Draw GUI End ya aplica su easing normal sobre este valor,
+    // por lo que visualmente obtenemos la misma transformación
+    // pero en sentido contrario.
+    circle_intro_progress =
+        1
+        -
+        _outro_t;
+
+
+    // La diana ya desapareció.
+    circle_ready =
+        false;
+
+    circle_started =
+        false;
+
+    circle_active =
+        false;
+
+
+    if (
+        circle_outro_timer
+        >=
+        circle_outro_frames
+    )
+    {
+        circle_outro_active =
+            false;
+
+        circle_outro_timer =
+            0;
+
+        circle_intro_progress =
+            0;
+
+
+        // Aplicar el daño únicamente cuando la caja terminó
+        // de regresar a su estado horizontal.
+        f_apply_custom_damage_final();
+
+
+        // Ahora sí pasar al popup normal del resultado.
+        f_start_final_feedback();
+    }
+
+
+    exit;
+}
+
+
+// =========================================================
 // ESPERA FINAL: 1 SEGUNDO CON TARGET / DIANA EN PANTALLA
 // =========================================================
 
@@ -34,6 +151,73 @@ if (custom_hold_active)
             false;
 
 
+        // =================================================
+        // ARO CARGADO
+        // =================================================
+        //
+        // Antes se hacía:
+        //
+        //     aplicar daño
+        //     -> cerrar modo circle
+        //     -> caja horizontal instantánea
+        //
+        // Ahora:
+        //
+        //     termina hold
+        //     -> diana desaparece
+        //     -> caja 128x128 vuelve suavemente a horizontal
+        //     -> aplicar daño
+        //     -> popup
+        //
+        // =================================================
+
+        if (custom_mode == "circle")
+        {
+            circle_outro_active =
+                true;
+
+            circle_outro_timer =
+                0;
+
+            circle_outro_frames =
+                max(
+                    1,
+                    circle_intro_frames
+                );
+
+            circle_intro_active =
+                false;
+
+            circle_intro_timer =
+                circle_intro_frames;
+
+            circle_intro_progress =
+                1;
+
+            circle_ready =
+                false;
+
+            circle_started =
+                false;
+
+            circle_active =
+                false;
+
+
+            keyboard_clear(
+                ord("Z")
+            );
+
+            keyboard_clear(
+                vk_enter
+            );
+
+
+            exit;
+        }
+
+
+        // Multi-barra conserva el comportamiento anterior.
         f_apply_custom_damage_final();
 
 
