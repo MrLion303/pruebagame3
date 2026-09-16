@@ -3,16 +3,7 @@
 /// END STEP
 /// =========================================================
 ///
-/// V6 - VIENTO AUTORITATIVO
-///
-/// Mientras fan_detached == true:
-///
-///     - NO llama scr_platformer_silicio_update();
-///     - NO permite que este evento reactive follow;
-///     - NO permite animación residual por movimiento;
-///     - obj_settings tiene autoridad total sobre su expulsión
-///       y posterior reincorporación.
-///
+/// V7 - VIENTO AUTORITATIVO EN RPG + PLATAFORMERO
 /// =========================================================
 
 scr_platformer_init();
@@ -20,7 +11,7 @@ scr_platformer_init();
 
 if (global.platformer_active)
 {
-    var _fan_detached =
+    var _fan_detached_platform =
         (
             variable_instance_exists(
                 id,
@@ -31,13 +22,12 @@ if (global.platformer_active)
         );
 
 
-    if (_fan_detached)
+    if (_fan_detached_platform)
     {
         party_follow_suspended =
             true;
 
 
-        // El viento no es caminar.
         movimiento =
             false;
 
@@ -78,8 +68,6 @@ if (global.platformer_active)
         }
 
 
-        // Durante una reincorporación EN SUELO sí puede usar la
-        // animación de correr elegida por obj_settings.
         var _allow_rejoin_run =
             (
                 variable_instance_exists(
@@ -100,9 +88,6 @@ if (global.platformer_active)
 
         if (!_allow_rejoin_run)
         {
-            image_index =
-                0;
-
             image_speed =
                 0;
         }
@@ -131,54 +116,119 @@ else
     }
 
 
-    party_follow_suspended =
-        false;
+    // =====================================================
+    // RPG: NO BORRAR EL ESTADO DEL VIENTO
+    // =====================================================
+    //
+    // Este era uno de los fallos reales de la versión anterior:
+    // fuera del plataformero este End Step hacía siempre:
+    //
+    //     party_follow_suspended = false;
+    //     fan_detached = false;
+    //
+    // por lo que el viento de Silicio no podía conservar
+    // autoridad durante varios frames.
+    // =====================================================
+
+    var _fan_rpg_special =
+        (
+            variable_instance_exists(
+                id,
+                "fan_rpg_mode"
+            )
+            &&
+            fan_rpg_mode
+            !=
+            "none"
+        );
 
 
-    if (
-        variable_instance_exists(
-            id,
-            "fan_detached"
-        )
-    )
+    if (_fan_rpg_special)
     {
         fan_detached =
-            false;
+            true;
+
+
+        var _fan_rpg_following_inside_air =
+            (
+                fan_rpg_mode
+                ==
+                "wind_follow"
+            );
+
+
+        // CLAVE:
+        // mientras todavía está DENTRO del aire, Silicio sigue
+        // usando el follower normal. El viento se suma como un
+        // desplazamiento físico independiente.
+        party_follow_suspended =
+            !_fan_rpg_following_inside_air;
+
+
+        var _fan_rpg_rejoining =
+            (
+                variable_instance_exists(
+                    id,
+                    "fan_rejoin_active"
+                )
+                &&
+                fan_rejoin_active
+            );
+
+
+        if (!_fan_rpg_rejoining)
+        {
+            movimiento =
+                false;
+
+            // Mantener el sprite ACTUAL, pero siempre en frame 0
+            // mientras el efecto del aire tenga autoridad visual.
+            image_index =
+                0;
+
+            image_speed =
+                0;
+        }
     }
-
-
-    if (
-        variable_instance_exists(
-            id,
-            "fan_rejoin_active"
-        )
-    )
+    else
     {
-        fan_rejoin_active =
+        party_follow_suspended =
             false;
-    }
 
 
-    if (
-        variable_instance_exists(
-            id,
-            "fan_rejoin_walk_armed"
+        if (
+            variable_instance_exists(
+                id,
+                "fan_detached"
+            )
         )
-    )
-    {
-        fan_rejoin_walk_armed =
-            false;
-    }
+        {
+            fan_detached =
+                false;
+        }
 
 
-    if (
-        variable_instance_exists(
-            id,
-            "fan_detach_push_accum"
+        if (
+            variable_instance_exists(
+                id,
+                "fan_rejoin_active"
+            )
         )
-    )
-    {
-        fan_detach_push_accum =
-            0;
+        {
+            fan_rejoin_active =
+                false;
+        }
+
+
+        if (
+            variable_instance_exists(
+                id,
+                "fan_rejoin_walk_armed"
+            )
+        )
+        {
+            fan_rejoin_walk_armed =
+                false;
+        }
     }
 }

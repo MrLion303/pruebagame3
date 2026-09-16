@@ -78,6 +78,19 @@ if (
         );
 
 
+    // Mientras obj_deslizamiento_abajo controla a Maya,
+    // S / Sigilo queda completamente bloqueado.
+    var _downslide_blocks_sigilo =
+        (
+            variable_instance_exists(
+                id,
+                "downslide_active"
+            )
+            &&
+            downslide_active
+        );
+
+
     var _world_ok =
         (
             room != bbs
@@ -87,6 +100,8 @@ if (
             !_platformer
             &&
             !_pause_menu_open
+            &&
+            !_downslide_blocks_sigilo
             &&
             !instance_exists(
                 obj_save_menu
@@ -151,16 +166,6 @@ scr_platformer_apply_pending_mode();
 // =========================================================
 // SONIDO DE ENTRADA / SALIDA DEL PLATAFORMERO
 // =========================================================
-//
-// Entrar:
-//     snd_entrar_platformer
-//
-// Salir:
-//     snd_salir_platformer
-//
-// snd_salir_platformer debe ser el mismo WAV invertido.
-// El LEEME incluye un .BAT para generarlo con FFmpeg.
-// =========================================================
 
 if (
     platformer_tension_prev_active
@@ -184,8 +189,6 @@ if (
         );
 
 
-    // Fallback seguro mientras todavía no se haya importado
-    // el WAV invertido como snd_salir_platformer.
     if (
         _platform_transition_sound == -1
         &&
@@ -239,14 +242,6 @@ if (global.platformer_active)
     }
 
 
-    // =====================================================
-    // RECUPERACIÓN DEL VACÍO
-    // =====================================================
-    //
-    // Si está arrastrando a Maya/Silicio al último suelo,
-    // consume TODA la física del frame.
-    // =====================================================
-
     var _platform_void_consumed =
         scr_platformer_void_recovery_update(
             id
@@ -255,7 +250,6 @@ if (global.platformer_active)
 
     if (!_platform_void_consumed)
     {
-        // Pogo = misma física vertical que un salto normal.
         if (
             variable_instance_exists(
                 id,
@@ -273,14 +267,6 @@ if (global.platformer_active)
         }
 
 
-        // =================================================
-        // DASH PLATAFORMERO
-        // =================================================
-        //
-        // Si devuelve true, el Dash controla toda la física de
-        // este frame y NO ejecutamos gravedad/movimiento normal.
-        // =================================================
-
         var _platform_dash_consumed =
             scr_platformer_dash_update(
                 id
@@ -289,8 +275,6 @@ if (global.platformer_active)
 
         if (!_platform_dash_consumed)
         {
-            // Evitar que el hitbox melee atraviese colision o
-            // colision_rampa hacia enemigos/triggers del otro lado.
             scr_platformer_attack_los_prepare(
                 id
             );
@@ -305,8 +289,6 @@ if (global.platformer_active)
 }
 else
 {
-    // Seguridad:
-    // restaurar alpha/visual si abandonamos la room durante Dash.
     scr_platformer_dash_cancel(
         id
     );

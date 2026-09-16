@@ -4,75 +4,32 @@
 ///
 /// Sistema universal de abanicos / ventiladores.
 ///
-/// OBJETOS ACTUALES:
+/// Esta versión separa correctamente:
 ///
-///     obj_abanico_izquierda
-///     obj_abanico_derecha
-///     obj_abanico_arriba
-///     obj_abanico_abajo
+///     MAYA
+///         -> el Step del abanico aplica el empuje físico.
 ///
-/// Cada objeto ya llama:
+///     SILICIO RPG
+///         -> obj_settings lo integra alrededor de scr_party_update().
+///         -> usa un ciclo equivalente al de obj_deslizamiento_abajo:
 ///
-///     Create:
-///         scr_fan_prepare(id, dir_x, dir_y);
+///             wind_follow
+///             wind_exit
+///             wind_wait_gap
+///             wind_rejoin
+///             none
 ///
-///     Step:
-///         scr_fan_update(id);
+///     SILICIO PLATAFORMERO
+///         -> conserva el wrapper del follower plataformero.
 ///
-/// Para visualizar el aire, cada uno tendrá además:
-///
-///     Draw:
-///         scr_fan_draw(id);
-///
-/// =========================================================
-/// CREATION CODE DE CADA ABANICO
-/// =========================================================
-///
-/// Distancia EXACTA del aire en píxeles:
+/// Creation Code opcional del abanico:
 ///
 ///     fan_distance = 160;
-///
-/// Fuerza del aire:
-///
 ///     fan_force = 3.5;
-///
-/// Encender / apagar:
-///
 ///     fan_enabled = true;
-///
-/// Mostrar / ocultar la zona blanca:
-///
 ///     fan_air_visible = true;
-///
-/// Opacidad de la zona:
-///
 ///     fan_air_alpha = 0.5;
-///
-/// Sprite personalizado, como antes:
-///
-///     fan_sprite = spr_mi_abanico;
-///
-/// COMPATIBILIDAD:
-///
-///     fan_range_base
-///
-/// sigue funcionando como alias antiguo de fan_distance.
-///
-/// IMPORTANTE:
-///
-/// El viento:
-///
-///     - mueve físicamente a Maya y a Silicio;
-///     - NO cambia sprite_index;
-///     - NO cambia platform_facing;
-///     - NO cambia face;
-///     - NO cambia direccion;
-///     - NO fuerza movimiento = true;
-///     - NO modifica platform_hsp/platform_vsp.
-///
-/// Por eso ser empujado por el aire NO cambia la animación.
-/// Maya y Silicio conservan la animación que les corresponda
-/// por sus propios controles, seguimiento y estado.
+///     fan_silicio_eject_extra = 12;
 ///
 /// =========================================================
 
@@ -81,364 +38,99 @@
 // PREPARAR ABANICO
 // =========================================================
 
-function scr_fan_prepare(
-    _fan,
-    _dir_x,
-    _dir_y
-)
+function scr_fan_prepare(_fan, _dir_x, _dir_y)
 {
-    if (
-        _fan == noone
-        ||
-        !instance_exists(_fan)
-    )
-    {
+    if (_fan == noone || !instance_exists(_fan))
         return false;
-    }
 
+    if (!variable_instance_exists(_fan, "fan_sprite"))
+        _fan.fan_sprite = -1;
 
-    // -----------------------------------------------------
-    // SPRITE
-    // -----------------------------------------------------
+    if (!variable_instance_exists(_fan, "fan_force"))
+        _fan.fan_force = 3.5;
 
-    if (
-        !variable_instance_exists(
-            _fan,
-            "fan_sprite"
-        )
-    )
-    {
-        _fan.fan_sprite =
-            -1;
-    }
+    if (!variable_instance_exists(_fan, "fan_distance"))
+        _fan.fan_distance = 120;
 
+    _fan.fan_distance_default = 120;
 
-    // -----------------------------------------------------
-    // FUERZA
-    // -----------------------------------------------------
-    //
-    // Maya:
-    //
-    //     plataformero = 5 px/frame a velocidad máxima
-    //     overworld normal = 4 px/frame caminando
-    //
-    // 3.5 deja:
-    //
-    //     plataformero: ~1.5 px/frame contra el viento
-    //     overworld:    ~0.5 px/frame contra el viento
-    //
-    // Es una resistencia fuerte, pero vencible.
-    // -----------------------------------------------------
+    if (!variable_instance_exists(_fan, "fan_range_base"))
+        _fan.fan_range_base = 120;
 
-    if (
-        !variable_instance_exists(
-            _fan,
-            "fan_force"
-        )
-    )
-    {
-        _fan.fan_force =
-            3.5;
-    }
+    if (!variable_instance_exists(_fan, "fan_enabled"))
+        _fan.fan_enabled = true;
 
+    if (!variable_instance_exists(_fan, "fan_air_visible"))
+        _fan.fan_air_visible = true;
 
-    // -----------------------------------------------------
-    // DISTANCIA DEL AIRE
-    // -----------------------------------------------------
-    //
-    // Es una distancia ABSOLUTA en píxeles.
-    // NO se multiplica por image_xscale/image_yscale.
-    //
-    // Así:
-    //
-    //     fan_distance = 200;
-    //
-    // significa exactamente 200 px desde la cara del abanico.
-    // -----------------------------------------------------
+    if (!variable_instance_exists(_fan, "fan_air_alpha"))
+        _fan.fan_air_alpha = 0.5;
 
-    if (
-        !variable_instance_exists(
-            _fan,
-            "fan_distance"
-        )
-    )
-    {
-        _fan.fan_distance =
-            120;
-    }
+    if (!variable_instance_exists(_fan, "fan_air_color"))
+        _fan.fan_air_color = c_white;
 
+    if (!variable_instance_exists(_fan, "fan_silicio_eject_extra"))
+        _fan.fan_silicio_eject_extra = 12;
 
-    // Valor base para detectar configuraciones antiguas.
-    _fan.fan_distance_default =
-        120;
+    _fan.fan_direction_x = sign(_dir_x);
+    _fan.fan_direction_y = sign(_dir_y);
 
+    _fan.fan_push_accum = 0;
+    _fan.fan_push_accum_maya = 0;
 
-    // Alias antiguo.
-    //
-    // Si un abanico ya tenía:
-    //
-    //     fan_range_base = 160;
-    //
-    // seguirá funcionando.
-    if (
-        !variable_instance_exists(
-            _fan,
-            "fan_range_base"
-        )
-    )
-    {
-        _fan.fan_range_base =
-            120;
-    }
-
-
-    // -----------------------------------------------------
-    // ESTADO
-    // -----------------------------------------------------
-
-    if (
-        !variable_instance_exists(
-            _fan,
-            "fan_enabled"
-        )
-    )
-    {
-        _fan.fan_enabled =
-            true;
-    }
-
-
-    // -----------------------------------------------------
-    // VISUAL DEL AIRE
-    // -----------------------------------------------------
-
-    if (
-        !variable_instance_exists(
-            _fan,
-            "fan_air_visible"
-        )
-    )
-    {
-        _fan.fan_air_visible =
-            true;
-    }
-
-
-    if (
-        !variable_instance_exists(
-            _fan,
-            "fan_air_alpha"
-        )
-    )
-    {
-        _fan.fan_air_alpha =
-            0.5;
-    }
-
-
-    if (
-        !variable_instance_exists(
-            _fan,
-            "fan_air_color"
-        )
-    )
-    {
-        _fan.fan_air_color =
-            c_white;
-    }
-
-
-    // -----------------------------------------------------
-    // EXPULSIÓN EXTRA DE SILICIO
-    // -----------------------------------------------------
-    //
-    // Cuando Silicio termina de abandonar la corriente recibe
-    // este impulso adicional para quedar claramente FUERA del
-    // rectángulo blanco.
-    //
-    // Creation Code opcional:
-    //
-    //     fan_silicio_eject_extra = 32;
-    //
-    // -----------------------------------------------------
-
-    if (
-        !variable_instance_exists(
-            _fan,
-            "fan_silicio_eject_extra"
-        )
-    )
-    {
-        _fan.fan_silicio_eject_extra =
-            24;
-    }
-
-
-    // -----------------------------------------------------
-    // DIRECCIÓN
-    // -----------------------------------------------------
-
-    _fan.fan_direction_x =
-        sign(_dir_x);
-
-
-    _fan.fan_direction_y =
-        sign(_dir_y);
-
-
-    // -----------------------------------------------------
-    // ACUMULADOR SUBPÍXEL DEL EMPUJE
-    // -----------------------------------------------------
-    //
-    // Permite fuerzas decimales como 3.5:
-    //
-    //     frame 1 -> 3 px
-    //     frame 2 -> 4 px
-    //     frame 3 -> 3 px
-    //     frame 4 -> 4 px
-    //
-    // promedio = 3.5 px/frame.
-    // -----------------------------------------------------
-
-    // Acumuladores separados.
-    //
-    // Maya y Silicio pueden entrar/salir de la corriente en
-    // momentos distintos, así que NO deben compartir residuo
-    // subpíxel.
-    _fan.fan_push_accum =
-        0;
-
-
-    _fan.fan_push_accum_maya =
-        0;
-
-
-    _fan.fan_push_accum_silicio =
-        0;
-
-
-    // -----------------------------------------------------
-    // ÚLTIMA ZONA CALCULADA
-    // -----------------------------------------------------
-
-    _fan.fan_wind_left =
-        _fan.x;
-
-    _fan.fan_wind_top =
-        _fan.y;
-
-    _fan.fan_wind_right =
-        _fan.x;
-
-    _fan.fan_wind_bottom =
-        _fan.y;
-
+    _fan.fan_wind_left = _fan.x;
+    _fan.fan_wind_top = _fan.y;
+    _fan.fan_wind_right = _fan.x;
+    _fan.fan_wind_bottom = _fan.y;
 
     return true;
 }
 
 
 // =========================================================
-// DISTANCIA REAL CONFIGURADA
+// DISTANCIA
 // =========================================================
 
 function scr_fan_get_distance(_fan)
 {
-    if (
-        _fan == noone
-        ||
-        !instance_exists(_fan)
-    )
-    {
+    if (_fan == noone || !instance_exists(_fan))
         return 0;
-    }
 
-
-    var _distance =
-        max(
-            0,
-            _fan.fan_distance
-        );
-
-
-    // -----------------------------------------------------
-    // COMPATIBILIDAD CON fan_range_base
-    // -----------------------------------------------------
-    //
-    // Si fan_distance sigue en su valor por defecto, pero
-    // Creation Code cambió fan_range_base, respetamos el valor
-    // antiguo.
-    //
-    // Si fan_distance fue personalizado, tiene prioridad.
-    // -----------------------------------------------------
+    var _distance = max(0, _fan.fan_distance);
 
     if (
-        variable_instance_exists(
-            _fan,
-            "fan_range_base"
-        )
+        variable_instance_exists(_fan, "fan_range_base")
         &&
-        _fan.fan_distance
-        ==
-        _fan.fan_distance_default
+        _fan.fan_distance == _fan.fan_distance_default
         &&
-        _fan.fan_range_base
-        !=
-        _fan.fan_distance_default
+        _fan.fan_range_base != _fan.fan_distance_default
     )
     {
-        _distance =
-            max(
-                0,
-                _fan.fan_range_base
-            );
+        _distance = max(0, _fan.fan_range_base);
     }
-
 
     return _distance;
 }
 
 
 // =========================================================
-// OBTENER RECTÁNGULO FÍSICO DEL ABANICO
+// RECTÁNGULO DEL ABANICO
 // =========================================================
 
 function scr_fan_get_source_rect(_fan)
 {
-    var _left =
-        _fan.x - 16;
+    var _left = _fan.x - 16;
+    var _top = _fan.y - 16;
+    var _right = _fan.x + 16;
+    var _bottom = _fan.y + 16;
 
-    var _top =
-        _fan.y - 16;
-
-    var _right =
-        _fan.x + 16;
-
-    var _bottom =
-        _fan.y + 16;
-
-
-    if (
-        _fan.sprite_index != -1
-        &&
-        sprite_exists(
-            _fan.sprite_index
-        )
-    )
+    if (_fan.sprite_index != -1 && sprite_exists(_fan.sprite_index))
     {
-        _left =
-            _fan.bbox_left;
-
-        _top =
-            _fan.bbox_top;
-
-        _right =
-            _fan.bbox_right;
-
-        _bottom =
-            _fan.bbox_bottom;
+        _left = _fan.bbox_left;
+        _top = _fan.bbox_top;
+        _right = _fan.bbox_right;
+        _bottom = _fan.bbox_bottom;
     }
-
 
     return {
         left: _left,
@@ -450,312 +142,105 @@ function scr_fan_get_source_rect(_fan)
 
 
 // =========================================================
-// CALCULAR ZONA DEL VIENTO
-// =========================================================
-//
-// El rectángulo comienza exactamente en la CARA del abanico
-// hacia la que apunta.
-//
-// IZQUIERDA:
-//
-//     [ aire <--------- ][ABANICO]
-//
-// DERECHA:
-//
-//     [ABANICO][---------> aire ]
-//
-// ARRIBA:
-//
-//              aire
-//               ^
-//               |
-//            [ABANICO]
-//
-// ABAJO:
-//
-//            [ABANICO]
-//               |
-//               v
-//              aire
-//
-// El ancho perpendicular coincide con el tamaño físico del
-// abanico.
-//
+// ZONA DEL VIENTO
 // =========================================================
 
 function scr_fan_update_zone(_fan)
 {
-    if (
-        _fan == noone
-        ||
-        !instance_exists(_fan)
-    )
-    {
+    if (_fan == noone || !instance_exists(_fan))
         return false;
-    }
 
+    var _src = scr_fan_get_source_rect(_fan);
+    var _distance = scr_fan_get_distance(_fan);
 
-    var _src =
-        scr_fan_get_source_rect(
-            _fan
-        );
+    var _left = _src.left;
+    var _top = _src.top;
+    var _right = _src.right;
+    var _bottom = _src.bottom;
 
+    var _dx = _fan.fan_direction_x;
+    var _dy = _fan.fan_direction_y;
 
-    var _distance =
-        scr_fan_get_distance(
-            _fan
-        );
-
-
-    var _left =
-        _src.left;
-
-    var _top =
-        _src.top;
-
-    var _right =
-        _src.right;
-
-    var _bottom =
-        _src.bottom;
-
-
-    var _dir_x =
-        _fan.fan_direction_x;
-
-    var _dir_y =
-        _fan.fan_direction_y;
-
-
-    // -----------------------------------------------------
-    // DERECHA
-    // -----------------------------------------------------
-
-    if (_dir_x > 0)
+    if (_dx > 0)
     {
-        _left =
-            _src.right;
-
-        _right =
-            _src.right
-            +
-            _distance;
+        _left = _src.right;
+        _right = _src.right + _distance;
     }
-
-    // -----------------------------------------------------
-    // IZQUIERDA
-    // -----------------------------------------------------
-
-    else if (_dir_x < 0)
+    else if (_dx < 0)
     {
-        _right =
-            _src.left;
-
-        _left =
-            _src.left
-            -
-            _distance;
+        _right = _src.left;
+        _left = _src.left - _distance;
     }
-
-    // -----------------------------------------------------
-    // ABAJO
-    // -----------------------------------------------------
-
-    else if (_dir_y > 0)
+    else if (_dy > 0)
     {
-        _top =
-            _src.bottom;
-
-        _bottom =
-            _src.bottom
-            +
-            _distance;
+        _top = _src.bottom;
+        _bottom = _src.bottom + _distance;
     }
-
-    // -----------------------------------------------------
-    // ARRIBA
-    // -----------------------------------------------------
-
-    else if (_dir_y < 0)
+    else if (_dy < 0)
     {
-        _bottom =
-            _src.top;
-
-        _top =
-            _src.top
-            -
-            _distance;
+        _bottom = _src.top;
+        _top = _src.top - _distance;
     }
 
-
-    _fan.fan_wind_left =
-        min(
-            _left,
-            _right
-        );
-
-
-    _fan.fan_wind_top =
-        min(
-            _top,
-            _bottom
-        );
-
-
-    _fan.fan_wind_right =
-        max(
-            _left,
-            _right
-        );
-
-
-    _fan.fan_wind_bottom =
-        max(
-            _top,
-            _bottom
-        );
-
+    _fan.fan_wind_left = min(_left, _right);
+    _fan.fan_wind_top = min(_top, _bottom);
+    _fan.fan_wind_right = max(_left, _right);
+    _fan.fan_wind_bottom = max(_top, _bottom);
 
     return true;
 }
 
 
 // =========================================================
-// HITBOX REAL DE UN ACTOR
-// =========================================================
-//
-// Soporta:
-//
-//     Maya:
-//         platform_hit_*
-//
-//     Silicio:
-//         platform_sil_hit_*
-//
-// Fuera del plataformero usa bbox normal.
+// HITBOX REAL DE ACTOR
 // =========================================================
 
 function scr_fan_get_actor_rect(_actor)
 {
-    var _left =
-        _actor.bbox_left;
-
-    var _top =
-        _actor.bbox_top;
-
-    var _right =
-        _actor.bbox_right;
-
-    var _bottom =
-        _actor.bbox_bottom;
-
+    var _left = _actor.bbox_left;
+    var _top = _actor.bbox_top;
+    var _right = _actor.bbox_right;
+    var _bottom = _actor.bbox_bottom;
 
     var _platformer =
-        variable_global_exists(
-            "platformer_active"
-        )
+        variable_global_exists("platformer_active")
         &&
         global.platformer_active;
-
-
-    // =====================================================
-    // MAYA
-    // =====================================================
 
     if (
         _platformer
         &&
-        variable_instance_exists(
-            _actor,
-            "platform_hit_left"
-        )
+        variable_instance_exists(_actor, "platform_hit_left")
         &&
-        variable_instance_exists(
-            _actor,
-            "platform_hit_top"
-        )
+        variable_instance_exists(_actor, "platform_hit_top")
         &&
-        variable_instance_exists(
-            _actor,
-            "platform_hit_right"
-        )
+        variable_instance_exists(_actor, "platform_hit_right")
         &&
-        variable_instance_exists(
-            _actor,
-            "platform_hit_bottom"
-        )
+        variable_instance_exists(_actor, "platform_hit_bottom")
     )
     {
-        _left =
-            _actor.x
-            +
-            _actor.platform_hit_left;
-
-        _top =
-            _actor.y
-            +
-            _actor.platform_hit_top;
-
-        _right =
-            _actor.x
-            +
-            _actor.platform_hit_right;
-
-        _bottom =
-            _actor.y
-            +
-            _actor.platform_hit_bottom;
+        _left = _actor.x + _actor.platform_hit_left;
+        _top = _actor.y + _actor.platform_hit_top;
+        _right = _actor.x + _actor.platform_hit_right;
+        _bottom = _actor.y + _actor.platform_hit_bottom;
     }
-
-    // =====================================================
-    // SILICIO
-    // =====================================================
-
     else if (
         _platformer
         &&
-        variable_instance_exists(
-            _actor,
-            "platform_sil_hit_left"
-        )
+        variable_instance_exists(_actor, "platform_sil_hit_left")
         &&
-        variable_instance_exists(
-            _actor,
-            "platform_sil_hit_top"
-        )
+        variable_instance_exists(_actor, "platform_sil_hit_top")
         &&
-        variable_instance_exists(
-            _actor,
-            "platform_sil_hit_right"
-        )
+        variable_instance_exists(_actor, "platform_sil_hit_right")
         &&
-        variable_instance_exists(
-            _actor,
-            "platform_sil_hit_bottom"
-        )
+        variable_instance_exists(_actor, "platform_sil_hit_bottom")
     )
     {
-        _left =
-            _actor.x
-            +
-            _actor.platform_sil_hit_left;
-
-        _top =
-            _actor.y
-            +
-            _actor.platform_sil_hit_top;
-
-        _right =
-            _actor.x
-            +
-            _actor.platform_sil_hit_right;
-
-        _bottom =
-            _actor.y
-            +
-            _actor.platform_sil_hit_bottom;
+        _left = _actor.x + _actor.platform_sil_hit_left;
+        _top = _actor.y + _actor.platform_sil_hit_top;
+        _right = _actor.x + _actor.platform_sil_hit_right;
+        _bottom = _actor.y + _actor.platform_sil_hit_bottom;
     }
-
 
     return {
         left: _left,
@@ -766,26 +251,23 @@ function scr_fan_get_actor_rect(_actor)
 }
 
 
-// Compatibilidad con el nombre usado por la versión anterior.
 function scr_fan_get_player_rect(_p)
 {
-    return
-        scr_fan_get_actor_rect(
-            _p
-        );
+    return scr_fan_get_actor_rect(_p);
 }
 
 
 // =========================================================
-// ¿UN ACTOR ESTÁ DENTRO DEL AIRE?
+// SOLAPE CON VIENTO
 // =========================================================
 
-function scr_fan_actor_in_wind(
-    _fan,
-    _actor
-)
+function scr_fan_actor_in_wind(_fan, _actor)
 {
     if (
+        _fan == noone
+        ||
+        !instance_exists(_fan)
+        ||
         _actor == noone
         ||
         !instance_exists(_actor)
@@ -794,81 +276,41 @@ function scr_fan_actor_in_wind(
         return false;
     }
 
+    scr_fan_update_zone(_fan);
 
-    var _rect =
-        scr_fan_get_actor_rect(
-            _actor
-        );
-
+    var _rect = scr_fan_get_actor_rect(_actor);
 
     return
-    (
-        _rect.right
-        >=
-        _fan.fan_wind_left
-
+        _rect.right >= _fan.fan_wind_left
         &&
-
-        _rect.left
-        <=
-        _fan.fan_wind_right
-
+        _rect.left <= _fan.fan_wind_right
         &&
-
-        _rect.bottom
-        >=
-        _fan.fan_wind_top
-
+        _rect.bottom >= _fan.fan_wind_top
         &&
-
-        _rect.top
-        <=
-        _fan.fan_wind_bottom
-    );
+        _rect.top <= _fan.fan_wind_bottom;
 }
 
 
-// Compatibilidad.
-function scr_fan_player_in_wind(
-    _fan,
-    _p
-)
+function scr_fan_player_in_wind(_fan, _p)
 {
-    return
-        scr_fan_actor_in_wind(
-            _fan,
-            _p
-        );
+    return scr_fan_actor_in_wind(_fan, _p);
 }
 
 
 // =========================================================
-// OBTENER HITBOX PLATAFORMERA DE UN ACTOR
+// HITBOX PLATAFORMERA
 // =========================================================
 
 function scr_fan_get_platform_hitbox(_actor)
 {
-    // MAYA
     if (
-        variable_instance_exists(
-            _actor,
-            "platform_hit_left"
-        )
+        variable_instance_exists(_actor, "platform_hit_left")
         &&
-        variable_instance_exists(
-            _actor,
-            "platform_hit_top"
-        )
+        variable_instance_exists(_actor, "platform_hit_top")
         &&
-        variable_instance_exists(
-            _actor,
-            "platform_hit_right"
-        )
+        variable_instance_exists(_actor, "platform_hit_right")
         &&
-        variable_instance_exists(
-            _actor,
-            "platform_hit_bottom"
-        )
+        variable_instance_exists(_actor, "platform_hit_bottom")
     )
     {
         return {
@@ -880,28 +322,14 @@ function scr_fan_get_platform_hitbox(_actor)
         };
     }
 
-
-    // SILICIO
     if (
-        variable_instance_exists(
-            _actor,
-            "platform_sil_hit_left"
-        )
+        variable_instance_exists(_actor, "platform_sil_hit_left")
         &&
-        variable_instance_exists(
-            _actor,
-            "platform_sil_hit_top"
-        )
+        variable_instance_exists(_actor, "platform_sil_hit_top")
         &&
-        variable_instance_exists(
-            _actor,
-            "platform_sil_hit_right"
-        )
+        variable_instance_exists(_actor, "platform_sil_hit_right")
         &&
-        variable_instance_exists(
-            _actor,
-            "platform_sil_hit_bottom"
-        )
+        variable_instance_exists(_actor, "platform_sil_hit_bottom")
     )
     {
         return {
@@ -912,7 +340,6 @@ function scr_fan_get_platform_hitbox(_actor)
             bottom: _actor.platform_sil_hit_bottom
         };
     }
-
 
     return {
         valid: false,
@@ -925,63 +352,28 @@ function scr_fan_get_platform_hitbox(_actor)
 
 
 // =========================================================
-// ¿UN ACTOR CHOCA SI EL VIENTO LO MUEVE?
+// COLISIÓN AL SER EMPUJADO
 // =========================================================
 
-function scr_fan_actor_blocked(
-    _actor,
-    _next_x,
-    _next_y,
-    _dir_x,
-    _dir_y
-)
+function scr_fan_actor_blocked(_actor, _next_x, _next_y, _dir_x, _dir_y)
 {
-    if (
-        _actor == noone
-        ||
-        !instance_exists(_actor)
-    )
-    {
+    if (_actor == noone || !instance_exists(_actor))
         return true;
-    }
-
 
     var _platformer =
-        variable_global_exists(
-            "platformer_active"
-        )
+        variable_global_exists("platformer_active")
         &&
         global.platformer_active;
 
-
     if (_platformer)
     {
-        var _hit =
-            scr_fan_get_platform_hitbox(
-                _actor
-            );
-
+        var _hit = scr_fan_get_platform_hitbox(_actor);
 
         if (_hit.valid)
         {
-            // Hacia abajo respetamos también plataformas
-            // one-way y trampolines.
             if (_dir_y > 0)
             {
-                return
-                    scr_platformer_floor_at(
-                        _next_x,
-                        _next_y,
-                        _hit.left,
-                        _hit.top,
-                        _hit.right,
-                        _hit.bottom
-                    );
-            }
-
-
-            return
-                scr_platformer_collision_at(
+                return scr_platformer_floor_at(
                     _next_x,
                     _next_y,
                     _hit.left,
@@ -989,34 +381,23 @@ function scr_fan_actor_blocked(
                     _hit.right,
                     _hit.bottom
                 );
+            }
+
+            return scr_platformer_collision_at(
+                _next_x,
+                _next_y,
+                _hit.left,
+                _hit.top,
+                _hit.right,
+                _hit.bottom
+            );
         }
     }
 
-
-    // =====================================================
-    // OVERWORLD NORMAL
-    // =====================================================
-
-    var _left_offset =
-        _actor.bbox_left
-        -
-        _actor.x;
-
-    var _top_offset =
-        _actor.bbox_top
-        -
-        _actor.y;
-
-    var _right_offset =
-        _actor.bbox_right
-        -
-        _actor.x;
-
-    var _bottom_offset =
-        _actor.bbox_bottom
-        -
-        _actor.y;
-
+    var _left_offset = _actor.bbox_left - _actor.x;
+    var _top_offset = _actor.bbox_top - _actor.y;
+    var _right_offset = _actor.bbox_right - _actor.x;
+    var _bottom_offset = _actor.bbox_bottom - _actor.y;
 
     return
         collision_rectangle(
@@ -1033,563 +414,130 @@ function scr_fan_actor_blocked(
 }
 
 
-// Compatibilidad.
-function scr_fan_player_blocked(
-    _p,
-    _next_x,
-    _next_y,
-    _dir_x,
-    _dir_y
-)
+function scr_fan_player_blocked(_p, _next_x, _next_y, _dir_x, _dir_y)
 {
-    return
-        scr_fan_actor_blocked(
-            _p,
-            _next_x,
-            _next_y,
-            _dir_x,
-            _dir_y
-        );
+    return scr_fan_actor_blocked(_p, _next_x, _next_y, _dir_x, _dir_y);
 }
 
 
 // =========================================================
-// EMPUJAR UN ACTOR
-// =========================================================
-//
-// _accum_name:
-//     acumulador subpíxel propio del actor para este abanico.
-//
-// _is_maya:
-//     si es Maya, compensamos el historial de la party para
-//     que Silicio NO reproduzca ocho frames después el viento
-//     que ya le corresponde recibir físicamente por sí mismo.
+// EMPUJE DE MAYA / ACTOR GENÉRICO
 // =========================================================
 
-function scr_fan_push_actor(
-    _fan,
-    _actor,
-    _accum_name,
-    _is_maya
-)
+function scr_fan_push_actor(_fan, _actor, _accum_name, _is_maya)
 {
-    if (
-        _actor == noone
-        ||
-        !instance_exists(_actor)
-    )
+    if (_actor == noone || !instance_exists(_actor))
     {
-        variable_instance_set(
-            _fan,
-            _accum_name,
-            0
-        );
-
+        variable_instance_set(_fan, _accum_name, 0);
         return false;
     }
 
-
-    if (
-        !scr_fan_actor_in_wind(
-            _fan,
-            _actor
-        )
-    )
+    if (!scr_fan_actor_in_wind(_fan, _actor))
     {
-        variable_instance_set(
-            _fan,
-            _accum_name,
-            0
-        );
-
+        variable_instance_set(_fan, _accum_name, 0);
         return false;
     }
 
-
-    // =====================================================
-    // SILICIO: DESPRENDER DEL FOLLOWER AL TOCAR EL VIENTO
-    // =====================================================
-    //
-    // El problema anterior era que el abanico sí desplazaba
-    // a Silicio, pero después el sistema de party volvía a
-    // moverlo en End Step.
-    //
-    // Desde el PRIMER frame dentro de la corriente:
-    //
-    //     1. Silicio queda temporalmente desprendido.
-    //     2. El follower deja de controlar su posición.
-    //     3. Solo el viento puede moverlo hasta expulsarlo.
-    //     4. Ya fuera, espera a que Maya se detenga y vuelva
-    //        a caminar para empezar a reincorporarse.
-    // =====================================================
-
-    var _actor_is_silicio_party =
-        (
-            !_is_maya
-            &&
-            variable_instance_exists(
-                _actor,
-                "party_id"
-            )
-            &&
-            _actor.party_id
-            ==
-            "silicio"
-            &&
-            variable_instance_exists(
-                _actor,
-                "party_member"
-            )
-            &&
-            _actor.party_member
-        );
-
-
-    if (_actor_is_silicio_party)
-    {
-        _actor.fan_detached =
-            true;
-
-        _actor.fan_detached_room =
-            room;
-
-        _actor.fan_rejoin_active =
-            false;
-
-        _actor.fan_rejoin_walk_armed =
-            false;
-
-        _actor.fan_outside_frames =
-            0;
-
-
-        // Última dirección real que lo está expulsando.
-        //
-        // Se usa también para el impulso final fuera de la zona
-        // blanca, evitando que Silicio quede pegado exactamente
-        // al borde del rango del abanico.
-        _actor.fan_detach_dir_x =
-            _fan.fan_direction_x;
-
-        _actor.fan_detach_dir_y =
-            _fan.fan_direction_y;
-
-
-        // El viento NO cuenta como movimiento de caminar.
-        if (
-            variable_instance_exists(
-                _actor,
-                "platform_sil_move_x"
-            )
-        )
-        {
-            _actor.platform_sil_move_x =
-                0;
-        }
-
-        if (
-            variable_instance_exists(
-                _actor,
-                "platform_sil_move_y"
-            )
-        )
-        {
-            _actor.platform_sil_move_y =
-                0;
-        }
-
-        _actor.movimiento =
-            false;
-
-        _actor.image_speed =
-            0;
-    }
-
-
-    var _force =
-        max(
-            0,
-            abs(
-                _fan.fan_force
-            )
-        );
-
+    var _force = max(0, abs(_fan.fan_force));
 
     if (_force <= 0)
     {
-        variable_instance_set(
-            _fan,
-            _accum_name,
-            0
-        );
-
+        variable_instance_set(_fan, _accum_name, 0);
         return false;
     }
 
+    var _accum = variable_instance_get(_fan, _accum_name);
+    _accum += _force;
 
-    var _accum =
-        variable_instance_get(
-            _fan,
-            _accum_name
-        );
+    var _steps = floor(_accum);
+    _accum -= _steps;
 
+    variable_instance_set(_fan, _accum_name, _accum);
 
-    _accum +=
-        _force;
+    var _start_x = _actor.x;
+    var _start_y = _actor.y;
+    var _moved = false;
 
-
-    var _steps =
-        floor(
-            _accum
-        );
-
-
-    _accum -=
-        _steps;
-
-
-    variable_instance_set(
-        _fan,
-        _accum_name,
-        _accum
-    );
-
-
-    if (_steps <= 0)
+    for (var _i = 0; _i < _steps; _i++)
     {
-        return false;
-    }
-
-
-    var _dir_x =
-        _fan.fan_direction_x;
-
-    var _dir_y =
-        _fan.fan_direction_y;
-
-
-    var _start_x =
-        _actor.x;
-
-    var _start_y =
-        _actor.y;
-
-
-    var _moved =
-        false;
-
-
-    // SOLO modificamos x/y.
-    //
-    // NO tocamos ninguna variable visual ni de input.
-    for (
-        var _i = 0;
-        _i < _steps;
-        _i++
-    )
-    {
-        var _next_x =
-            _actor.x
-            +
-            _dir_x;
-
-        var _next_y =
-            _actor.y
-            +
-            _dir_y;
-
+        var _next_x = _actor.x + _fan.fan_direction_x;
+        var _next_y = _actor.y + _fan.fan_direction_y;
 
         if (
             scr_fan_actor_blocked(
                 _actor,
                 _next_x,
                 _next_y,
-                _dir_x,
-                _dir_y
+                _fan.fan_direction_x,
+                _fan.fan_direction_y
             )
         )
         {
-            variable_instance_set(
-                _fan,
-                _accum_name,
-                0
-            );
-
+            variable_instance_set(_fan, _accum_name, 0);
             break;
         }
 
-
-        _actor.x =
-            _next_x;
-
-        _actor.y =
-            _next_y;
-
-
-        _moved =
-            true;
+        _actor.x = _next_x;
+        _actor.y = _next_y;
+        _moved = true;
     }
 
-
-    // =====================================================
-    // SILICIO: EXPULSIÓN REAL FUERA DEL ÁREA BLANCA
-    // =====================================================
-    //
-    // Antes, en cuanto su hitbox dejaba de solaparse con la
-    // corriente, el empuje terminaba. Eso hacía que visualmente
-    // quedara "pegado" justo a la orilla del rango.
-    //
-    // Ahora, en el MISMO frame en que sale de la corriente,
-    // recibe un pequeño impulso residual adicional.
-    //
-    // Así:
-    //
-    //     corriente -> borde -> SALE DESPEDIDO -> queda fuera
-    //
-    // y no:
-    //
-    //     corriente -> borde -> se queda pegado
-    //
-    // Este impulso sigue respetando colisiones del escenario.
-    // =====================================================
-
-    if (
-        _actor_is_silicio_party
-        &&
-        _moved
-        &&
-        !scr_fan_actor_in_wind(
-            _fan,
-            _actor
-        )
-    )
-    {
-        var _eject_extra =
-            24;
-
-
-        // Permitir personalizarlo desde Creation Code del abanico:
-        //
-        //     fan_silicio_eject_extra = 32;
-        //
-        // Si no se define, usa 24 px.
-        if (
-            variable_instance_exists(
-                _fan,
-                "fan_silicio_eject_extra"
-            )
-        )
-        {
-            _eject_extra =
-                max(
-                    0,
-                    round(
-                        _fan.fan_silicio_eject_extra
-                    )
-                );
-        }
-
-
-        for (
-            var _ej = 0;
-            _ej < _eject_extra;
-            _ej++
-        )
-        {
-            var _eject_next_x =
-                _actor.x
-                +
-                _dir_x;
-
-            var _eject_next_y =
-                _actor.y
-                +
-                _dir_y;
-
-
-            if (
-                scr_fan_actor_blocked(
-                    _actor,
-                    _eject_next_x,
-                    _eject_next_y,
-                    _dir_x,
-                    _dir_y
-                )
-            )
-            {
-                break;
-            }
-
-
-            _actor.x =
-                _eject_next_x;
-
-            _actor.y =
-                _eject_next_y;
-
-
-            _moved =
-                true;
-        }
-    }
-
-
-    // =====================================================
-    // MAYA: NO COPIAR EL VIENTO AL BUFFER DE SILICIO
-    // =====================================================
-    //
-    // obj_settings registra en End Step cuánto se movió Maya.
-    // Los abanicos empujan en Step.
-    //
-    // Ajustando el punto de referencia por el MISMO desplazamiento
-    // externo, el historial conserva solo el movimiento propio de
-    // Maya. Así Silicio no recibe después un "eco" del viento.
-    // =====================================================
-
+    // El viento de Maya NO debe reaparecer ocho frames después
+    // dentro del historial plataformero de Silicio.
     if (
         _moved
         &&
         _is_maya
         &&
-        variable_global_exists(
-            "platformer_active"
-        )
+        variable_global_exists("platformer_active")
         &&
         global.platformer_active
     )
     {
-        var _external_dx =
-            _actor.x
-            -
-            _start_x;
+        var _external_dx = _actor.x - _start_x;
+        var _external_dy = _actor.y - _start_y;
 
-        var _external_dy =
-            _actor.y
-            -
-            _start_y;
+        if (variable_global_exists("platform_party_last_player_feet_x"))
+            global.platform_party_last_player_feet_x += _external_dx;
 
-
-        if (
-            variable_global_exists(
-                "platform_party_last_player_feet_x"
-            )
-        )
-        {
-            global.platform_party_last_player_feet_x +=
-                _external_dx;
-        }
-
-
-        if (
-            variable_global_exists(
-                "platform_party_last_player_feet_y"
-            )
-        )
-        {
-            global.platform_party_last_player_feet_y +=
-                _external_dy;
-        }
+        if (variable_global_exists("platform_party_last_player_feet_y"))
+            global.platform_party_last_player_feet_y += _external_dy;
     }
-
 
     return _moved;
 }
 
 
 // =========================================================
-// SILICIO - VIENTO INTEGRADO AL FOLLOWER PLATAFORMERO
-// =========================================================
-//
-// Este bloque usa el MISMO patrón que el deslizamiento especial:
-//
-//     normal
-//       -> wind_follow
-//       -> wind_exit
-//       -> wind_wait_gap
-//       -> normal
-//
-// La diferencia importante frente a las versiones anteriores es:
-//
-// - el ventilador NO intenta mover a Silicio desde otro sistema;
-// - el wrapper del follower detecta el PRIMER píxel de contacto;
-// - desde ese instante el follower normal deja de moverlo;
-// - wind_follow lo empuja autónomamente hasta salir;
-// - wind_exit termina de expulsarlo fuera del área;
-// - wind_wait_gap lo deja TOTALMENTE quieto;
-// - al comenzar Maya a caminar de nuevo se devuelve el control
-//   al follower normal, con un historial nuevo.
-//
-// Maya conserva su física de viento independiente en scr_fan_update().
-// =========================================================
-
-
-// =========================================================
-// BUSCAR QUÉ CORRIENTE TOCA A UN ACTOR
+// BUSCAR CORRIENTE
 // =========================================================
 
 function scr_fan_find_wind_for_actor(_actor)
 {
-    if (
-        _actor == noone
-        ||
-        !instance_exists(_actor)
-    )
-    {
+    if (_actor == noone || !instance_exists(_actor))
         return noone;
-    }
 
-
-    var _objects =
-    [
+    var _objects = [
         obj_abanico_izquierda,
         obj_abanico_derecha,
         obj_abanico_arriba,
         obj_abanico_abajo
     ];
 
-
-    for (
-        var _oi = 0;
-        _oi < array_length(_objects);
-        _oi++
-    )
+    for (var _oi = 0; _oi < array_length(_objects); _oi++)
     {
-        var _obj =
-            _objects[_oi];
+        var _obj = _objects[_oi];
+        var _count = instance_number(_obj);
 
-
-        var _count =
-            instance_number(_obj);
-
-
-        for (
-            var _i = 0;
-            _i < _count;
-            _i++
-        )
+        for (var _i = 0; _i < _count; _i++)
         {
-            var _fan =
-                instance_find(
-                    _obj,
-                    _i
-                );
+            var _fan = instance_find(_obj, _i);
 
-
-            if (
-                _fan == noone
-                ||
-                !instance_exists(_fan)
-            )
-            {
+            if (_fan == noone || !instance_exists(_fan))
                 continue;
-            }
-
 
             if (
-                variable_instance_exists(
-                    _fan,
-                    "fan_enabled"
-                )
+                variable_instance_exists(_fan, "fan_enabled")
                 &&
                 !_fan.fan_enabled
             )
@@ -1597,327 +545,304 @@ function scr_fan_find_wind_for_actor(_actor)
                 continue;
             }
 
-
-            scr_fan_update_zone(
-                _fan
-            );
-
-
-            if (
-                scr_fan_actor_in_wind(
-                    _fan,
-                    _actor
-                )
-            )
-            {
+            if (scr_fan_actor_in_wind(_fan, _actor))
                 return _fan;
-            }
         }
     }
-
 
     return noone;
 }
 
 
-// Compatibilidad con las versiones anteriores del sistema.
 function scr_fan_silicio_find_wind(_sil)
 {
-    return
-        scr_fan_find_wind_for_actor(
-            _sil
-        );
+    return scr_fan_find_wind_for_actor(_sil);
 }
 
 
 function scr_fan_silicio_in_any_wind(_sil)
 {
-    return
-        scr_fan_find_wind_for_actor(
-            _sil
-        )
-        !=
-        noone;
+    return scr_fan_find_wind_for_actor(_sil) != noone;
 }
 
 
 // =========================================================
-// PREPARAR ESTADO DE VIENTO DEL FOLLOWER
+// BLOQUEOS DEL MUNDO
 // =========================================================
 
-function scr_fan_platformer_silicio_prepare(_sil)
+function scr_fan_world_free()
 {
+    if (room == bbs || room == game_over)
+        return false;
+
     if (
-        _sil == noone
-        ||
-        !instance_exists(_sil)
+        variable_global_exists("gameover_death_freeze_active")
+        &&
+        global.gameover_death_freeze_active
     )
     {
         return false;
     }
 
-
-    with (_sil)
-    {
-        scr_platformer_silicio_prepare();
-    }
-
-
     if (
-        !variable_instance_exists(
-            _sil,
-            "platform_fan_mode"
-        )
+        variable_global_exists("cutscene_active")
+        &&
+        global.cutscene_active
     )
     {
-        _sil.platform_fan_mode =
-            "none";
+        return false;
     }
-
 
     if (
-        !variable_instance_exists(
-            _sil,
-            "platform_fan_room"
-        )
+        instance_exists(obj_pauser)
+        ||
+        instance_exists(obj_save_menu)
+        ||
+        instance_exists(obj_textbox)
+        ||
+        instance_exists(obj_transicion_bbs)
     )
     {
-        _sil.platform_fan_room =
-            -1;
+        return false;
     }
-
 
     if (
-        !variable_instance_exists(
-            _sil,
-            "platform_fan_ref"
-        )
+        instance_exists(obj_menu_manager)
+        &&
+        obj_menu_manager.state != MENU_STATE.CLOSED
     )
     {
-        _sil.platform_fan_ref =
-            noone;
+        return false;
     }
-
-
-    if (
-        !variable_instance_exists(
-            _sil,
-            "platform_fan_dir_x"
-        )
-    )
-    {
-        _sil.platform_fan_dir_x =
-            0;
-    }
-
-
-    if (
-        !variable_instance_exists(
-            _sil,
-            "platform_fan_dir_y"
-        )
-    )
-    {
-        _sil.platform_fan_dir_y =
-            0;
-    }
-
-
-    if (
-        !variable_instance_exists(
-            _sil,
-            "platform_fan_force"
-        )
-    )
-    {
-        _sil.platform_fan_force =
-            0;
-    }
-
-
-    if (
-        !variable_instance_exists(
-            _sil,
-            "platform_fan_accum"
-        )
-    )
-    {
-        _sil.platform_fan_accum =
-            0;
-    }
-
-
-    if (
-        !variable_instance_exists(
-            _sil,
-            "platform_fan_exit_remaining"
-        )
-    )
-    {
-        _sil.platform_fan_exit_remaining =
-            0;
-    }
-
-
-    // Variables antiguas que obj_silicio -> End Step ya conoce.
-    // Las mantenemos sincronizadas para que ningún evento pueda
-    // reactivar su follow/animación mientras el viento manda.
-    if (
-        !variable_instance_exists(
-            _sil,
-            "fan_detached"
-        )
-    )
-    {
-        _sil.fan_detached =
-            false;
-    }
-
-
-    if (
-        !variable_instance_exists(
-            _sil,
-            "fan_rejoin_active"
-        )
-    )
-    {
-        _sil.fan_rejoin_active =
-            false;
-    }
-
-
-    if (
-        !variable_instance_exists(
-            _sil,
-            "fan_rejoin_walk_armed"
-        )
-    )
-    {
-        _sil.fan_rejoin_walk_armed =
-            false;
-    }
-
 
     return true;
 }
 
 
 // =========================================================
-// CONGELAR VISUAL DE SILICIO DURANTE EL EFECTO
 // =========================================================
-//
-// El aire puede mover su x/y, pero ese desplazamiento NO es
-// caminar.
-//
-// En suelo:
-//     idle, frame 0.
-//
-// En aire:
-//     jump, frame 0.
-//
-// En ambos:
-//     image_speed = 0.
+// SILICIO RPG - ESTADO TIPO obj_deslizamiento_abajo
+// =========================================================
 // =========================================================
 
-function scr_fan_platformer_silicio_freeze(
-    _sil,
-    _p
-)
+function scr_fan_rpg_silicio_prepare(_sil)
 {
-    if (
-        _sil == noone
-        ||
-        !instance_exists(_sil)
-    )
-    {
+    if (_sil == noone || !instance_exists(_sil))
         return false;
+
+    if (!variable_instance_exists(_sil, "fan_rpg_mode"))
+        _sil.fan_rpg_mode = "none";
+
+    if (!variable_instance_exists(_sil, "fan_rpg_room"))
+        _sil.fan_rpg_room = room;
+
+    if (!variable_instance_exists(_sil, "fan_rpg_ref"))
+        _sil.fan_rpg_ref = noone;
+
+    if (!variable_instance_exists(_sil, "fan_rpg_dir_x"))
+        _sil.fan_rpg_dir_x = 0;
+
+    if (!variable_instance_exists(_sil, "fan_rpg_dir_y"))
+        _sil.fan_rpg_dir_y = 0;
+
+    if (!variable_instance_exists(_sil, "fan_rpg_force"))
+        _sil.fan_rpg_force = 0;
+
+    if (!variable_instance_exists(_sil, "fan_rpg_accum"))
+        _sil.fan_rpg_accum = 0;
+
+    if (!variable_instance_exists(_sil, "fan_rpg_exit_remaining"))
+        _sil.fan_rpg_exit_remaining = 0;
+
+    if (!variable_instance_exists(_sil, "fan_rpg_gap_accum"))
+        _sil.fan_rpg_gap_accum = 0;
+
+    if (!variable_instance_exists(_sil, "fan_rpg_gap_required"))
+        _sil.fan_rpg_gap_required = 20;
+
+    if (!variable_instance_exists(_sil, "fan_rpg_last_player_x"))
+        _sil.fan_rpg_last_player_x = 0;
+
+    if (!variable_instance_exists(_sil, "fan_rpg_last_player_y"))
+        _sil.fan_rpg_last_player_y = 0;
+
+    if (!variable_instance_exists(_sil, "fan_rpg_rejoin_speed"))
+        _sil.fan_rpg_rejoin_speed = 0;
+
+    if (!variable_instance_exists(_sil, "fan_rpg_post_timer"))
+        _sil.fan_rpg_post_timer = 0;
+
+    // Offset físico acumulado por el viento respecto a la
+    // posición NORMAL que scr_party_update() calcula para Silicio.
+    //
+    // Mientras wind_follow está activo:
+    //
+    //     posición final = follower normal + offset del viento
+    //
+    // Así Silicio puede seguir a Maya Y ser empujado a la vez.
+    if (!variable_instance_exists(_sil, "fan_rpg_offset_x"))
+        _sil.fan_rpg_offset_x = 0;
+
+    if (!variable_instance_exists(_sil, "fan_rpg_offset_y"))
+        _sil.fan_rpg_offset_y = 0;
+
+    if (!variable_instance_exists(_sil, "fan_rpg_base_x"))
+        _sil.fan_rpg_base_x = _sil.x;
+
+    if (!variable_instance_exists(_sil, "fan_rpg_base_y"))
+        _sil.fan_rpg_base_y = _sil.y;
+
+    if (!variable_instance_exists(_sil, "fan_rpg_base_ready"))
+        _sil.fan_rpg_base_ready = false;
+
+    if (!variable_instance_exists(_sil, "fan_rpg_rebase_pending"))
+        _sil.fan_rpg_rebase_pending = false;
+
+    if (!variable_instance_exists(_sil, "fan_rpg_hold_x"))
+        _sil.fan_rpg_hold_x = _sil.x;
+
+    if (!variable_instance_exists(_sil, "fan_rpg_hold_y"))
+        _sil.fan_rpg_hold_y = _sil.y;
+
+    if (!variable_instance_exists(_sil, "fan_detached"))
+        _sil.fan_detached = false;
+
+    if (!variable_instance_exists(_sil, "fan_rejoin_active"))
+        _sil.fan_rejoin_active = false;
+
+    if (!variable_instance_exists(_sil, "fan_rejoin_walk_armed"))
+        _sil.fan_rejoin_walk_armed = false;
+
+    if (_sil.fan_rpg_room != room)
+    {
+        _sil.fan_rpg_room = room;
+        _sil.fan_rpg_mode = "none";
+        _sil.fan_rpg_ref = noone;
+        _sil.fan_rpg_accum = 0;
+        _sil.fan_rpg_exit_remaining = 0;
+        _sil.fan_rpg_gap_accum = 0;
+        _sil.fan_rpg_rejoin_speed = 0;
+        _sil.fan_rpg_post_timer = 0;
+        _sil.fan_rpg_offset_x = 0;
+        _sil.fan_rpg_offset_y = 0;
+        _sil.fan_rpg_base_x = _sil.x;
+        _sil.fan_rpg_base_y = _sil.y;
+        _sil.fan_rpg_base_ready = false;
+        _sil.fan_rpg_rebase_pending = false;
+        _sil.fan_rpg_hold_x = _sil.x;
+        _sil.fan_rpg_hold_y = _sil.y;
+        _sil.fan_detached = false;
+        _sil.fan_rejoin_active = false;
+        _sil.fan_rejoin_walk_armed = false;
+    }
+
+    return true;
+}
+
+
+function scr_fan_rpg_silicio_is_special(_sil)
+{
+    if (!scr_fan_rpg_silicio_prepare(_sil))
+        return false;
+
+    return _sil.fan_rpg_mode != "none";
+}
+
+
+function scr_fan_rpg_silicio_freeze(_sil)
+{
+    if (_sil == noone || !instance_exists(_sil))
+        return;
+
+    // Fuera de WIND_FOLLOW (exit / wait):
+    // Silicio sí debe quedar completamente quieto.
+    //
+    // No cambiamos sprite_index.
+    // Solo dejamos el sprite actual en su frame 0.
+    _sil.movimiento = false;
+    _sil.image_index = 0;
+    _sil.image_speed = 0;
+
+    if (variable_instance_exists(_sil, "party_anim_accum"))
+        _sil.party_anim_accum = 0;
+
+    if (variable_instance_exists(_sil, "party_anim_hold"))
+        _sil.party_anim_hold = 0;
+
+    if (variable_instance_exists(_sil, "party_anim_was_moving"))
+        _sil.party_anim_was_moving = false;
+}
+
+
+// =========================================================
+// SILICIO RPG - ANIMACIÓN DENTRO DEL AIRE SEGÚN MAYA
+// =========================================================
+//
+// Mientras Silicio SIGUE dentro del rango del ventilador:
+//
+//     Maya con movimiento
+//         -> Silicio conserva su sprite actual
+//         -> reproduce su animación normal de caminar.
+//
+//     Maya quieta
+//         -> Silicio conserva su sprite actual
+//         -> frame 0
+//         -> sin animación.
+//
+// El VIENTO nunca decide si anima.
+// Lo decide únicamente el estado de movimiento de Maya.
+// =========================================================
+
+function scr_fan_rpg_silicio_air_animation(_sil, _p)
+{
+    if (_sil == noone || !instance_exists(_sil))
+        return false;
+
+
+    var _maya_moving =
+        (
+            _p != noone
+            &&
+            instance_exists(_p)
+            &&
+            variable_instance_exists(
+                _p,
+                "movimiento"
+            )
+            &&
+            _p.movimiento
+        );
+
+
+    if (_maya_moving)
+    {
+        // No cambiamos sprite_index ni dirección.
+        //
+        // Usamos exactamente el mismo sistema de animación que
+        // ya utiliza el follower RPG normal de Silicio.
+        _sil.movimiento =
+            true;
+
+
+        scr_party_apply_walk_animation(
+            _sil,
+            true
+        );
+
+
+        return true;
     }
 
 
-    _sil.platform_sil_move_x =
-        0;
-
-
-    _sil.platform_sil_move_y =
-        0;
-
-
-    _sil.platform_sil_vsp =
-        0;
-
-
-    _sil.platform_sil_x_rem =
-        0;
-
-
-    _sil.platform_sil_y_rem =
-        0;
-
-
+    // Maya no tiene movimiento:
+    // Silicio queda en frame 0 del sprite que YA tenga.
     _sil.movimiento =
         false;
 
 
-    _sil.platform_sil_grounded =
-        scr_platformer_floor_at(
-            _sil.x,
-            _sil.y + 1,
-            _sil.platform_sil_hit_left,
-            _sil.platform_sil_hit_top,
-            _sil.platform_sil_hit_right,
-            _sil.platform_sil_hit_bottom
-        );
-
-
-    var _face =
-        (
-            variable_instance_exists(
-                _sil,
-                "platform_sil_facing"
-            )
-            ?
-            _sil.platform_sil_facing
-            :
-            1
-        );
-
-
-    // Si todavía no había facing válido, usar el de Maya solo
-    // como orientación visual. Su POSICIÓN nunca se usa aquí.
-    if (
-        _face == 0
-        &&
-        _p != noone
-        &&
-        instance_exists(_p)
-        &&
-        variable_instance_exists(
-            _p,
-            "platform_facing"
-        )
-    )
-    {
-        _face =
-            (
-                _p.platform_facing < 0
-                ?
-                -1
-                :
-                1
-            );
-    }
-
-
-    scr_platformer_silicio_apply_extended_sprite(
+    scr_party_apply_walk_animation(
         _sil,
-        (
-            _sil.platform_sil_grounded
-            ?
-            "idle"
-            :
-            "jump"
-        ),
-        _face
+        false
     );
 
 
@@ -1929,236 +854,75 @@ function scr_fan_platformer_silicio_freeze(
         0;
 
 
-    _sil.platform_sil_prev_x =
-        _sil.x;
-
-
-    _sil.platform_sil_prev_y =
-        _sil.y;
-
-
-    return true;
-}
-
-
-// =========================================================
-// SEMBRAR HISTORIAL NUEVO AL TERMINAR LA EXPULSIÓN
-// =========================================================
-//
-// Igual que el wait_gap del deslizamiento:
-// todo lo recorrido por Maya DURANTE el efecto se descarta.
-// A partir de aquí solo importa lo nuevo.
-// =========================================================
-
-function scr_fan_platformer_seed_wait_history(_p)
-{
     if (
-        _p == noone
-        ||
-        !instance_exists(_p)
-    )
-    {
-        return false;
-    }
-
-
-    scr_platformer_party_ext_init();
-
-
-    var _snapshot =
-        scr_platformer_party_snapshot(
-            _p
-        );
-
-
-    global.platform_party_history =
-        [];
-
-
-    global.platform_party_room =
-        room;
-
-
-    global.platform_party_was_active =
-        true;
-
-
-    global.platform_party_last_player_feet_x =
-        _snapshot.x;
-
-
-    global.platform_party_last_player_feet_y =
-        _snapshot.y;
-
-
-    for (
-        var _i = 0;
-        _i < global.platform_party_delay_frames;
-        _i++
-    )
-    {
-        array_push(
-            global.platform_party_history,
-            {
-                dx: 0,
-                dy: 0,
-                facing: _snapshot.facing,
-                grounded: true,
-                state: "idle"
-            }
-        );
-    }
-
-
-    return true;
-}
-
-
-// =========================================================
-// GRABAR RUTA NUEVA DE MAYA SIN MOVER A SILICIO
-// =========================================================
-//
-// Devuelve cuánto caminó horizontalmente Maya este frame.
-// =========================================================
-
-function scr_fan_platformer_record_wait_history(_p)
-{
-    if (
-        _p == noone
-        ||
-        !instance_exists(_p)
-    )
-    {
-        return 0;
-    }
-
-
-    scr_platformer_party_ext_init();
-
-
-    var _snapshot =
-        scr_platformer_party_snapshot(
-            _p
-        );
-
-
-    var _dx =
-        _snapshot.x
-        -
-        global.platform_party_last_player_feet_x;
-
-
-    var _dy =
-        _snapshot.y
-        -
-        global.platform_party_last_player_feet_y;
-
-
-    if (
-        abs(_dx) > 32
-        ||
-        abs(_dy) > 32
-    )
-    {
-        _dx =
-            0;
-
-
-        _dy =
-            0;
-    }
-
-
-    array_push(
-        global.platform_party_history,
-        {
-            dx: _dx,
-            dy: _dy,
-            facing: _snapshot.facing,
-            grounded: _snapshot.grounded,
-            state: _snapshot.state
-        }
-    );
-
-
-    global.platform_party_last_player_feet_x =
-        _snapshot.x;
-
-
-    global.platform_party_last_player_feet_y =
-        _snapshot.y;
-
-
-    var _history_over =
-        array_length(
-            global.platform_party_history
+        variable_instance_exists(
+            _sil,
+            "party_anim_accum"
         )
-        -
-        global.platform_party_history_max;
-
-
-    if (_history_over > 0)
-    {
-        array_delete(
-            global.platform_party_history,
-            0,
-            _history_over
-        );
-    }
-
-
-    return abs(_dx);
-}
-
-
-// =========================================================
-// SINCRONIZAR REFERENCIA DE MAYA DURANTE WIND_FOLLOW/EXIT
-// =========================================================
-
-function scr_fan_platformer_sync_player_reference(_p)
-{
-    if (
-        _p == noone
-        ||
-        !instance_exists(_p)
     )
     {
-        return;
+        _sil.party_anim_accum =
+            0;
     }
 
 
-    scr_platformer_party_ext_init();
+    if (
+        variable_instance_exists(
+            _sil,
+            "party_anim_hold"
+        )
+    )
+    {
+        _sil.party_anim_hold =
+            0;
+    }
 
 
-    var _snapshot =
-        scr_platformer_party_snapshot(
-            _p
-        );
+    if (
+        variable_instance_exists(
+            _sil,
+            "party_anim_was_moving"
+        )
+    )
+    {
+        _sil.party_anim_was_moving =
+            false;
+    }
 
 
-    global.platform_party_last_player_feet_x =
-        _snapshot.x;
-
-
-    global.platform_party_last_player_feet_y =
-        _snapshot.y;
+    return false;
 }
 
 
-// =========================================================
-// COMENZAR EL VIENTO AUTÓNOMO DE SILICIO
-// =========================================================
+function scr_fan_rpg_release(_sil)
+{
+    if (_sil == noone || !instance_exists(_sil))
+        return;
 
-function scr_fan_platformer_silicio_begin(
-    _sil,
-    _fan,
-    _p
-)
+    _sil.fan_rpg_mode = "none";
+    _sil.fan_rpg_ref = noone;
+    _sil.fan_rpg_accum = 0;
+    _sil.fan_rpg_exit_remaining = 0;
+    _sil.fan_rpg_gap_accum = 0;
+    _sil.fan_rpg_rejoin_speed = 0;
+    _sil.fan_rpg_post_timer = 0;
+    _sil.fan_rpg_offset_x = 0;
+    _sil.fan_rpg_offset_y = 0;
+    _sil.fan_rpg_base_ready = false;
+    _sil.fan_rpg_rebase_pending = false;
+
+    _sil.fan_detached = false;
+    _sil.fan_rejoin_active = false;
+    _sil.fan_rejoin_walk_armed = false;
+
+    _sil.party_follow_suspended = false;
+}
+
+
+function scr_fan_rpg_begin(_sil, _fan, _p)
 {
     if (
-        _sil == noone
-        ||
-        !instance_exists(_sil)
+        !scr_fan_rpg_silicio_prepare(_sil)
         ||
         _fan == noone
         ||
@@ -2168,119 +932,91 @@ function scr_fan_platformer_silicio_begin(
         return false;
     }
 
+    scr_fan_update_zone(_fan);
 
-    scr_fan_platformer_silicio_prepare(
-        _sil
-    );
+    _sil.fan_rpg_mode = "wind_follow";
+    _sil.fan_rpg_room = room;
+    _sil.fan_rpg_ref = _fan;
+    _sil.fan_rpg_dir_x = _fan.fan_direction_x;
+    _sil.fan_rpg_dir_y = _fan.fan_direction_y;
+    _sil.fan_rpg_force = max(0, abs(_fan.fan_force));
+    _sil.fan_rpg_accum = 0;
+    _sil.fan_rpg_exit_remaining = 0;
+    _sil.fan_rpg_gap_accum = 0;
+    _sil.fan_rpg_rejoin_speed = 0;
+    _sil.fan_rpg_post_timer = 0;
 
+    // Guardar la posición física exacta donde el viento tomó
+    // contacto. En el próximo follower normal calcularemos qué
+    // offset corresponde para mantener a Silicio en este punto.
+    _sil.fan_rpg_hold_x = _sil.x;
+    _sil.fan_rpg_hold_y = _sil.y;
+    _sil.fan_rpg_rebase_pending = true;
+    _sil.fan_rpg_base_ready = false;
 
-    scr_fan_update_zone(
-        _fan
-    );
+    _sil.fan_detached = true;
+    _sil.fan_rejoin_active = false;
+    _sil.fan_rejoin_walk_armed = false;
 
+    // CLAVE:
+    // dentro del aire Silicio TODAVÍA SIGUE A MAYA.
+    // El viento se suma encima de ese movimiento.
+    _sil.party_follow_suspended = false;
 
-    _sil.platform_fan_mode =
-        "wind_follow";
-
-
-    _sil.platform_fan_room =
-        room;
-
-
-    _sil.platform_fan_ref =
-        _fan;
-
-
-    _sil.platform_fan_dir_x =
-        _fan.fan_direction_x;
-
-
-    _sil.platform_fan_dir_y =
-        _fan.fan_direction_y;
-
-
-    _sil.platform_fan_force =
-        max(
-            0,
-            abs(
-                _fan.fan_force
+    // Si estaba en un terreno especial del follower RPG,
+    // el viento pasa a ser el efecto físico dominante.
+    if (variable_instance_exists(_sil, "party_special_mode"))
+    {
+        if (
+            _sil.party_special_mode == "downslide_follow"
+            ||
+            _sil.party_special_mode == "downslide_exit"
+            ||
+            _sil.party_special_mode == "downslide_wait_gap"
+            ||
+            _sil.party_special_mode == "downslide_rejoin"
+            ||
+            _sil.party_special_mode == "ice_hold"
+            ||
+            _sil.party_special_mode == "ice_recover"
+        )
+        {
+            if (
+                _sil.party_special_mode == "downslide_follow"
+                ||
+                _sil.party_special_mode == "downslide_exit"
             )
-        );
+            {
+                scr_party_downslide_sound_stop(_sil);
+            }
 
+            _sil.party_special_mode = "none";
+        }
+    }
 
-    _sil.platform_fan_accum =
-        0;
-
-
-    _sil.platform_fan_exit_remaining =
-        0;
-
-
-    _sil.fan_detached =
-        true;
-
-
-    _sil.fan_rejoin_active =
-        false;
-
-
-    _sil.fan_rejoin_walk_armed =
-        false;
-
-
-    _sil.party_follow_suspended =
-        true;
-
-
-    scr_fan_platformer_silicio_freeze(
+    // No cambiamos sprite_index.
+    //
+    // Si Maya está caminando, Silicio empieza el efecto
+    // conservando también su animación de movimiento.
+    // Si Maya está quieta, queda inmediatamente en frame 0.
+    scr_fan_rpg_silicio_air_animation(
         _sil,
         _p
     );
-
 
     return true;
 }
 
 
-// =========================================================
-// MOVER A SILICIO UN NÚMERO DE PÍXELES
-// =========================================================
-
-function scr_fan_platformer_silicio_move(
-    _sil,
-    _dir_x,
-    _dir_y,
-    _steps
-)
+function scr_fan_rpg_move(_sil, _dir_x, _dir_y, _steps)
 {
-    var _moved =
-        0;
+    var _moved = 0;
+    _steps = max(0, round(_steps));
 
-
-    _steps =
-        max(
-            0,
-            round(_steps)
-        );
-
-
-    for (
-        var _i = 0;
-        _i < _steps;
-        _i++
-    )
+    for (var _i = 0; _i < _steps; _i++)
     {
-        var _next_x =
-            _sil.x
-            +
-            _dir_x;
-
-
-        var _next_y =
-            _sil.y
-            +
-            _dir_y;
-
+        var _next_x = _sil.x + _dir_x;
+        var _next_y = _sil.y + _dir_y;
 
         if (
             scr_fan_actor_blocked(
@@ -2295,1350 +1031,1365 @@ function scr_fan_platformer_silicio_move(
             break;
         }
 
-
-        _sil.x =
-            _next_x;
-
-
-        _sil.y =
-            _next_y;
-
-
+        _sil.x = _next_x;
+        _sil.y = _next_y;
         _moved++;
     }
-
 
     return _moved;
 }
 
 
-// =========================================================
-// INTERCEPTAR EL PRIMER PÍXEL EN EL QUE EL FOLLOWER TOCA AIRE
-// =========================================================
-//
-// El follower plataformero real mueve X primero y luego Y.
-// Reproducimos ese mismo trayecto desde la posición anterior.
-//
-// Si entra por ARRIBA como en el caso reportado:
-//
-//     Silicio normal
-//         ↓
-//     primer píxel que su hitbox toca la franja blanca
-//         -> wind_follow INMEDIATO
-//
-// El resto del comando atrasado de Maya se descarta.
-// =========================================================
-
-function scr_fan_platformer_capture_crossing(
-    _sil,
-    _p,
-    _old_x,
-    _old_y,
-    _new_x,
-    _new_y
-)
+function scr_fan_rpg_apply_follow_offset(_sil)
 {
     if (
         _sil == noone
         ||
         !instance_exists(_sil)
-    )
-    {
-        return false;
-    }
-
-
-    var _dx =
-        round(
-            _new_x
-            -
-            _old_x
-        );
-
-
-    var _dy =
-        round(
-            _new_y
-            -
-            _old_y
-        );
-
-
-    // Un salto enorme corresponde a room/warp/reset, no a un
-    // recorrido físico que debamos escanear.
-    if (
-        abs(_dx) > 32
         ||
-        abs(_dy) > 32
+        !_sil.fan_rpg_base_ready
     )
     {
-        _sil.x =
-            _new_x;
-
-
-        _sil.y =
-            _new_y;
-
-
-        var _direct =
-            scr_fan_find_wind_for_actor(
-                _sil
-            );
-
-
-        if (_direct != noone)
-        {
-            return
-                scr_fan_platformer_silicio_begin(
-                    _sil,
-                    _direct,
-                    _p
-                );
-        }
-
-
         return false;
     }
 
+    var _base_x = _sil.fan_rpg_base_x;
+    var _base_y = _sil.fan_rpg_base_y;
 
-    _sil.x =
-        _old_x;
+    // Recolocar primero exactamente en la posición normal del
+    // follower que scr_party_update() calculó ESTE frame.
+    _sil.x = _base_x;
+    _sil.y = _base_y;
 
+    // Después reaplicar el desplazamiento acumulado del viento.
+    var _want_x = round(_sil.fan_rpg_offset_x);
+    var _want_y = round(_sil.fan_rpg_offset_y);
 
-    _sil.y =
-        _old_y;
-
-
-    // -----------------------------------------------------
-    // X - exactamente como el follower original
-    // -----------------------------------------------------
-
-    if (_dx != 0)
+    if (_want_x != 0)
     {
-        var _sx =
-            sign(_dx);
-
-
-        for (
-            var _ix = 0;
-            _ix < abs(_dx);
-            _ix++
-        )
-        {
-            _sil.x +=
-                _sx;
-
-
-            var _wind_x =
-                scr_fan_find_wind_for_actor(
-                    _sil
-                );
-
-
-            if (_wind_x != noone)
-            {
-                return
-                    scr_fan_platformer_silicio_begin(
-                        _sil,
-                        _wind_x,
-                        _p
-                    );
-            }
-        }
+        scr_fan_rpg_move(
+            _sil,
+            sign(_want_x),
+            0,
+            abs(_want_x)
+        );
     }
 
-
-    // -----------------------------------------------------
-    // Y - exactamente después de X
-    // -----------------------------------------------------
-
-    if (_dy != 0)
+    if (_want_y != 0)
     {
-        var _sy =
-            sign(_dy);
-
-
-        for (
-            var _iy = 0;
-            _iy < abs(_dy);
-            _iy++
-        )
-        {
-            _sil.y +=
-                _sy;
-
-
-            var _wind_y =
-                scr_fan_find_wind_for_actor(
-                    _sil
-                );
-
-
-            if (_wind_y != noone)
-            {
-                return
-                    scr_fan_platformer_silicio_begin(
-                        _sil,
-                        _wind_y,
-                        _p
-                    );
-            }
-        }
+        scr_fan_rpg_move(
+            _sil,
+            0,
+            sign(_want_y),
+            abs(_want_y)
+        );
     }
 
+    // Si una pared limitó el offset, guardar el desplazamiento
+    // físico REAL que sí pudo conservar.
+    _sil.fan_rpg_offset_x =
+        _sil.x
+        -
+        _base_x;
 
-    // No tocó viento: conservar exactamente el resultado que
-    // produjo el follower normal.
-    _sil.x =
-        _new_x;
+    _sil.fan_rpg_offset_y =
+        _sil.y
+        -
+        _base_y;
 
-
-    _sil.y =
-        _new_y;
-
-
-    return false;
+    return true;
 }
 
 
-// =========================================================
-// ACTUALIZAR ESTADO ESPECIAL DE VIENTO DE SILICIO
-// =========================================================
-//
-// Devuelve TRUE mientras el follower normal debe quedar apagado.
-// =========================================================
-
-function scr_fan_platformer_silicio_special_update(
-    _sil,
-    _p
-)
+function scr_fan_rpg_enter_wait(_sil, _p)
 {
-    if (
-        _sil == noone
-        ||
-        !instance_exists(_sil)
-        ||
-        _p == noone
-        ||
-        !instance_exists(_p)
-    )
+    _sil.fan_rpg_mode = "wind_wait_gap";
+    _sil.fan_rpg_ref = noone;
+    _sil.fan_rpg_accum = 0;
+    _sil.fan_rpg_exit_remaining = 0;
+    _sil.fan_rpg_gap_accum = 0;
+    _sil.fan_rpg_rejoin_speed = 0;
+    _sil.fan_rpg_post_timer = 0;
+
+    _sil.fan_rejoin_active = false;
+    _sil.fan_rejoin_walk_armed = false;
+
+    var _required = 20;
+
+    if (variable_global_exists("party_follow_delay_walk"))
+        _required = max(_required, global.party_follow_delay_walk * 4);
+
+    _required = max(_required, scr_party_history_gap_for_delay(0));
+
+    _sil.fan_rpg_gap_required = _required;
+
+    if (_p != noone && instance_exists(_p))
     {
+        _sil.fan_rpg_last_player_x = scr_party_feet_x(_p);
+        _sil.fan_rpg_last_player_y = scr_party_feet_y(_p);
+    }
+
+    scr_fan_rpg_silicio_freeze(_sil);
+}
+
+
+function scr_fan_rpg_special_update(_sil, _p)
+{
+    if (!scr_fan_rpg_silicio_prepare(_sil))
         return false;
-    }
 
-
-    scr_fan_platformer_silicio_prepare(
-        _sil
-    );
-
-
-    // =====================================================
-    // CAMBIO DE ROOM
-    // =====================================================
-
-    if (
-        _sil.platform_fan_mode
-        !=
-        "none"
-        &&
-        _sil.platform_fan_room
-        !=
-        room
-    )
-    {
-        _sil.platform_fan_mode =
-            "none";
-
-
-        _sil.platform_fan_ref =
-            noone;
-
-
-        _sil.platform_fan_accum =
-            0;
-
-
-        _sil.platform_fan_exit_remaining =
-            0;
-
-
-        _sil.fan_detached =
-            false;
-
-
-        _sil.fan_rejoin_active =
-            false;
-
-
-        _sil.fan_rejoin_walk_armed =
-            false;
-
-
-        _sil.party_follow_suspended =
-            false;
-
-
+    if (_sil.fan_rpg_mode == "none")
         return false;
-    }
 
+    _sil.fan_detached = true;
 
-    // =====================================================
-    // MIGRAR CONTACTO DIRECTO A WIND_FOLLOW
-    // =====================================================
-
-    if (_sil.platform_fan_mode == "none")
-    {
-        var _direct =
-            scr_fan_find_wind_for_actor(
-                _sil
-            );
-
-
-        if (_direct == noone)
-        {
-            // Limpiar cualquier flag residual de las versiones
-            // anteriores del sistema.
-            _sil.fan_detached =
-                false;
-
-
-            _sil.fan_rejoin_active =
-                false;
-
-
-            _sil.fan_rejoin_walk_armed =
-                false;
-
-
-            _sil.party_follow_suspended =
-                false;
-
-
-            return false;
-        }
-
-
-        scr_fan_platformer_silicio_begin(
-            _sil,
-            _direct,
-            _p
-        );
-    }
-
-
-    _sil.fan_detached =
-        true;
-
-
-    _sil.fan_rejoin_active =
-        false;
-
-
-    _sil.fan_rejoin_walk_armed =
-        false;
-
-
+    // Dentro de wind_follow el follower sigue ACTIVO.
+    // En exit/wait/rejoin sí queda suspendido.
     _sil.party_follow_suspended =
-        true;
+        (_sil.fan_rpg_mode != "wind_follow");
 
-
-    // Si el mundo está temporalmente bloqueado, conservar el
-    // estado, pero no desplazar a nadie.
     if (!scr_fan_world_free())
     {
-        scr_fan_platformer_sync_player_reference(
-            _p
-        );
-
-
-        scr_fan_platformer_silicio_freeze(
-            _sil,
-            _p
-        );
-
-
+        scr_fan_rpg_silicio_freeze(_sil);
         return true;
     }
 
-
-    // =====================================================
+    // -----------------------------------------------------
     // WIND_FOLLOW
-    // =====================================================
+    // -----------------------------------------------------
     //
-    // Igual que downslide_follow:
-    // Maya puede quedarse completamente quieta.
-    // Silicio seguirá avanzando por SU efecto hasta salir.
-    // =====================================================
+    // El follower YA calculó su posición normal este frame.
+    // Reaplicamos el offset acumulado del viento encima y luego
+    // añadimos la fuerza nueva del ventilador.
+    // -----------------------------------------------------
 
-    if (_sil.platform_fan_mode == "wind_follow")
+    if (_sil.fan_rpg_mode == "wind_follow")
     {
-        scr_fan_platformer_sync_player_reference(
-            _p
-        );
+        _sil.party_follow_suspended = false;
 
-
-        var _fan =
-            _sil.platform_fan_ref;
-
-
-        var _still_on_saved_fan =
-            false;
-
-
+        // Cuando venimos de una captura/reentrada, el primer
+        // follower posterior nos da la base respecto a la cual
+        // preservar la posición física anterior.
         if (
+            _sil.fan_rpg_base_ready
+            &&
+            _sil.fan_rpg_rebase_pending
+        )
+        {
+            _sil.fan_rpg_offset_x =
+                _sil.fan_rpg_hold_x
+                -
+                _sil.fan_rpg_base_x;
+
+            _sil.fan_rpg_offset_y =
+                _sil.fan_rpg_hold_y
+                -
+                _sil.fan_rpg_base_y;
+
+            _sil.fan_rpg_rebase_pending = false;
+        }
+
+        // Si este frame sí pasó por scr_party_update(), restaurar
+        // el offset que el viento había acumulado anteriormente.
+        if (_sil.fan_rpg_base_ready)
+        {
+            scr_fan_rpg_apply_follow_offset(_sil);
+        }
+
+        var _fan = _sil.fan_rpg_ref;
+
+        var _valid_fan =
             _fan != noone
             &&
             instance_exists(_fan)
             &&
-            (
-                !variable_instance_exists(
-                    _fan,
-                    "fan_enabled"
-                )
-                ||
-                _fan.fan_enabled
-            )
-        )
+            (!variable_instance_exists(_fan, "fan_enabled") || _fan.fan_enabled);
+
+        if (_valid_fan)
         {
-            scr_fan_update_zone(
-                _fan
-            );
-
-
-            _still_on_saved_fan =
-                scr_fan_actor_in_wind(
-                    _fan,
-                    _sil
-                );
+            scr_fan_update_zone(_fan);
         }
 
+        var _inside_saved =
+            _valid_fan
+            &&
+            scr_fan_actor_in_wind(_fan, _sil);
 
-        if (!_still_on_saved_fan)
+        if (!_inside_saved)
         {
-            var _other_fan =
-                scr_fan_find_wind_for_actor(
-                    _sil
-                );
+            var _other = scr_fan_find_wind_for_actor(_sil);
 
-
-            if (_other_fan != noone)
+            if (_other != noone)
             {
-                _fan =
-                    _other_fan;
-
-
-                _sil.platform_fan_ref =
-                    _fan;
-
-
-                _sil.platform_fan_dir_x =
-                    _fan.fan_direction_x;
-
-
-                _sil.platform_fan_dir_y =
-                    _fan.fan_direction_y;
-
-
-                _sil.platform_fan_force =
-                    max(
-                        0,
-                        abs(
-                            _fan.fan_force
-                        )
-                    );
-
-
-                _sil.platform_fan_accum =
-                    0;
-
-
-                _still_on_saved_fan =
-                    true;
+                _fan = _other;
+                _sil.fan_rpg_ref = _fan;
+                _sil.fan_rpg_dir_x = _fan.fan_direction_x;
+                _sil.fan_rpg_dir_y = _fan.fan_direction_y;
+                _sil.fan_rpg_force = max(0, abs(_fan.fan_force));
+                _sil.fan_rpg_accum = 0;
+                _inside_saved = true;
             }
         }
 
-
-        // Ya no toca ninguna corriente:
-        // terminar la expulsión usando la última dirección.
-        if (!_still_on_saved_fan)
+        if (!_inside_saved)
         {
-            _sil.platform_fan_mode =
-                "wind_exit";
+            // Ya salió completamente del aire.
+            // Desde AQUÍ deja de seguir a Maya y termina la
+            // expulsión exterior.
+            if (!_valid_fan)
+            {
+                scr_fan_rpg_enter_wait(_sil, _p);
+                _sil.party_follow_suspended = true;
+                _sil.fan_rpg_base_ready = false;
+                return true;
+            }
 
-
-            _sil.platform_fan_accum =
-                0;
-
-
-            var _exit_fan =
-                _sil.platform_fan_ref;
-
-
-            _sil.platform_fan_exit_remaining =
-                (
-                    _exit_fan != noone
-                    &&
-                    instance_exists(_exit_fan)
-                    &&
-                    variable_instance_exists(
-                        _exit_fan,
-                        "fan_silicio_eject_extra"
-                    )
-                    ?
-                    max(
-                        0,
-                        round(
-                            _exit_fan.fan_silicio_eject_extra
-                        )
-                    )
-                    :
-                    24
-                );
+            _sil.fan_rpg_mode = "wind_exit";
+            _sil.party_follow_suspended = true;
+            _sil.fan_rpg_accum = 0;
+            _sil.fan_rpg_base_ready = false;
+            _sil.fan_rpg_exit_remaining =
+                variable_instance_exists(_fan, "fan_silicio_eject_extra")
+                ?
+                max(0, round(_fan.fan_silicio_eject_extra))
+                :
+                12;
         }
         else
         {
-            _sil.platform_fan_accum +=
-                _sil.platform_fan_force;
+            // =================================================
+            // FUERZA DE VIENTO SIN DUPLICAR
+            // =================================================
+            //
+            // Mientras Maya y Silicio están dentro DEL MISMO
+            // ventilador, scr_party_update() ya hace que Silicio
+            // reproduzca la ruta física que Maya dejó detrás.
+            //
+            // Esa ruta YA contiene el empuje del aire aplicado a
+            // Maya. Si aquí sumáramos fan_force otra vez, Silicio
+            // recibiría aproximadamente:
+            //
+            //     viento de Maya por follower
+            //     +
+            //     viento propio
+            //
+            // y se sentiría más fuerte que en Maya.
+            //
+            // Por eso:
+            //
+            //     Maya dentro del mismo fan
+            //         -> solo follower (sin viento duplicado)
+            //
+            //     Maya fuera de ese fan
+            //         -> Silicio recibe SU fan_force completo
+            //
+            // De esta forma Silicio sigue a Maya dentro del aire,
+            // pero si Maya ya salió/se detuvo fuera, el ventilador
+            // puede terminar de expulsar a Silicio por sí mismo.
+            // =================================================
+
+            var _maya_in_same_fan =
+                (
+                    _p != noone
+                    &&
+                    instance_exists(_p)
+                    &&
+                    scr_fan_actor_in_wind(
+                        _fan,
+                        _p
+                    )
+                );
+
+
+            var _silicio_direct_force =
+                (
+                    _maya_in_same_fan
+                    ?
+                    0
+                    :
+                    _sil.fan_rpg_force
+                );
+
+
+            if (_silicio_direct_force > 0)
+            {
+                _sil.fan_rpg_accum +=
+                    _silicio_direct_force;
+            }
+            else
+            {
+                // No guardar residuo para que al salir Maya del
+                // ventilador Silicio empiece exactamente con la
+                // fuerza normal y no con un sobrante anterior.
+                _sil.fan_rpg_accum =
+                    0;
+            }
 
 
             var _steps =
                 floor(
-                    _sil.platform_fan_accum
+                    _sil.fan_rpg_accum
                 );
 
 
-            _sil.platform_fan_accum -=
+            _sil.fan_rpg_accum -=
                 _steps;
 
 
-            for (
-                var _wi = 0;
-                _wi < _steps;
-                _wi++
-            )
+            for (var _i = 0; _i < _steps; _i++)
             {
-                var _moved =
-                    scr_fan_platformer_silicio_move(
-                        _sil,
-                        _sil.platform_fan_dir_x,
-                        _sil.platform_fan_dir_y,
-                        1
-                    );
-
+                var _moved = scr_fan_rpg_move(
+                    _sil,
+                    _sil.fan_rpg_dir_x,
+                    _sil.fan_rpg_dir_y,
+                    1
+                );
 
                 if (_moved <= 0)
                 {
-                    _sil.platform_fan_accum =
-                        0;
-
-
+                    _sil.fan_rpg_accum = 0;
                     break;
                 }
 
-
-                // El efecto termina solo cuando TODA la hitbox
-                // ya está fuera del rectángulo blanco.
-                if (
-                    !scr_fan_actor_in_wind(
-                        _fan,
-                        _sil
-                    )
-                )
+                // El offset se mide respecto a la posición normal
+                // del follower de ESTE frame.
+                if (_sil.fan_rpg_base_ready)
                 {
-                    _sil.platform_fan_mode =
-                        "wind_exit";
+                    _sil.fan_rpg_offset_x =
+                        _sil.x
+                        -
+                        _sil.fan_rpg_base_x;
 
+                    _sil.fan_rpg_offset_y =
+                        _sil.y
+                        -
+                        _sil.fan_rpg_base_y;
+                }
+                else
+                {
+                    // Reentrada sin follower en este mismo frame:
+                    // conservar la nueva posición para rebasear
+                    // correctamente el próximo frame.
+                    _sil.fan_rpg_hold_x = _sil.x;
+                    _sil.fan_rpg_hold_y = _sil.y;
+                    _sil.fan_rpg_rebase_pending = true;
+                }
 
-                    _sil.platform_fan_accum =
-                        0;
-
-
-                    _sil.platform_fan_exit_remaining =
-                        (
-                            variable_instance_exists(
-                                _fan,
-                                "fan_silicio_eject_extra"
-                            )
-                            ?
-                            max(
-                                0,
-                                round(
-                                    _fan.fan_silicio_eject_extra
-                                )
-                            )
-                            :
-                            24
-                        );
-
-
+                if (!scr_fan_actor_in_wind(_fan, _sil))
+                {
+                    _sil.fan_rpg_mode = "wind_exit";
+                    _sil.party_follow_suspended = true;
+                    _sil.fan_rpg_accum = 0;
+                    _sil.fan_rpg_base_ready = false;
+                    _sil.fan_rpg_exit_remaining =
+                        variable_instance_exists(_fan, "fan_silicio_eject_extra")
+                        ?
+                        max(0, round(_fan.fan_silicio_eject_extra))
+                        :
+                        12;
                     break;
                 }
             }
         }
 
-
-        scr_fan_platformer_silicio_freeze(
+        // El follower puede haber elegido sprite/dirección según
+        // su movimiento normal.
+        //
+        // Mientras SIGA dentro del aire:
+        //
+        //     Maya avanzando -> Silicio anima.
+        //     Maya quieta     -> Silicio frame 0.
+        //
+        // El viento no cambia el sprite actual.
+        scr_fan_rpg_silicio_air_animation(
             _sil,
             _p
         );
 
+        // La base solo pertenece al follower de este frame.
+        _sil.fan_rpg_base_ready = false;
 
-        if (_sil.platform_fan_mode == "wind_follow")
-        {
+        if (_sil.fan_rpg_mode == "wind_follow")
             return true;
-        }
     }
 
-
-    // =====================================================
+    // -----------------------------------------------------
     // WIND_EXIT
-    // =====================================================
-    //
-    // Igual que downslide_exit:
-    // ya salió de la zona, pero todavía se desplaza unos píxeles
-    // más FUERA de ella.
-    // =====================================================
+    // -----------------------------------------------------
 
-    if (_sil.platform_fan_mode == "wind_exit")
+    if (_sil.fan_rpg_mode == "wind_exit")
     {
-        scr_fan_platformer_sync_player_reference(
-            _p
-        );
+        _sil.party_follow_suspended = true;
 
-
-        // Otro ventilador puede atraparlo durante la salida.
-        var _new_fan =
-            scr_fan_find_wind_for_actor(
-                _sil
-            );
-
+        var _new_fan = scr_fan_find_wind_for_actor(_sil);
 
         if (_new_fan != noone)
         {
-            scr_fan_platformer_silicio_begin(
+            scr_fan_rpg_begin(_sil, _new_fan, _p);
+
+            // Esta reentrada ocurre sin un follower nuevo en este
+            // mismo frame. El begin guarda hold_x/hold_y y el
+            // próximo frame reconstruirá el offset.
+            return scr_fan_rpg_special_update(_sil, _p);
+        }
+
+        if (_sil.fan_rpg_exit_remaining > 0)
+        {
+            var _exit_step = min(6, _sil.fan_rpg_exit_remaining);
+            var _exit_moved = scr_fan_rpg_move(
                 _sil,
-                _new_fan,
-                _p
+                _sil.fan_rpg_dir_x,
+                _sil.fan_rpg_dir_y,
+                _exit_step
             );
 
+            _sil.fan_rpg_exit_remaining -= _exit_moved;
 
-            return
-                scr_fan_platformer_silicio_special_update(
-                    _sil,
-                    _p
-                );
-        }
-
-
-        if (_sil.platform_fan_exit_remaining > 0)
-        {
-            var _exit_step =
-                min(
-                    6,
-                    _sil.platform_fan_exit_remaining
-                );
-
-
-            var _exit_moved =
-                scr_fan_platformer_silicio_move(
-                    _sil,
-                    _sil.platform_fan_dir_x,
-                    _sil.platform_fan_dir_y,
-                    _exit_step
-                );
-
-
-            _sil.platform_fan_exit_remaining -=
-                _exit_moved;
-
-
-            // Una pared corta la expulsión extra.
             if (_exit_moved < _exit_step)
-            {
-                _sil.platform_fan_exit_remaining =
-                    0;
-            }
+                _sil.fan_rpg_exit_remaining = 0;
         }
 
-
-        if (_sil.platform_fan_exit_remaining <= 0)
+        if (_sil.fan_rpg_exit_remaining <= 0)
         {
-            // Igual que downslide_wait_gap:
-            // terminar y quedarse EXACTAMENTE donde está.
-            _sil.platform_fan_mode =
-                "wind_wait_gap";
-
-
-            _sil.platform_fan_ref =
-                noone;
-
-
-            _sil.platform_fan_accum =
-                0;
-
-
-            scr_fan_platformer_seed_wait_history(
-                _p
-            );
+            scr_fan_rpg_enter_wait(_sil, _p);
         }
 
-
-        scr_fan_platformer_silicio_freeze(
-            _sil,
-            _p
-        );
-
-
+        scr_fan_rpg_silicio_freeze(_sil);
         return true;
     }
 
-
-    // =====================================================
+    // -----------------------------------------------------
     // WIND_WAIT_GAP
-    // =====================================================
-    //
-    // Aquí Silicio NO se acerca a Maya.
-    // Aquí Silicio NO reproduce ningún comando viejo.
-    // Aquí Silicio NO anima.
-    //
-    // Se queda en la coordenada exacta donde acabó wind_exit.
-    //
-    // Cuando Maya COMIENZA a caminar horizontalmente otra vez:
-    // - guardamos ese nuevo comando;
-    // - liberamos el estado especial;
-    // - ESTE frame Silicio sigue quieto;
-    // - el siguiente frame vuelve el follower normal;
-    // - los 8 frames idle sembrados conservan el retraso normal.
-    // =====================================================
+    // -----------------------------------------------------
 
-    if (_sil.platform_fan_mode == "wind_wait_gap")
+    if (_sil.fan_rpg_mode == "wind_wait_gap")
     {
-        // Si un ventilador vuelve a alcanzarlo mientras espera,
-        // comienza otra expulsión autónoma.
-        var _wait_fan =
-            scr_fan_find_wind_for_actor(
-                _sil
-            );
+        _sil.party_follow_suspended = true;
 
+        var _wait_fan = scr_fan_find_wind_for_actor(_sil);
 
         if (_wait_fan != noone)
         {
-            scr_fan_platformer_silicio_begin(
-                _sil,
-                _wait_fan,
-                _p
-            );
-
-
-            return
-                scr_fan_platformer_silicio_special_update(
-                    _sil,
-                    _p
-                );
+            scr_fan_rpg_begin(_sil, _wait_fan, _p);
+            return scr_fan_rpg_special_update(_sil, _p);
         }
 
-
-        var _new_walk =
-            scr_fan_platformer_record_wait_history(
-                _p
-            );
-
-
-        scr_fan_platformer_silicio_freeze(
-            _sil,
-            _p
-        );
-
-
-        if (_new_walk > 0.05)
+        if (_p != noone && instance_exists(_p))
         {
-            _sil.platform_fan_mode =
-                "none";
+            var _px = scr_party_feet_x(_p);
+            var _py = scr_party_feet_y(_p);
 
+            var _step_distance = point_distance(
+                _sil.fan_rpg_last_player_x,
+                _sil.fan_rpg_last_player_y,
+                _px,
+                _py
+            );
 
-            _sil.platform_fan_ref =
-                noone;
+            if (_step_distance <= 24)
+                _sil.fan_rpg_gap_accum += max(0, _step_distance);
 
-
-            _sil.platform_fan_accum =
-                0;
-
-
-            _sil.platform_fan_exit_remaining =
-                0;
-
-
-            _sil.fan_detached =
-                false;
-
-
-            _sil.fan_rejoin_active =
-                false;
-
-
-            _sil.fan_rejoin_walk_armed =
-                false;
-
-
-            _sil.party_follow_suspended =
-                false;
-
-
-            // No moverlo todavía. El follower vuelve el
-            // siguiente frame usando solo la ruta nueva.
-            return true;
+            _sil.fan_rpg_last_player_x = _px;
+            _sil.fan_rpg_last_player_y = _py;
         }
 
+        scr_fan_rpg_silicio_freeze(_sil);
+
+        if (_sil.fan_rpg_gap_accum >= _sil.fan_rpg_gap_required)
+        {
+            _sil.fan_rpg_mode = "wind_rejoin";
+            _sil.fan_rpg_post_timer = 1;
+            _sil.fan_rpg_rejoin_speed = 0;
+            _sil.fan_rejoin_active = true;
+        }
 
         return true;
     }
 
+    // -----------------------------------------------------
+    // WIND_REJOIN
+    // -----------------------------------------------------
 
-    return false;
-}
-
-
-// =========================================================
-// WRAPPER DEL FOLLOWER PLATAFORMERO
-// =========================================================
-//
-// obj_settings llama ESTA función en vez de llamar directamente
-// scr_platformer_party_follow_update().
-//
-// En estado normal:
-//     usa el follower original SIN CAMBIARLO.
-//
-// Si el movimiento normal cruza viento:
-//     se rebobina únicamente ese desplazamiento de Silicio,
-//     se busca el primer píxel de contacto y comienza wind_follow.
-//
-// Durante wind_follow / wind_exit / wait_gap:
-//     el follower original no recibe autoridad sobre x/y.
-// =========================================================
-
-function scr_fan_platformer_party_follow_update()
-{
-    scr_platformer_party_ext_init();
-
-
-    if (
-        !variable_global_exists(
-            "platformer_active"
-        )
-        ||
-        !global.platformer_active
-    )
+    if (_sil.fan_rpg_mode == "wind_rejoin")
     {
-        return
-            scr_platformer_party_follow_update();
-    }
+        _sil.party_follow_suspended = true;
+        _sil.fan_rejoin_active = true;
 
+        var _rejoin_fan = scr_fan_find_wind_for_actor(_sil);
 
-    if (
-        !instance_exists(obj_player)
-        ||
-        !scr_party_has(
-            "silicio"
-        )
-    )
-    {
-        return
-            scr_platformer_party_follow_update();
-    }
-
-
-    var _p =
-        instance_find(
-            obj_player,
-            0
-        );
-
-
-    var _sil =
-        scr_party_get_instance(
-            "silicio"
-        );
-
-
-    if (
-        _sil == noone
-        ||
-        !instance_exists(_sil)
-    )
-    {
-        return
-            scr_platformer_party_follow_update();
-    }
-
-
-    scr_fan_platformer_silicio_prepare(
-        _sil
-    );
-
-
-    // =====================================================
-    // ESTADO ESPECIAL YA ACTIVO
-    // =====================================================
-
-    if (
-        _sil.platform_fan_mode
-        !=
-        "none"
-    )
-    {
-        return
-            scr_fan_platformer_silicio_special_update(
-                _sil,
-                _p
-            );
-    }
-
-
-    // Contacto directo antes de que el follower se mueva.
-    var _direct =
-        scr_fan_find_wind_for_actor(
-            _sil
-        );
-
-
-    if (_direct != noone)
-    {
-        scr_fan_platformer_silicio_begin(
-            _sil,
-            _direct,
-            _p
-        );
-
-
-        return
-            scr_fan_platformer_silicio_special_update(
-                _sil,
-                _p
-            );
-    }
-
-
-    // =====================================================
-    // FOLLOWER NORMAL
-    // =====================================================
-
-    var _initializing =
-        (
-            global.platform_party_room
-            !=
-            room
-            ||
-            !global.platform_party_was_active
-        );
-
-
-    var _old_x =
-        _sil.x;
-
-
-    var _old_y =
-        _sil.y;
-
-
-    var _result =
-        scr_platformer_party_follow_update();
-
-
-    // El follower puede haber recreado/reasignado la instancia.
-    _sil =
-        scr_party_get_instance(
-            "silicio"
-        );
-
-
-    if (
-        _sil == noone
-        ||
-        !instance_exists(_sil)
-    )
-    {
-        return _result;
-    }
-
-
-    scr_fan_platformer_silicio_prepare(
-        _sil
-    );
-
-
-    var _new_x =
-        _sil.x;
-
-
-    var _new_y =
-        _sil.y;
-
-
-    // Primer frame/room:
-    // el follower coloca a Silicio directamente sobre Maya.
-    // No escaneamos esa reubicación como si fuera movimiento.
-    if (_initializing)
-    {
-        var _after_init =
-            scr_fan_find_wind_for_actor(
-                _sil
-            );
-
-
-        if (_after_init != noone)
+        if (_rejoin_fan != noone)
         {
-            scr_fan_platformer_silicio_begin(
-                _sil,
-                _after_init,
-                _p
-            );
-
-
-            return
-                scr_fan_platformer_silicio_special_update(
-                    _sil,
-                    _p
-                );
+            scr_fan_rpg_begin(_sil, _rejoin_fan, _p);
+            return scr_fan_rpg_special_update(_sil, _p);
         }
 
+        if (_sil.fan_rpg_post_timer > 0)
+        {
+            _sil.fan_rpg_post_timer--;
+            scr_fan_rpg_silicio_freeze(_sil);
+            return true;
+        }
 
-        return _result;
-    }
+        var _target = scr_party_get_delayed_position(0);
+        var _cx = scr_party_feet_x(_sil);
+        var _cy = scr_party_feet_y(_sil);
+        var _dx = _target.x - _cx;
+        var _dy = _target.y - _cy;
+        var _distance = point_distance(_cx, _cy, _target.x, _target.y);
 
+        var _start_speed =
+            variable_global_exists("party_downslide_rejoin_start_speed")
+            ? global.party_downslide_rejoin_start_speed
+            : 2.0;
 
-    // =====================================================
-    // ESCANEAR EL TRAYECTO REAL DEL FOLLOWER
-    // =====================================================
+        var _max_speed =
+            variable_global_exists("party_downslide_rejoin_speed")
+            ? global.party_downslide_rejoin_speed
+            : 7.0;
 
-    var _captured =
-        scr_fan_platformer_capture_crossing(
-            _sil,
-            _p,
-            _old_x,
-            _old_y,
-            _new_x,
-            _new_y
-        );
+        var _accel =
+            variable_global_exists("party_downslide_rejoin_accel")
+            ? global.party_downslide_rejoin_accel
+            : 0.5;
 
-
-    if (_captured)
-    {
-        return
-            scr_fan_platformer_silicio_special_update(
-                _sil,
-                _p
+        if (_sil.fan_rpg_rejoin_speed <= 0)
+            _sil.fan_rpg_rejoin_speed = _start_speed;
+        else
+            _sil.fan_rpg_rejoin_speed = min(
+                _max_speed,
+                _sil.fan_rpg_rejoin_speed + _accel
             );
+
+        var _face = _target.face;
+
+        if (abs(_dx) > abs(_dy))
+        {
+            if (_dx > 0) _face = RIGHT;
+            else if (_dx < 0) _face = LEFT;
+        }
+        else
+        {
+            if (_dy > 0) _face = DOWN;
+            else if (_dy < 0) _face = UP;
+        }
+
+        if (_distance <= 0.25)
+        {
+            scr_party_apply_direction(_sil, _face);
+            scr_party_apply_walk_animation(_sil, false);
+            _sil.movimiento = false;
+            scr_fan_rpg_release(_sil);
+            return true;
+        }
+
+        var _step = min(_sil.fan_rpg_rejoin_speed, _distance);
+        var _angle = point_direction(_cx, _cy, _target.x, _target.y);
+        var _nx = _cx + lengthdir_x(_step, _angle);
+        var _ny = _cy + lengthdir_y(_step, _angle);
+
+        scr_party_apply_direction(_sil, _face);
+        scr_party_place_feet(_sil, _nx, _ny);
+
+        _sil.movimiento = true;
+        scr_party_apply_walk_animation(_sil, true);
+
+        return true;
     }
-
-
-    return _result;
-}
-
-
-// =========================================================
-// ¿EL MUNDO PERMITE QUE EL AIRE MUEVA A MAYA?
-// =========================================================
-
-function scr_fan_world_free()
-{
-    if (
-        room == bbs
-        ||
-        room == game_over
-    )
-    {
-        return false;
-    }
-
-
-    if (
-        variable_global_exists(
-            "gameover_death_freeze_active"
-        )
-        &&
-        global.gameover_death_freeze_active
-    )
-    {
-        return false;
-    }
-
-
-    if (
-        variable_global_exists(
-            "cutscene_active"
-        )
-        &&
-        global.cutscene_active
-    )
-    {
-        return false;
-    }
-
-
-    if (
-        instance_exists(
-            obj_pauser
-        )
-        ||
-        instance_exists(
-            obj_save_menu
-        )
-        ||
-        instance_exists(
-            obj_textbox
-        )
-        ||
-        instance_exists(
-            obj_transicion_bbs
-        )
-    )
-    {
-        return false;
-    }
-
-
-    if (
-        instance_exists(
-            obj_menu_manager
-        )
-        &&
-        obj_menu_manager.state
-        !=
-        MENU_STATE.CLOSED
-    )
-    {
-        return false;
-    }
-
 
     return true;
 }
 
 
 // =========================================================
-// UPDATE
+// RPG - INTERCEPTAR EL PRIMER PÍXEL QUE TOCA LA CORRIENTE
+// =========================================================
+
+function scr_fan_rpg_capture_crossing(_sil, _p, _old_x, _old_y, _new_x, _new_y)
+{
+    if (_sil == noone || !instance_exists(_sil))
+        return false;
+
+    var _dx = round(_new_x - _old_x);
+    var _dy = round(_new_y - _old_y);
+
+    // Esta es la posición NORMAL que el follower quería alcanzar
+    // antes de que el viento se sumara.
+    _sil.fan_rpg_base_x = _new_x;
+    _sil.fan_rpg_base_y = _new_y;
+    _sil.fan_rpg_base_ready = true;
+
+    if (abs(_dx) > 32 || abs(_dy) > 32)
+    {
+        _sil.x = _new_x;
+        _sil.y = _new_y;
+
+        var _direct_big = scr_fan_find_wind_for_actor(_sil);
+
+        if (_direct_big != noone)
+        {
+            scr_fan_rpg_begin(_sil, _direct_big, _p);
+
+            _sil.fan_rpg_base_x = _new_x;
+            _sil.fan_rpg_base_y = _new_y;
+            _sil.fan_rpg_base_ready = true;
+            _sil.fan_rpg_offset_x = 0;
+            _sil.fan_rpg_offset_y = 0;
+            _sil.fan_rpg_rebase_pending = false;
+
+            return true;
+        }
+
+        _sil.fan_rpg_base_ready = false;
+        return false;
+    }
+
+    _sil.x = _old_x;
+    _sil.y = _old_y;
+
+    var _direct = scr_fan_find_wind_for_actor(_sil);
+
+    if (_direct != noone)
+    {
+        scr_fan_rpg_begin(_sil, _direct, _p);
+
+        _sil.fan_rpg_base_x = _new_x;
+        _sil.fan_rpg_base_y = _new_y;
+        _sil.fan_rpg_base_ready = true;
+        _sil.fan_rpg_offset_x = _sil.x - _new_x;
+        _sil.fan_rpg_offset_y = _sil.y - _new_y;
+        _sil.fan_rpg_rebase_pending = false;
+
+        return true;
+    }
+
+    if (_dx != 0)
+    {
+        var _sx = sign(_dx);
+
+        for (var _ix = 0; _ix < abs(_dx); _ix++)
+        {
+            _sil.x += _sx;
+
+            var _wind_x = scr_fan_find_wind_for_actor(_sil);
+
+            if (_wind_x != noone)
+            {
+                scr_fan_rpg_begin(_sil, _wind_x, _p);
+
+                _sil.fan_rpg_base_x = _new_x;
+                _sil.fan_rpg_base_y = _new_y;
+                _sil.fan_rpg_base_ready = true;
+                _sil.fan_rpg_offset_x = _sil.x - _new_x;
+                _sil.fan_rpg_offset_y = _sil.y - _new_y;
+                _sil.fan_rpg_rebase_pending = false;
+
+                return true;
+            }
+        }
+    }
+
+    if (_dy != 0)
+    {
+        var _sy = sign(_dy);
+
+        for (var _iy = 0; _iy < abs(_dy); _iy++)
+        {
+            _sil.y += _sy;
+
+            var _wind_y = scr_fan_find_wind_for_actor(_sil);
+
+            if (_wind_y != noone)
+            {
+                scr_fan_rpg_begin(_sil, _wind_y, _p);
+
+                _sil.fan_rpg_base_x = _new_x;
+                _sil.fan_rpg_base_y = _new_y;
+                _sil.fan_rpg_base_ready = true;
+                _sil.fan_rpg_offset_x = _sil.x - _new_x;
+                _sil.fan_rpg_offset_y = _sil.y - _new_y;
+                _sil.fan_rpg_rebase_pending = false;
+
+                return true;
+            }
+        }
+    }
+
+    _sil.x = _new_x;
+    _sil.y = _new_y;
+    _sil.fan_rpg_base_ready = false;
+
+    return false;
+}
+
+
+// =========================================================
+// RPG - ANTES / DESPUÉS DE scr_party_update()
+// =========================================================
+
+function scr_fan_rpg_before_party_update(_sil)
+{
+    if (!scr_fan_rpg_silicio_prepare(_sil))
+        return false;
+
+    if (_sil.fan_rpg_mode == "wind_follow")
+    {
+        // Dentro del aire el follower SIGUE funcionando.
+        _sil.fan_detached = true;
+        _sil.party_follow_suspended = false;
+        return false;
+    }
+
+    if (_sil.fan_rpg_mode != "none")
+    {
+        // Ya fuera del aire: exit / wait / rejoin sí tienen
+        // control independiente sobre Silicio.
+        _sil.fan_detached = true;
+        _sil.party_follow_suspended = true;
+        return true;
+    }
+
+    _sil.party_follow_suspended = false;
+    return false;
+}
+
+
+function scr_fan_rpg_after_party_update(_sil, _p, _old_x, _old_y)
+{
+    if (!scr_fan_rpg_silicio_prepare(_sil))
+        return false;
+
+    // WIND_FOLLOW:
+    // scr_party_update() acaba de colocar a Silicio en su posición
+    // NORMAL de follower. Guardarla como base y sumar encima el
+    // offset físico del viento.
+    if (_sil.fan_rpg_mode == "wind_follow")
+    {
+        _sil.fan_rpg_base_x = _sil.x;
+        _sil.fan_rpg_base_y = _sil.y;
+        _sil.fan_rpg_base_ready = true;
+
+        return scr_fan_rpg_special_update(_sil, _p);
+    }
+
+    if (_sil.fan_rpg_mode != "none")
+        return scr_fan_rpg_special_update(_sil, _p);
+
+    if (!scr_fan_world_free())
+        return false;
+
+    var _new_x = _sil.x;
+    var _new_y = _sil.y;
+
+    var _captured = scr_fan_rpg_capture_crossing(
+        _sil,
+        _p,
+        _old_x,
+        _old_y,
+        _new_x,
+        _new_y
+    );
+
+    if (_captured)
+        return scr_fan_rpg_special_update(_sil, _p);
+
+    return false;
+}
+
+
+// =========================================================
+// =========================================================
+// SILICIO PLATAFORMERO
+// =========================================================
+// =========================================================
+
+function scr_fan_platformer_silicio_prepare(_sil)
+{
+    if (_sil == noone || !instance_exists(_sil))
+        return false;
+
+    with (_sil)
+    {
+        scr_platformer_silicio_prepare();
+    }
+
+    if (!variable_instance_exists(_sil, "platform_fan_mode"))
+        _sil.platform_fan_mode = "none";
+
+    if (!variable_instance_exists(_sil, "platform_fan_room"))
+        _sil.platform_fan_room = room;
+
+    if (!variable_instance_exists(_sil, "platform_fan_ref"))
+        _sil.platform_fan_ref = noone;
+
+    if (!variable_instance_exists(_sil, "platform_fan_dir_x"))
+        _sil.platform_fan_dir_x = 0;
+
+    if (!variable_instance_exists(_sil, "platform_fan_dir_y"))
+        _sil.platform_fan_dir_y = 0;
+
+    if (!variable_instance_exists(_sil, "platform_fan_force"))
+        _sil.platform_fan_force = 0;
+
+    if (!variable_instance_exists(_sil, "platform_fan_accum"))
+        _sil.platform_fan_accum = 0;
+
+    if (!variable_instance_exists(_sil, "platform_fan_exit_remaining"))
+        _sil.platform_fan_exit_remaining = 0;
+
+    if (!variable_instance_exists(_sil, "platform_fan_wait_distance"))
+        _sil.platform_fan_wait_distance = 0;
+
+    if (!variable_instance_exists(_sil, "platform_fan_last_player_x"))
+        _sil.platform_fan_last_player_x = 0;
+
+    if (!variable_instance_exists(_sil, "platform_fan_last_player_y"))
+        _sil.platform_fan_last_player_y = 0;
+
+    if (!variable_instance_exists(_sil, "fan_detached"))
+        _sil.fan_detached = false;
+
+    if (!variable_instance_exists(_sil, "fan_rejoin_active"))
+        _sil.fan_rejoin_active = false;
+
+    if (_sil.platform_fan_room != room)
+    {
+        _sil.platform_fan_room = room;
+        _sil.platform_fan_mode = "none";
+        _sil.platform_fan_ref = noone;
+        _sil.platform_fan_accum = 0;
+        _sil.platform_fan_exit_remaining = 0;
+        _sil.platform_fan_wait_distance = 0;
+        _sil.fan_detached = false;
+        _sil.fan_rejoin_active = false;
+    }
+
+    return true;
+}
+
+
+function scr_fan_platformer_freeze(_sil, _p)
+{
+    _sil.platform_sil_move_x = 0;
+    _sil.platform_sil_move_y = 0;
+    _sil.platform_sil_vsp = 0;
+    _sil.platform_sil_x_rem = 0;
+    _sil.platform_sil_y_rem = 0;
+    _sil.movimiento = false;
+
+    _sil.platform_sil_grounded = scr_platformer_floor_at(
+        _sil.x,
+        _sil.y + 1,
+        _sil.platform_sil_hit_left,
+        _sil.platform_sil_hit_top,
+        _sil.platform_sil_hit_right,
+        _sil.platform_sil_hit_bottom
+    );
+
+    var _face =
+        variable_instance_exists(_sil, "platform_sil_facing")
+        ? _sil.platform_sil_facing
+        : 1;
+
+    scr_platformer_silicio_apply_extended_sprite(
+        _sil,
+        _sil.platform_sil_grounded ? "idle" : "jump",
+        _face
+    );
+
+    // Mantener el sprite que ya corresponda, pero siempre
+    // congelado en su primer frame mientras el viento lo controle.
+    _sil.image_index = 0;
+    _sil.image_speed = 0;
+
+    _sil.platform_sil_prev_x = _sil.x;
+    _sil.platform_sil_prev_y = _sil.y;
+}
+
+
+function scr_fan_platformer_seed_wait(_p)
+{
+    scr_platformer_party_ext_init();
+
+    var _snap = scr_platformer_party_snapshot(_p);
+
+    global.platform_party_history = [];
+    global.platform_party_room = room;
+    global.platform_party_was_active = true;
+    global.platform_party_last_player_feet_x = _snap.x;
+    global.platform_party_last_player_feet_y = _snap.y;
+
+    for (var _i = 0; _i < global.platform_party_delay_frames; _i++)
+    {
+        array_push(
+            global.platform_party_history,
+            {
+                dx: 0,
+                dy: 0,
+                facing: _snap.facing,
+                grounded: true,
+                state: "idle"
+            }
+        );
+    }
+}
+
+
+function scr_fan_platformer_sync_player(_p)
+{
+    scr_platformer_party_ext_init();
+
+    var _snap = scr_platformer_party_snapshot(_p);
+    global.platform_party_last_player_feet_x = _snap.x;
+    global.platform_party_last_player_feet_y = _snap.y;
+}
+
+
+function scr_fan_platformer_begin(_sil, _fan, _p)
+{
+    if (!scr_fan_platformer_silicio_prepare(_sil))
+        return false;
+
+    _sil.platform_fan_mode = "wind_follow";
+    _sil.platform_fan_room = room;
+    _sil.platform_fan_ref = _fan;
+    _sil.platform_fan_dir_x = _fan.fan_direction_x;
+    _sil.platform_fan_dir_y = _fan.fan_direction_y;
+    _sil.platform_fan_force = max(0, abs(_fan.fan_force));
+    _sil.platform_fan_accum = 0;
+    _sil.platform_fan_exit_remaining = 0;
+    _sil.platform_fan_wait_distance = 0;
+
+    _sil.fan_detached = true;
+    _sil.fan_rejoin_active = false;
+    _sil.party_follow_suspended = true;
+
+    scr_fan_platformer_freeze(_sil, _p);
+    return true;
+}
+
+
+function scr_fan_platformer_move(_sil, _dx, _dy, _steps)
+{
+    var _moved = 0;
+
+    for (var _i = 0; _i < max(0, round(_steps)); _i++)
+    {
+        var _nx = _sil.x + _dx;
+        var _ny = _sil.y + _dy;
+
+        if (scr_fan_actor_blocked(_sil, _nx, _ny, _dx, _dy))
+            break;
+
+        _sil.x = _nx;
+        _sil.y = _ny;
+        _moved++;
+    }
+
+    return _moved;
+}
+
+
+function scr_fan_platformer_capture(_sil, _p, _old_x, _old_y, _new_x, _new_y)
+{
+    var _dx = round(_new_x - _old_x);
+    var _dy = round(_new_y - _old_y);
+
+    _sil.x = _old_x;
+    _sil.y = _old_y;
+
+    var _direct = scr_fan_find_wind_for_actor(_sil);
+
+    if (_direct != noone)
+        return scr_fan_platformer_begin(_sil, _direct, _p);
+
+    if (abs(_dx) <= 32 && abs(_dy) <= 32)
+    {
+        if (_dx != 0)
+        {
+            var _sx = sign(_dx);
+
+            for (var _ix = 0; _ix < abs(_dx); _ix++)
+            {
+                _sil.x += _sx;
+                var _fx = scr_fan_find_wind_for_actor(_sil);
+                if (_fx != noone)
+                    return scr_fan_platformer_begin(_sil, _fx, _p);
+            }
+        }
+
+        if (_dy != 0)
+        {
+            var _sy = sign(_dy);
+
+            for (var _iy = 0; _iy < abs(_dy); _iy++)
+            {
+                _sil.y += _sy;
+                var _fy = scr_fan_find_wind_for_actor(_sil);
+                if (_fy != noone)
+                    return scr_fan_platformer_begin(_sil, _fy, _p);
+            }
+        }
+    }
+
+    _sil.x = _new_x;
+    _sil.y = _new_y;
+    return false;
+}
+
+
+function scr_fan_platformer_special_update(_sil, _p)
+{
+    if (!scr_fan_platformer_silicio_prepare(_sil))
+        return false;
+
+    if (_sil.platform_fan_mode == "none")
+        return false;
+
+    _sil.fan_detached = true;
+    _sil.party_follow_suspended = true;
+
+    if (!scr_fan_world_free())
+    {
+        scr_fan_platformer_sync_player(_p);
+        scr_fan_platformer_freeze(_sil, _p);
+        return true;
+    }
+
+    if (_sil.platform_fan_mode == "wind_follow")
+    {
+        scr_fan_platformer_sync_player(_p);
+
+        var _fan = _sil.platform_fan_ref;
+        var _valid =
+            _fan != noone
+            &&
+            instance_exists(_fan)
+            &&
+            (!variable_instance_exists(_fan, "fan_enabled") || _fan.fan_enabled);
+
+        var _inside = _valid && scr_fan_actor_in_wind(_fan, _sil);
+
+        if (!_inside)
+        {
+            var _other = scr_fan_find_wind_for_actor(_sil);
+
+            if (_other != noone)
+            {
+                _fan = _other;
+                _sil.platform_fan_ref = _fan;
+                _sil.platform_fan_dir_x = _fan.fan_direction_x;
+                _sil.platform_fan_dir_y = _fan.fan_direction_y;
+                _sil.platform_fan_force = max(0, abs(_fan.fan_force));
+                _sil.platform_fan_accum = 0;
+                _inside = true;
+            }
+        }
+
+        if (!_inside)
+        {
+            if (!_valid)
+            {
+                _sil.platform_fan_mode = "wind_wait_gap";
+                _sil.platform_fan_ref = noone;
+                _sil.platform_fan_wait_distance = 0;
+                scr_fan_platformer_seed_wait(_p);
+            }
+            else
+            {
+                _sil.platform_fan_mode = "wind_exit";
+                _sil.platform_fan_exit_remaining =
+                    variable_instance_exists(_fan, "fan_silicio_eject_extra")
+                    ? max(0, round(_fan.fan_silicio_eject_extra))
+                    : 12;
+            }
+        }
+        else
+        {
+            _sil.platform_fan_accum += _sil.platform_fan_force;
+            var _steps = floor(_sil.platform_fan_accum);
+            _sil.platform_fan_accum -= _steps;
+
+            for (var _i = 0; _i < _steps; _i++)
+            {
+                if (
+                    scr_fan_platformer_move(
+                        _sil,
+                        _sil.platform_fan_dir_x,
+                        _sil.platform_fan_dir_y,
+                        1
+                    )
+                    <= 0
+                )
+                {
+                    break;
+                }
+
+                if (!scr_fan_actor_in_wind(_fan, _sil))
+                {
+                    _sil.platform_fan_mode = "wind_exit";
+                    _sil.platform_fan_exit_remaining =
+                        variable_instance_exists(_fan, "fan_silicio_eject_extra")
+                        ? max(0, round(_fan.fan_silicio_eject_extra))
+                        : 12;
+                    break;
+                }
+            }
+        }
+
+        scr_fan_platformer_freeze(_sil, _p);
+
+        if (_sil.platform_fan_mode == "wind_follow")
+            return true;
+    }
+
+    if (_sil.platform_fan_mode == "wind_exit")
+    {
+        scr_fan_platformer_sync_player(_p);
+
+        if (_sil.platform_fan_exit_remaining > 0)
+        {
+            var _step = min(6, _sil.platform_fan_exit_remaining);
+            var _moved = scr_fan_platformer_move(
+                _sil,
+                _sil.platform_fan_dir_x,
+                _sil.platform_fan_dir_y,
+                _step
+            );
+
+            _sil.platform_fan_exit_remaining -= _moved;
+
+            if (_moved < _step)
+                _sil.platform_fan_exit_remaining = 0;
+        }
+
+        if (_sil.platform_fan_exit_remaining <= 0)
+        {
+            _sil.platform_fan_mode = "wind_wait_gap";
+            _sil.platform_fan_ref = noone;
+            _sil.platform_fan_wait_distance = 0;
+            scr_fan_platformer_seed_wait(_p);
+        }
+
+        scr_fan_platformer_freeze(_sil, _p);
+        return true;
+    }
+
+    if (_sil.platform_fan_mode == "wind_wait_gap")
+    {
+        var _wait_fan = scr_fan_find_wind_for_actor(_sil);
+
+        if (_wait_fan != noone)
+        {
+            scr_fan_platformer_begin(_sil, _wait_fan, _p);
+            return scr_fan_platformer_special_update(_sil, _p);
+        }
+
+        var _snap = scr_platformer_party_snapshot(_p);
+        var _dx = _snap.x - global.platform_party_last_player_feet_x;
+        var _dy = _snap.y - global.platform_party_last_player_feet_y;
+
+        if (abs(_dx) <= 32 && abs(_dy) <= 32)
+            _sil.platform_fan_wait_distance += point_distance(0, 0, _dx, _dy);
+
+        array_push(
+            global.platform_party_history,
+            {
+                dx: _dx,
+                dy: _dy,
+                facing: _snap.facing,
+                grounded: _snap.grounded,
+                state: _snap.state
+            }
+        );
+
+        global.platform_party_last_player_feet_x = _snap.x;
+        global.platform_party_last_player_feet_y = _snap.y;
+
+        scr_fan_platformer_freeze(_sil, _p);
+
+        var _need = max(16, global.platform_party_delay_frames * 4);
+
+        if (_sil.platform_fan_wait_distance >= _need)
+        {
+            _sil.platform_fan_mode = "none";
+            _sil.platform_fan_ref = noone;
+            _sil.platform_fan_accum = 0;
+            _sil.platform_fan_exit_remaining = 0;
+            _sil.fan_detached = false;
+            _sil.fan_rejoin_active = false;
+            _sil.party_follow_suspended = false;
+        }
+
+        return true;
+    }
+
+    return true;
+}
+
+
+function scr_fan_platformer_party_follow_update()
+{
+    scr_platformer_party_ext_init();
+
+    if (
+        !variable_global_exists("platformer_active")
+        ||
+        !global.platformer_active
+        ||
+        !instance_exists(obj_player)
+        ||
+        !scr_party_has("silicio")
+    )
+    {
+        return scr_platformer_party_follow_update();
+    }
+
+    var _p = instance_find(obj_player, 0);
+    var _sil = scr_party_get_instance("silicio");
+
+    if (_sil == noone || !instance_exists(_sil))
+        return scr_platformer_party_follow_update();
+
+    scr_fan_platformer_silicio_prepare(_sil);
+
+    if (_sil.platform_fan_mode != "none")
+        return scr_fan_platformer_special_update(_sil, _p);
+
+    var _direct = scr_fan_find_wind_for_actor(_sil);
+
+    if (_direct != noone)
+    {
+        scr_fan_platformer_begin(_sil, _direct, _p);
+        return scr_fan_platformer_special_update(_sil, _p);
+    }
+
+    var _initializing =
+        global.platform_party_room != room
+        ||
+        !global.platform_party_was_active;
+
+    var _old_x = _sil.x;
+    var _old_y = _sil.y;
+
+    var _result = scr_platformer_party_follow_update();
+
+    _sil = scr_party_get_instance("silicio");
+
+    if (_sil == noone || !instance_exists(_sil))
+        return _result;
+
+    scr_fan_platformer_silicio_prepare(_sil);
+
+    if (_initializing)
+    {
+        var _after_init = scr_fan_find_wind_for_actor(_sil);
+
+        if (_after_init != noone)
+        {
+            scr_fan_platformer_begin(_sil, _after_init, _p);
+            return scr_fan_platformer_special_update(_sil, _p);
+        }
+
+        return _result;
+    }
+
+    var _captured = scr_fan_platformer_capture(
+        _sil,
+        _p,
+        _old_x,
+        _old_y,
+        _sil.x,
+        _sil.y
+    );
+
+    if (_captured)
+        return scr_fan_platformer_special_update(_sil, _p);
+
+    return _result;
+}
+
+
+// =========================================================
+// UPDATE DEL ABANICO
 // =========================================================
 
 function scr_fan_update(_fan)
 {
-    if (
-        _fan == noone
-        ||
-        !instance_exists(_fan)
-    )
-    {
+    if (_fan == noone || !instance_exists(_fan))
         return false;
-    }
-
-
-    // =====================================================
-    // SPRITE PERSONALIZADO
-    // =====================================================
 
     if (
         _fan.fan_sprite != -1
         &&
-        sprite_exists(
-            _fan.fan_sprite
-        )
+        sprite_exists(_fan.fan_sprite)
         &&
-        _fan.sprite_index
-        !=
-        _fan.fan_sprite
+        _fan.sprite_index != _fan.fan_sprite
     )
     {
-        _fan.sprite_index =
-            _fan.fan_sprite;
-
-        _fan.image_index =
-            0;
+        _fan.sprite_index = _fan.fan_sprite;
+        _fan.image_index = 0;
     }
 
+    scr_fan_update_zone(_fan);
 
-    // La misma zona sirve para dibujo y física.
-    scr_fan_update_zone(
-        _fan
-    );
-
-
-    if (!_fan.fan_enabled)
+    if (!_fan.fan_enabled || !scr_fan_world_free())
     {
-        _fan.fan_push_accum =
-            0;
-
-        _fan.fan_push_accum_maya =
-            0;
-
-        _fan.fan_push_accum_silicio =
-            0;
-
+        _fan.fan_push_accum = 0;
+        _fan.fan_push_accum_maya = 0;
         return false;
     }
 
-
-    if (!scr_fan_world_free())
-    {
-        _fan.fan_push_accum =
-            0;
-
-        _fan.fan_push_accum_maya =
-            0;
-
-        _fan.fan_push_accum_silicio =
-            0;
-
-        return false;
-    }
-
-
-    var _moved_maya =
-        false;
-
-    var _moved_silicio =
-        false;
-
-
-    // =====================================================
-    // MAYA
-    // =====================================================
+    var _moved_maya = false;
 
     if (instance_exists(obj_player))
     {
-        var _p =
-            instance_find(
-                obj_player,
-                0
-            );
-
-
-        _moved_maya =
-            scr_fan_push_actor(
-                _fan,
-                _p,
-                "fan_push_accum_maya",
-                true
-            );
+        var _p = instance_find(obj_player, 0);
+        _moved_maya = scr_fan_push_actor(
+            _fan,
+            _p,
+            "fan_push_accum_maya",
+            true
+        );
     }
     else
     {
-        _fan.fan_push_accum_maya =
-            0;
+        _fan.fan_push_accum_maya = 0;
     }
 
+    _fan.fan_push_accum = _fan.fan_push_accum_maya;
 
-    // Mantener el acumulador antiguo sincronizado con Maya por
-    // compatibilidad con cualquier código/debug previo.
-    _fan.fan_push_accum =
-        _fan.fan_push_accum_maya;
+    // Silicio NO se mueve aquí.
+    // Se procesa dentro del mismo flujo que su follower en
+    // obj_settings, tanto en RPG como en plataformero.
 
-
-    // =====================================================
-    // SILICIO
-    // =====================================================
-    //
-    // IMPORTANTE:
-    //
-    // YA NO se mueve a Silicio desde el Step del abanico.
-    //
-    // Su corriente se procesa en:
-    //
-    //     obj_settings -> End Step
-    //         scr_fan_silicio_detach_update()
-    //
-    // Esto hace que:
-    //
-    //     detectar corriente
-    //     cancelar follower
-    //     empujar
-    //     congelar sprite
-    //     expulsar
-    //
-    // ocurra TODO en el mismo controlador y en el mismo momento
-    // del frame.
-    // =====================================================
-
-    _fan.fan_push_accum_silicio =
-        0;
-
-
-    var _moved_silicio =
-        false;
-
-
-    return
-        _moved_maya
-        ||
-        _moved_silicio;
+    return _moved_maya;
 }
 
 
 // =========================================================
 // DRAW
 // =========================================================
-//
-// Dibuja:
-//
-//     1. zona de aire blanca semitransparente;
-//     2. sprite normal del abanico encima.
-//
-// La zona dibujada es EXACTAMENTE la misma que usa la física.
-//
-// =========================================================
 
 function scr_fan_draw(_fan)
 {
-    if (
-        _fan == noone
-        ||
-        !instance_exists(_fan)
-    )
-    {
+    if (_fan == noone || !instance_exists(_fan))
         return false;
-    }
 
-
-    // Por seguridad, recalcular aquí también.
-    //
-    // Así cambiar fan_distance desde Creation Code/runtime se
-    // refleja inmediatamente en el dibujo.
-    scr_fan_update_zone(
-        _fan
-    );
-
+    scr_fan_update_zone(_fan);
 
     if (
         _fan.fan_enabled
         &&
         _fan.fan_air_visible
         &&
-        scr_fan_get_distance(
-            _fan
-        )
-        >
-        0
+        scr_fan_get_distance(_fan) > 0
     )
     {
-        var _old_alpha =
-            draw_get_alpha();
+        var _old_alpha = draw_get_alpha();
+        var _old_color = draw_get_color();
 
-
-        var _old_color =
-            draw_get_color();
-
-
-        draw_set_alpha(
-            clamp(
-                _fan.fan_air_alpha,
-                0,
-                1
-            )
-        );
-
-
-        draw_set_color(
-            _fan.fan_air_color
-        );
-
+        draw_set_alpha(clamp(_fan.fan_air_alpha, 0, 1));
+        draw_set_color(_fan.fan_air_color);
 
         draw_rectangle(
             _fan.fan_wind_left,
@@ -3648,24 +2399,14 @@ function scr_fan_draw(_fan)
             false
         );
 
-
-        draw_set_alpha(
-            _old_alpha
-        );
-
-
-        draw_set_color(
-            _old_color
-        );
+        draw_set_alpha(_old_alpha);
+        draw_set_color(_old_color);
     }
 
-
-    // Mantener el sprite/animación normal del abanico.
     with (_fan)
     {
         draw_self();
     }
-
 
     return true;
 }

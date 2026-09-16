@@ -11,14 +11,7 @@ if (
 /// =========================================================
 /// OBJ_SETTINGS
 /// END STEP
-/// PLATAFORMERO V7
-/// =========================================================
-///
-/// RPG:
-///     scr_party_update()
-///
-/// PLATAFORMERO:
-///     scr_platformer_party_follow_update()
+/// PLATAFORMERO V8 + VIENTO RPG AUTORITATIVO
 /// =========================================================
 
 
@@ -61,51 +54,13 @@ if (_platform_party)
     }
 
 
-    // =====================================================
-    // PARTY PLATAFORMERO + VIENTO DE SILICIO
-    // =====================================================
-    //
-    // scr_fan_platformer_party_follow_update() envuelve el
-    // follower original.
-    //
-    // Fuera del viento:
-    //     funciona exactamente el follower normal.
-    //
-    // Cuando Silicio toca la corriente:
-    //     el mismo wrapper intercepta el primer píxel de contacto
-    //     y entra al ciclo tipo obj_deslizamiento_abajo:
-    //
-    //         wind_follow
-    //         wind_exit
-    //         wind_wait_gap
-    //         normal
-    //
-    // Así no existen dos sistemas distintos moviendo a Silicio
-    // en el mismo frame.
-    // =====================================================
-
     if (!_platform_recovering)
     {
         scr_fan_platformer_party_follow_update();
     }
 
 
-    // =====================================================
-    // SILICIO - SPRITE AÉREO QUIETO
-    // =====================================================
-    //
-    // Igual que Maya:
-    //
-    // mientras Silicio está en el aire, el sprite de salto / aire
-    // se queda fijo en el frame 0.
-    //
-    // IMPORTANTE:
-    // esto corre DESPUÉS de scr_platformer_party_follow_update(),
-    // que es quien selecciona el sprite correcto de Silicio.
-    // Así no cambiamos qué sprite usa; solamente evitamos que sus
-    // frames avancen mientras no está tocando suelo.
-    // =====================================================
-
+    // Silicio aéreo: frame fijo.
     if (instance_exists(obj_silicio))
     {
         var _silicio_air =
@@ -143,12 +98,124 @@ if (_platform_party)
 }
 else
 {
-    // Limpiar historial plataformero y volver a preparar
-    // correctamente el historial RPG.
+    // Limpiar historial del follower plataformero.
     scr_platformer_party_follow_leave();
 
 
+    // =====================================================
+    // RPG - VIENTO DE SILICIO EN EL MISMO FLUJO DEL FOLLOWER
+    // =====================================================
+    //
+    // Antes:
+    //     scr_party_update();
+    //
+    // y obj_silicio limpiaba fan_detached fuera del plataformero.
+    // Por eso el arreglo anterior NO podía funcionar en el RPG.
+    //
+    // Ahora:
+    //
+    //     1. guardamos dónde estaba Silicio;
+    //     2. si ya está bajo viento, suspendemos su follower;
+    //     3. scr_party_update() actualiza a Maya/ruta/otros miembros;
+    //     4. si Silicio estaba normal, escaneamos su movimiento real;
+    //     5. al tocar aire, el viento toma autoridad autónoma.
+    // =====================================================
+
+    var _fan_rpg_player =
+        noone;
+
+
+    if (instance_exists(obj_player))
+    {
+        _fan_rpg_player =
+            instance_find(
+                obj_player,
+                0
+            );
+    }
+
+
+    var _fan_rpg_silicio =
+        noone;
+
+
+    if (scr_party_has("silicio"))
+    {
+        _fan_rpg_silicio =
+            scr_party_get_instance(
+                "silicio"
+            );
+    }
+
+
+    var _fan_rpg_old_x =
+        0;
+
+    var _fan_rpg_old_y =
+        0;
+
+
+    if (
+        _fan_rpg_silicio != noone
+        &&
+        instance_exists(_fan_rpg_silicio)
+    )
+    {
+        _fan_rpg_old_x =
+            _fan_rpg_silicio.x;
+
+        _fan_rpg_old_y =
+            _fan_rpg_silicio.y;
+
+
+        scr_fan_rpg_before_party_update(
+            _fan_rpg_silicio
+        );
+    }
+
+
     scr_party_update();
+
+
+    // Reobtener por si scr_party_update() creó/reasignó la instancia.
+    if (scr_party_has("silicio"))
+    {
+        var _fan_rpg_after_silicio =
+            scr_party_get_instance(
+                "silicio"
+            );
+
+
+        if (
+            _fan_rpg_after_silicio != noone
+            &&
+            instance_exists(_fan_rpg_after_silicio)
+        )
+        {
+            // Si antes no existía, no hay trayectoria antigua que
+            // escanear: usar su posición actual como origen.
+            if (
+                _fan_rpg_silicio == noone
+                ||
+                !instance_exists(_fan_rpg_silicio)
+            )
+            {
+                _fan_rpg_old_x =
+                    _fan_rpg_after_silicio.x;
+
+                _fan_rpg_old_y =
+                    _fan_rpg_after_silicio.y;
+            }
+
+
+            scr_fan_rpg_after_party_update(
+                _fan_rpg_after_silicio,
+                _fan_rpg_player,
+                _fan_rpg_old_x,
+                _fan_rpg_old_y
+            );
+        }
+    }
 }
 
 
@@ -298,28 +365,10 @@ scr_depth_sort_update();
 
 
 // =========================================================
-// SILICIO - BLOQUEO VISUAL FINAL DE VIENTO
-// =========================================================
-//
-// Última garantía del frame.
-//
-// Mientras el estado especial del abanico tenga a Silicio:
-//     - no avanza ningún frame;
-//     - no queda una animación de caminar heredada;
-//     - el movimiento físico del viento no cuenta como caminar.
+// GARANTÍA VISUAL FINAL DEL VIENTO
 // =========================================================
 
-if (
-    variable_global_exists(
-        "platformer_active"
-    )
-    &&
-    global.platformer_active
-    &&
-    scr_party_has(
-        "silicio"
-    )
-)
+if (scr_party_has("silicio"))
 {
     var _fan_final_silicio =
         scr_party_get_instance(
@@ -340,23 +389,49 @@ if (
         _fan_final_silicio.fan_detached
     )
     {
-        _fan_final_silicio.platform_sil_move_x =
-            0;
+        var _fan_final_rejoin =
+            variable_instance_exists(
+                _fan_final_silicio,
+                "fan_rejoin_active"
+            )
+            &&
+            _fan_final_silicio.fan_rejoin_active;
 
 
-        _fan_final_silicio.platform_sil_move_y =
-            0;
+        if (!_fan_final_rejoin)
+        {
+            _fan_final_silicio.movimiento =
+                false;
+
+            _fan_final_silicio.image_speed =
+                0;
+        }
 
 
-        _fan_final_silicio.movimiento =
-            false;
+        if (_platform_party)
+        {
+            if (
+                variable_instance_exists(
+                    _fan_final_silicio,
+                    "platform_sil_move_x"
+                )
+            )
+            {
+                _fan_final_silicio.platform_sil_move_x =
+                    0;
+            }
 
 
-        _fan_final_silicio.image_index =
-            0;
-
-
-        _fan_final_silicio.image_speed =
-            0;
+            if (
+                variable_instance_exists(
+                    _fan_final_silicio,
+                    "platform_sil_move_y"
+                )
+            )
+            {
+                _fan_final_silicio.platform_sil_move_y =
+                    0;
+            }
+        }
     }
 }
