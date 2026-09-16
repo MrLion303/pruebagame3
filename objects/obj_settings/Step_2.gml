@@ -62,75 +62,31 @@ if (_platform_party)
 
 
     // =====================================================
-    // SILICIO - VIENTO / EXPULSIÓN / REINCORPORACIÓN
+    // PARTY PLATAFORMERO + VIENTO DE SILICIO
     // =====================================================
     //
-    // Si Silicio toca una corriente:
+    // scr_fan_platformer_party_follow_update() envuelve el
+    // follower original.
     //
-    //     - el follower normal NO puede moverlo;
-    //     - el abanico lo expulsa completamente;
-    //     - queda separado del grupo;
-    //     - al detenerse Maya y comenzar a caminar de nuevo,
-    //       Silicio hace catch-up y se reincorpora.
+    // Fuera del viento:
+    //     funciona exactamente el follower normal.
     //
-    // scr_fan_silicio_detach_update() devuelve TRUE mientras
-    // debe consumir el follower normal.
+    // Cuando Silicio toca la corriente:
+    //     el mismo wrapper intercepta el primer píxel de contacto
+    //     y entra al ciclo tipo obj_deslizamiento_abajo:
+    //
+    //         wind_follow
+    //         wind_exit
+    //         wind_wait_gap
+    //         normal
+    //
+    // Así no existen dos sistemas distintos moviendo a Silicio
+    // en el mismo frame.
     // =====================================================
 
-    var _fan_silicio_consumed =
-        false;
-
-
-    if (
-        !_platform_recovering
-        &&
-        instance_exists(obj_player)
-        &&
-        scr_party_has(
-            "silicio"
-        )
-    )
+    if (!_platform_recovering)
     {
-        var _fan_player =
-            instance_find(
-                obj_player,
-                0
-            );
-
-
-        var _fan_silicio =
-            scr_party_get_instance(
-                "silicio"
-            );
-
-
-        if (
-            _fan_silicio != noone
-            &&
-            instance_exists(_fan_silicio)
-        )
-        {
-            _fan_silicio_consumed =
-                scr_fan_silicio_detach_update(
-                    _fan_silicio,
-                    _fan_player
-                );
-        }
-    }
-
-
-    // Durante el rescate del vacío, Begin Step mueve a Maya y
-    // Silicio manualmente. El follower no debe pisar esa animación.
-    //
-    // Tampoco debe ejecutarse mientras el viento tiene a Silicio
-    // desprendido o reincorporándose.
-    if (
-        !_platform_recovering
-        &&
-        !_fan_silicio_consumed
-    )
-    {
-        scr_platformer_party_follow_update();
+        scr_fan_platformer_party_follow_update();
     }
 
 
@@ -347,8 +303,10 @@ scr_depth_sort_update();
 //
 // Última garantía del frame.
 //
-// Si está desprendido por un ventilador, ningún sistema que haya
-// corrido antes puede dejarlo con frames de caminar avanzando.
+// Mientras el estado especial del abanico tenga a Silicio:
+//     - no avanza ningún frame;
+//     - no queda una animación de caminar heredada;
+//     - el movimiento físico del viento no cuenta como caminar.
 // =========================================================
 
 if (
@@ -380,31 +338,25 @@ if (
         )
         &&
         _fan_final_silicio.fan_detached
-        &&
-        !(
-            variable_instance_exists(
-                _fan_final_silicio,
-                "fan_rejoin_active"
-            )
-            &&
-            _fan_final_silicio.fan_rejoin_active
-            &&
-            variable_instance_exists(
-                _fan_final_silicio,
-                "platform_sil_grounded"
-            )
-            &&
-            _fan_final_silicio.platform_sil_grounded
-        )
     )
     {
-        _fan_final_silicio.image_index =
+        _fan_final_silicio.platform_sil_move_x =
             0;
 
-        _fan_final_silicio.image_speed =
+
+        _fan_final_silicio.platform_sil_move_y =
             0;
+
 
         _fan_final_silicio.movimiento =
             false;
+
+
+        _fan_final_silicio.image_index =
+            0;
+
+
+        _fan_final_silicio.image_speed =
+            0;
     }
 }
