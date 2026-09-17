@@ -3593,6 +3593,7 @@ function scr_party_on_room_start()
 }
 
 
+
 function scr_party_update()
 {
     scr_party_init();
@@ -5295,7 +5296,10 @@ function scr_party_update()
         // Si están a la misma altura, dejamos a Maya delante.
         // =================================================
 
-        var _player_instance =
+        // FIX GM2044:
+        // _player_instance ya está declarado al principio de
+        // scr_party_update(), así que aquí usamos otro nombre.
+        var _depth_player_instance =
             instance_find(
                 obj_player,
                 0
@@ -5303,16 +5307,16 @@ function scr_party_update()
 
 
         if (
-            _player_instance != noone
+            _depth_player_instance != noone
             &&
             instance_exists(
-                _player_instance
+                _depth_player_instance
             )
         )
         {
             var _player_feet_y =
                 scr_party_feet_y(
-                    _player_instance
+                    _depth_player_instance
                 );
 
 
@@ -5325,7 +5329,7 @@ function scr_party_update()
                 // Silicio está físicamente más abajo:
                 // debe tapar a Maya.
                 _actor.depth =
-                    _player_instance.depth
+                    _depth_player_instance.depth
                     -
                     1;
             }
@@ -5334,7 +5338,7 @@ function scr_party_update()
                 // Silicio está arriba o a la misma altura:
                 // Maya debe dibujarse por delante.
                 _actor.depth =
-                    _player_instance.depth
+                    _depth_player_instance.depth
                     +
                     1;
             }
@@ -5375,5 +5379,4 @@ function scr_party_update()
         );
     }
 }
-
 

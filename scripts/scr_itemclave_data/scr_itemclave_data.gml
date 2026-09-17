@@ -8,24 +8,7 @@
 /// En la partida SOLO se guarda esa ID.
 ///
 /// El inventario CLAVE tiene 15 espacios fijos.
-///
-/// CAMPOS:
-///
-/// nombre:
-///     Nombre visible.
-///
-/// descripcion:
-///     Descripción visible.
-///
-/// uso:
-///     Explicación visible de para qué sirve.
-///
-/// funcion:
-///     Identificador interno libre para que otros sistemas
-///     sepan qué función cumple este objeto.
-///
 /// =========================================================
-
 
 
 // =========================================================
@@ -38,25 +21,6 @@ function src_itemclave_data()
     {
         // =================================================
         // LLAVE DE PRUEBA
-        // =================================================
-        //
-        // EJEMPLO:
-        //
-        // otro_objeto:
-        // {
-        //     nombre:
-        //         scr_loc_src("Nombre"),
-        //
-        //     descripcion:
-        //         scr_loc_src("Descripción."),
-        //
-        //     uso:
-        //         scr_loc_src("Para qué sirve."),
-        //
-        //     funcion:
-        //         "funcion_interna"
-        // }
-        //
         // =================================================
 
         llave_prueba:
@@ -78,13 +42,56 @@ function src_itemclave_data()
 
             funcion:
                 "abrir_cerradura_prueba"
+        },
+
+
+        // =================================================
+        // TIJERAS DE JARDINERÍA
+        // =================================================
+        //
+        // Objeto clave único.
+        // Es una habilidad pasiva permanente. Una vez obtenida,
+        // no se usa ni se consume desde el inventario CLAVE.
+        // =================================================
+
+        tijeras_jardin:
+        {
+            nombre:
+                scr_loc_src(
+                    "Tijeras Jardín"
+                ),
+
+            descripcion:
+                scr_loc_src(
+                    "Unas tijeras de jardinería resistentes."
+                ),
+
+            uso:
+                scr_loc_src(
+                    "Al tenerlas, puedes cortar lianas, cables y cuerdas al interactuar con ellas."
+                ),
+
+            funcion:
+                "habilidad_pasiva_tijeras",
+
+            // La tienda actual consulta estos campos.
+            // Las Tijeras Jardín cuestan 0 Sueños por defecto.
+            precio_compra:
+                0,
+
+            precio_venta:
+                0,
+
+            // Campo informativo para que nunca se trate como
+            // un consumible real fuera de la tienda.
+            tipo:
+                "objeto_clave"
         }
     };
 
 
     return global.itemclave_db;
 }
-
 
 
 // =========================================================
@@ -109,7 +116,6 @@ function scr_itemclave_init()
 
     return global.itemclave_db;
 }
-
 
 
 // =========================================================
@@ -149,7 +155,6 @@ function scr_itemclave_get(_itemclave_id)
         _itemclave_id
     );
 }
-
 
 
 // =========================================================
@@ -208,13 +213,8 @@ function scr_itemclave_tiene(_itemclave_id)
 }
 
 
-
 // =========================================================
 // BUSCAR PRIMER SLOT VACÍO
-// =========================================================
-//
-// Devuelve 0..14.
-// Devuelve -1 si los 15 espacios están llenos.
 // =========================================================
 
 function scr_itemclave_slot_vacio()
@@ -247,21 +247,8 @@ function scr_itemclave_slot_vacio()
 }
 
 
-
 // =========================================================
 // DAR OBJETO CLAVE
-// =========================================================
-//
-// Los objetos clave son únicos.
-//
-// Devuelve:
-//
-// true:
-//     Se añadió.
-//
-// false:
-//     La ID no existe, ya lo tenías o los 15 slots
-//     están ocupados.
 // =========================================================
 
 function scr_itemclave_dar(_itemclave_id)
@@ -331,21 +318,8 @@ function scr_itemclave_dar(_itemclave_id)
 }
 
 
-
 // =========================================================
 // QUITAR OBJETO CLAVE
-// =========================================================
-//
-// NO compacta el inventario.
-// El slot vuelve a quedar vacío.
-//
-// Devuelve:
-//
-// true:
-//     Se eliminó.
-//
-// false:
-//     No lo tenías.
 // =========================================================
 
 function scr_itemclave_quitar(_itemclave_id)
@@ -394,7 +368,6 @@ function scr_itemclave_quitar(_itemclave_id)
 }
 
 
-
 // =========================================================
 // CONSULTAR FUNCIÓN CONFIGURADA
 // =========================================================
@@ -422,7 +395,6 @@ function scr_itemclave_funcion(_itemclave_id)
 
     return _data.funcion;
 }
-
 
 
 // =========================================================
@@ -454,7 +426,6 @@ function scr_itemclave_uso(_itemclave_id)
 }
 
 
-
 // =========================================================
 // CONSULTAR NOMBRE
 // =========================================================
@@ -482,7 +453,6 @@ function scr_itemclave_nombre(_itemclave_id)
 
     return _data.nombre;
 }
-
 
 
 // =========================================================

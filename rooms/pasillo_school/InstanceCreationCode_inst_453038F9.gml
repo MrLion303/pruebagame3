@@ -1,0 +1,1 @@
+tipo_barrera = "lianas";

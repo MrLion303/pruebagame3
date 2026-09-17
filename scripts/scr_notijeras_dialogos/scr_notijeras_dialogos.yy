@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"scr_notijeras_dialogos",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"scr_notijeras_dialogos",
+  "parent":{
+    "name":"Tijeras",
+    "path":"folders/Puzzles/Tijeras.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

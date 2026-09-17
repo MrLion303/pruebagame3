@@ -4,8 +4,12 @@
 ///
 /// Funciones generales de las tiendas.
 ///
-/// NO contiene información específica de shop_1.
-/// Eso está en scr_shop_data.
+/// CAMBIO DE ESTA VERSIÓN:
+/// - "tijeras_jardin" se vende desde la tienda como una fila
+///   de tipo "item", pero al comprarla entra directamente al
+///   inventario CLAVE.
+/// - Nunca ocupa el inventario normal de consumibles.
+/// - No puede venderse ni quitarse desde la tienda.
 /// =========================================================
 
 
@@ -29,6 +33,10 @@ function scr_shop_init()
     {
         scr_toys_data();
     }
+
+    // La tienda también puede manejar las Tijeras Jardín,
+    // que realmente pertenecen al inventario CLAVE.
+    scr_itemclave_init();
 
     scr_inventarios_data();
     scr_level_data();
@@ -57,6 +65,19 @@ function scr_shop_init()
     // Mantener ambas referencias sincronizadas.
     global.inventory_data.equipamiento =
         global.equipment_inventory;
+}
+
+
+// =========================================================
+// ¿ES UN OBJETO CLAVE VENDIDO DESDE LA LISTA DE ITEMS?
+// =========================================================
+
+function scr_shop_is_key_item_alias(_tipo, _id)
+{
+    return
+        _tipo == "item"
+        &&
+        _id == "tijeras_jardin";
 }
 
 
@@ -116,7 +137,7 @@ function scr_shop_spend_money(_cantidad)
 
 
 // =========================================================
-// OBTENER DATOS DE ITEM / EQUIP
+// OBTENER DATOS DE ITEM / EQUIP / TOY
 // =========================================================
 
 function scr_shop_get_object_data(
@@ -125,6 +146,18 @@ function scr_shop_get_object_data(
 )
 {
     scr_shop_init();
+
+
+    // Las Tijeras Jardín aparecen en la tienda dentro de la
+    // lista de ITEM para no tener que alterar la UI de tienda,
+    // pero sus datos reales vienen de OBJETOS CLAVE.
+    if (scr_shop_is_key_item_alias(_tipo, _id))
+    {
+        return scr_itemclave_get(
+            "tijeras_jardin"
+        );
+    }
+
 
     switch (_tipo)
     {
@@ -230,6 +263,21 @@ function scr_shop_inventory_count(
 )
 {
     scr_shop_init();
+
+
+    // Las tijeras son únicas. Para el sistema de stock:
+    // 0 = todavía no las tienes
+    // 1 = ya fueron obtenidas
+    if (scr_shop_is_key_item_alias(_tipo, _id))
+    {
+        return
+            scr_itemclave_tiene(
+                "tijeras_jardin"
+            )
+            ? 1
+            : 0;
+    }
+
 
     var _cantidad =
         0;
@@ -358,6 +406,17 @@ function scr_shop_inventory_add(
 )
 {
     scr_shop_init();
+
+
+    // Tijeras Jardín: se añaden DIRECTAMENTE a CLAVE.
+    // Así jamás pasan por el inventario normal y no pueden
+    // tirarse como un consumible.
+    if (scr_shop_is_key_item_alias(_tipo, _id))
+    {
+        return scr_itemclave_dar(
+            "tijeras_jardin"
+        );
+    }
 
 
     switch (_tipo)
@@ -503,6 +562,14 @@ function scr_shop_inventory_remove(
     scr_shop_init();
 
 
+    // Los objetos clave no se venden ni se eliminan desde la
+    // lógica normal de tienda.
+    if (scr_shop_is_key_item_alias(_tipo, _id))
+    {
+        return false;
+    }
+
+
     switch (_tipo)
     {
         // -------------------------------------------------
@@ -599,7 +666,11 @@ function scr_shop_inventory_remove(
             }
 
 
-            for (var _i = 0; _i < array_length(global.toy_inventory); _i++)
+            for (
+                var _i = 0;
+                _i < array_length(global.toy_inventory);
+                _i++
+            )
             {
                 if (global.toy_inventory[_i] == _id)
                 {
@@ -640,7 +711,11 @@ function scr_shop_inventory_remove(
             }
 
 
-            for (var _i = 0; _i < array_length(global.equipment_inventory); _i++)
+            for (
+                var _i = 0;
+                _i < array_length(global.equipment_inventory);
+                _i++
+            )
             {
                 if (global.equipment_inventory[_i] == _id)
                 {
@@ -666,16 +741,8 @@ function scr_shop_inventory_remove(
 // CONSTRUIR LISTA DE VENTA
 // =========================================================
 ///
-/// Devuelve una lista SIN duplicados:
-///
-/// {
-///     tipo: "item" / "equip",
-///     id: "...",
-///     cantidad: 2
-/// }
-///
-/// Solo muestra consumibles + equipamiento.
-/// Los TOYS no forman parte de esta tienda por ahora.
+/// Cada unidad ocupa una fila individual y conserva su slot.
+/// Los objetos CLAVE no entran aquí.
 /// =========================================================
 
 function scr_shop_build_sell_list(_categoria)
@@ -685,17 +752,6 @@ function scr_shop_build_sell_list(_categoria)
     var _lista =
         [];
 
-
-    // =====================================================
-    // IMPORTANTE
-    // =====================================================
-    //
-    // Esta función construye UNA SOLA categoría.
-    //
-    // Ya NO existe un modo "all" para VENDER.
-    // Esto evita que ITEM/JUGUETE/ARMA/ARMADURA terminen
-    // mostrando juntos todos los inventarios.
-    // =====================================================
 
     switch (_categoria)
     {
@@ -729,14 +785,14 @@ function scr_shop_build_sell_list(_categoria)
                 _i++
             )
             {
-                var _id =
+                var _item_id =
                     _consumibles[_i];
 
 
                 if (
-                    _id == -1
+                    _item_id == -1
                     ||
-                    is_undefined(_id)
+                    is_undefined(_item_id)
                 )
                 {
                     continue;
@@ -746,7 +802,7 @@ function scr_shop_build_sell_list(_categoria)
                 var _data =
                     variable_struct_get(
                         global.item_db,
-                        _id
+                        _item_id
                     );
 
 
@@ -763,7 +819,7 @@ function scr_shop_build_sell_list(_categoria)
                             "item",
 
                         id:
-                            _id,
+                            _item_id,
 
                         cantidad:
                             1,
@@ -789,14 +845,14 @@ function scr_shop_build_sell_list(_categoria)
                 _i++
             )
             {
-                var _id =
+                var _toy_id =
                     global.toy_inventory[_i];
 
 
                 if (
-                    _id == -1
+                    _toy_id == -1
                     ||
-                    is_undefined(_id)
+                    is_undefined(_toy_id)
                 )
                 {
                     continue;
@@ -806,7 +862,7 @@ function scr_shop_build_sell_list(_categoria)
                 var _data =
                     variable_struct_get(
                         global.toy_db,
-                        _id
+                        _toy_id
                     );
 
 
@@ -823,7 +879,7 @@ function scr_shop_build_sell_list(_categoria)
                             "toy",
 
                         id:
-                            _id,
+                            _toy_id,
 
                         cantidad:
                             1,
@@ -849,14 +905,14 @@ function scr_shop_build_sell_list(_categoria)
                 _i++
             )
             {
-                var _id =
+                var _equip_id =
                     global.equipment_inventory[_i];
 
 
                 if (
-                    _id == -1
+                    _equip_id == -1
                     ||
-                    is_undefined(_id)
+                    is_undefined(_equip_id)
                 )
                 {
                     continue;
@@ -866,7 +922,7 @@ function scr_shop_build_sell_list(_categoria)
                 var _data =
                     variable_struct_get(
                         global.equip_db,
-                        _id
+                        _equip_id
                     );
 
 
@@ -892,7 +948,7 @@ function scr_shop_build_sell_list(_categoria)
                             "equip",
 
                         id:
-                            _id,
+                            _equip_id,
 
                         cantidad:
                             1,
@@ -918,14 +974,14 @@ function scr_shop_build_sell_list(_categoria)
                 _i++
             )
             {
-                var _id =
+                var _equip_id =
                     global.equipment_inventory[_i];
 
 
                 if (
-                    _id == -1
+                    _equip_id == -1
                     ||
-                    is_undefined(_id)
+                    is_undefined(_equip_id)
                 )
                 {
                     continue;
@@ -935,7 +991,7 @@ function scr_shop_build_sell_list(_categoria)
                 var _data =
                     variable_struct_get(
                         global.equip_db,
-                        _id
+                        _equip_id
                     );
 
 
@@ -961,7 +1017,7 @@ function scr_shop_build_sell_list(_categoria)
                             "equip",
 
                         id:
-                            _id,
+                            _equip_id,
 
                         cantidad:
                             1,
@@ -975,12 +1031,7 @@ function scr_shop_build_sell_list(_categoria)
             break;
 
 
-        // =================================================
-        // CATEGORÍA INVÁLIDA
-        // =================================================
-
         default:
-
             return [];
     }
 
@@ -991,17 +1042,6 @@ function scr_shop_build_sell_list(_categoria)
 
 // =========================================================
 // ESPACIOS DEL INVENTARIO
-// =========================================================
-//
-// Devuelve:
-//
-// {
-//     usados: 3,
-//     total: 12
-// }
-//
-// "item"  -> inventario de consumibles.
-// "equip" -> inventario de armas/armaduras.
 // =========================================================
 
 function scr_shop_inventory_space(_tipo)
@@ -1107,12 +1147,19 @@ function scr_shop_inventory_space(_tipo)
             _total =
                 array_length(global.toy_inventory);
 
-            for (var _i = 0; _i < _total; _i++)
+
+            for (
+                var _i = 0;
+                _i < _total;
+                _i++
+            )
             {
                 if (
                     global.toy_inventory[_i] != -1
                     &&
-                    !is_undefined(global.toy_inventory[_i])
+                    !is_undefined(
+                        global.toy_inventory[_i]
+                    )
                 )
                 {
                     _usados++;

@@ -1,0 +1,80 @@
+OBJ_BARRERA_CORTABLE - EJEMPLOS DE CREATION CODE
+=================================================
+
+El objeto debe seguir teniendo en el Object Editor tu sprite base de
+colisión de 20x20. El sprite visual se elige por instancia.
+
+
+1) LIANAS + DIÁLOGO DESCRIPTIVO DE LIANAS
+------------------------------------------
+
+tipo_barrera = "lianas";
+sprite_lianas = spr_lianas_bosque;
+dialogo_sin_tijeras = "lianas";
+
+
+2) CABLES + DIÁLOGO DESCRIPTIVO DE CABLES
+------------------------------------------
+
+tipo_barrera = "cables";
+sprite_cables = spr_cables_laboratorio;
+dialogo_sin_tijeras = "cables";
+
+
+3) CUERDAS + DIÁLOGO DESCRIPTIVO DE CUERDAS
+--------------------------------------------
+
+tipo_barrera = "cuerdas";
+sprite_cuerdas = spr_cuerdas_viejas;
+dialogo_sin_tijeras = "cuerdas";
+
+
+4) ELEGIR UNO DE LOS DIÁLOGOS GENÉRICOS
+-----------------------------------------
+
+dialogo_sin_tijeras = "olvido_importante";
+// Parece que te olvidas de algo importante.
+
+
+dialogo_sin_tijeras = "no_olvidas_importante";
+// ¿No te olvidas de algo importante?
+
+
+dialogo_sin_tijeras = "falta_algo_mas";
+// Maya siente que hace falta algo más...
+
+
+dialogo_sin_tijeras = "olvidaste_algo_mas";
+// Parece que olvidaste algo más
+
+
+5) QUE EL DIÁLOGO SE ELIJA SOLO SEGÚN EL TIPO
+----------------------------------------------
+
+tipo_barrera = "cables";
+sprite_cables = spr_cables_laboratorio;
+dialogo_sin_tijeras = "tipo_barrera";
+
+// Con "tipo_barrera":
+// lianas  -> diálogo de lianas
+// cables  -> diálogo de cables
+// cuerdas -> diálogo de cuerdas
+
+
+6) SPRITE VISUAL FORZADO + ID PERSISTENTE MANUAL
+-------------------------------------------------
+
+tipo_barrera = "lianas";
+sprite_personalizado = spr_lianas_especiales;
+dialogo_sin_tijeras = "falta_algo_mas";
+barrera_id = "lianas_entrada_bosque";
+
+
+7) ESCALAR BARRERA Y COLISIÓN
+------------------------------
+
+image_xscale = 3;
+image_yscale = 2;
+
+// Si el sprite base de colisión es 20x20:
+// 3 x 2 -> colisión de 60x40.

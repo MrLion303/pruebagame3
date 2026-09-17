@@ -2,14 +2,28 @@
 /// SCR_SHOP_DATA
 /// =========================================================
 ///
-/// TODOS LOS PRECIOS = 0.
+/// STOCK CONFIGURABLE:
 ///
-/// Las armas eliminadas:
+/// TIJERAS JARDÍN:
+///     scr_shop_stock("item", "tijeras_jardin", 1)
+///     -> solo se pueden comprar una vez.
 ///
-///     lanza_tardia
-///     cuchillas_tardias
 ///
-/// YA NO aparecen en shop_1.
+///     scr_shop_stock("item", "agua")
+///         -> infinito por defecto
+///
+///     scr_shop_stock("item", "agua", 3)
+///         -> se puede comprar 3 veces en total
+///
+///     scr_shop_stock("item", "agua", "infinito")
+///         -> infinito explícito
+///
+/// También puedes usar -1 como infinito.
+///
+/// Si quieres color personalizado:
+///
+///     scr_shop_stock("item", "agua", 3, c_aqua)
+///
 /// =========================================================
 
 
@@ -46,6 +60,7 @@ function scr_shop_talk_option(
 function scr_shop_stock(
     _tipo,
     _id,
+    _cantidad_max = "infinito",
     _color_nombre = noone
 )
 {
@@ -53,7 +68,16 @@ function scr_shop_stock(
     {
         tipo: _tipo,
         id: _id,
-        color_nombre: _color_nombre
+        cantidad_max: _cantidad_max,
+        color_nombre: _color_nombre,
+
+        // Copias autoritativas. El sistema de stock puede
+        // sustituir temporalmente id por "__agotado__" para
+        // dibujar la fila agotada sin perder el objeto real.
+        stock_original_tipo: _tipo,
+        stock_original_id: _id,
+        stock_color_original: _color_nombre,
+        stock_agotado: false
     };
 }
 
@@ -155,6 +179,28 @@ function scr_shop_data(_shop_id)
 
                 items_venta:
                 [
+                    // =================================================
+                    // EJEMPLOS DE STOCK
+                    // =================================================
+                    //
+                    // Infinito:
+                    // scr_shop_stock("item", "agua"),
+                    // scr_shop_stock("item", "agua", "infinito"),
+                    // scr_shop_stock("item", "agua", -1),
+                    //
+                    // Limitado a 5 compras:
+                    // scr_shop_stock("item", "agua", 5),
+                    //
+                    // Todos los actuales quedan infinitos para no
+                    // cambiar el balance que ya tenías.
+                    // =================================================
+
+                    // OBJETO CLAVE - SOLO UNA COMPRA
+                    // Aunque la fila usa tipo "item" para conservar
+                    // intacta la UI actual de la tienda, scr_shop_core
+                    // manda tijeras_jardin directamente a CLAVE.
+                    scr_shop_stock("item", "tijeras_jardin", 1),
+
                     // CONSUMIBLES
                     scr_shop_stock("item", "agua"),
                     scr_shop_stock("item", "manzana"),

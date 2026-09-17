@@ -1,0 +1,13 @@
+{
+  "$GMScript":"v1",
+  "%Name":"scr_tijeras_jardin_system",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"scr_tijeras_jardin_system",
+  "parent":{
+    "name":"Tijeras",
+    "path":"folders/Puzzles/Tijeras.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
