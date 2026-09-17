@@ -35,10 +35,23 @@ function src_itemclave_data()
                     "Una llave creada para probar el sistema."
                 ),
 
+            // No se dibuja texto de uso en la interfaz base CLAVE.
+            // El texto real de utilidad vive en "utilidad".
             uso:
+                "",
+
+            utilidad:
                 scr_loc_src(
                     "Abre una cerradura de prueba."
                 ),
+
+            // No muestra el botón Utilidad en CLAVE.
+            mostrar_utilidad:
+                false,
+
+            // -1 = espacio reservado sin imagen.
+            icono:
+                -1,
 
             funcion:
                 "abrir_cerradura_prueba"
@@ -66,10 +79,28 @@ function src_itemclave_data()
                     "Unas tijeras de jardinería resistentes."
                 ),
 
+            // IMPORTANTE:
+            // "uso" queda vacío para que el Draw GUI antiguo de CLAVE
+            // no pueda volver a dibujar este texto detrás del panel.
             uso:
+                "",
+
+            // Este es el texto REAL que muestra la ficha de Utilidad.
+            utilidad:
                 scr_loc_src(
                     "Al tenerlas, puedes cortar lianas, cables y cuerdas al interactuar con ellas."
                 ),
+
+            // Al seleccionarlas en CLAVE aparece el botón
+            // "Utilidad", que abre una ficha con este texto.
+            mostrar_utilidad:
+                true,
+
+            // Espacio reservado para una imagen.
+            // Cuando exista un sprite, cambia -1 por, por ejemplo:
+            //     spr_tijeras_jardin
+            icono:
+                -1,
 
             funcion:
                 "habilidad_pasiva_tijeras",
@@ -409,20 +440,44 @@ function scr_itemclave_uso(_itemclave_id)
         );
 
 
-    if (
-        is_undefined(_data)
-        ||
-        !variable_struct_exists(
-            _data,
-            "uso"
-        )
-    )
+    if (is_undefined(_data))
     {
         return "";
     }
 
 
-    return _data.uso;
+    // Nuevo campo: el texto de utilidad se conserva separado
+    // de la interfaz base del inventario CLAVE.
+    if (
+        variable_struct_exists(
+            _data,
+            "utilidad"
+        )
+        &&
+        is_string(
+            _data.utilidad
+        )
+        &&
+        _data.utilidad != ""
+    )
+    {
+        return _data.utilidad;
+    }
+
+
+    // Compatibilidad con objetos clave antiguos.
+    if (
+        variable_struct_exists(
+            _data,
+            "uso"
+        )
+    )
+    {
+        return _data.uso;
+    }
+
+
+    return "";
 }
 
 

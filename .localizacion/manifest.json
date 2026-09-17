@@ -1,5 +1,5 @@
 {
-    "total":  290,
+    "total":  304,
     "fuentes":  {
                     "Jugador X: ":  [
                                         "objects\\game\\Draw_64.gml:36"
@@ -175,7 +175,7 @@
                              ],
                     "STAD":  [
                                  "objects\\obj_menu_manager\\Create_0.gml:2",
-                                 "scripts\\scr_menu_stad_habil_draw\\scr_menu_stad_habil_draw.gml:167"
+                                 "scripts\\scr_menu_stad_habil_draw\\scr_menu_stad_habil_draw.gml:1287"
                              ],
                     "CONFIG":  [
                                    "objects\\obj_menu_manager\\Create_0.gml:2"
@@ -398,6 +398,9 @@
                     "* Vendiste {item}.":  [
                                                "objects\\obj_shop_controller\\Step_0.gml:1175"
                                            ],
+                    "* Obtuviste Tijeras Jardín.":  [
+                                                        "objects\\obj_tijeras_jardin_pickup\\Step_0.gml:131"
+                                                    ],
                     "* El enemigo se detiene de repente...":  [
                                                                   "scripts\\scr_bosses_cinematica_bbs\\scr_bosses_cinematica_bbs.gml:19",
                                                                   "scripts\\scr_bosses_cinematica_bbs\\scr_bosses_cinematica_bbs.gml:49"
@@ -779,24 +782,24 @@
                     "Habilidad obtenida.":  [
                                                 "scripts\\scr_habilidades_system\\scr_habilidades_system.gml:64"
                                             ],
-                    "Nombre":  [
-                                   "scripts\\scr_itemclave_data\\scr_itemclave_data.gml:48"
-                               ],
-                    "Descripción.":  [
-                                         "scripts\\scr_itemclave_data\\scr_itemclave_data.gml:51"
-                                     ],
-                    "Para qué sirve.":  [
-                                            "scripts\\scr_itemclave_data\\scr_itemclave_data.gml:54"
-                                        ],
                     "Llave de prueba":  [
-                                            "scripts\\scr_itemclave_data\\scr_itemclave_data.gml:65"
+                                            "scripts\\scr_itemclave_data\\scr_itemclave_data.gml:29"
                                         ],
                     "Una llave creada para probar el sistema.":  [
-                                                                     "scripts\\scr_itemclave_data\\scr_itemclave_data.gml:70"
+                                                                     "scripts\\scr_itemclave_data\\scr_itemclave_data.gml:34"
                                                                  ],
                     "Abre una cerradura de prueba.":  [
-                                                          "scripts\\scr_itemclave_data\\scr_itemclave_data.gml:75"
+                                                          "scripts\\scr_itemclave_data\\scr_itemclave_data.gml:44"
                                                       ],
+                    "Tijeras Jardín":  [
+                                           "scripts\\scr_itemclave_data\\scr_itemclave_data.gml:73"
+                                       ],
+                    "Unas tijeras de jardinería resistentes.":  [
+                                                                    "scripts\\scr_itemclave_data\\scr_itemclave_data.gml:78"
+                                                                ],
+                    "Al tenerlas, puedes cortar lianas, cables y cuerdas al interactuar con ellas.":  [
+                                                                                                          "scripts\\scr_itemclave_data\\scr_itemclave_data.gml:90"
+                                                                                                      ],
                     "Vaso de Agua":  [
                                          "scripts\\scr_items_data\\scr_items_data.gml:34"
                                      ],
@@ -827,18 +830,48 @@
                     "Pastillas que ayudan a recuperar energía.":  [
                                                                       "scripts\\scr_items_data\\scr_items_data.gml:287"
                                                                   ],
-                    "HABIL":  [
-                                  "scripts\\scr_menu_stad_habil_draw\\scr_menu_stad_habil_draw.gml:171"
-                              ],
-                    "Permite hacer dash dentro del rango de peligro de un enemigo. Funciona con la habilidad Dash o con los Zapatos Rápidos.":  [
-                                                                                                                                                    "scripts\\scr_menu_stad_habil_draw\\scr_menu_stad_habil_draw.gml:333"
-                                                                                                                                                ],
                     "Z / X - Cerrar":  [
-                                           "scripts\\scr_menu_stad_habil_draw\\scr_menu_stad_habil_draw.gml:553"
+                                           "scripts\\scr_menu_stad_habil_draw\\scr_menu_stad_habil_draw.gml:860",
+                                           "scripts\\scr_menu_stad_habil_draw\\scr_menu_stad_habil_draw.gml:1701"
                                        ],
                     "Todavía no tienes habilidades.":  [
-                                                           "scripts\\scr_menu_stad_habil_draw\\scr_menu_stad_habil_draw.gml:617"
+                                                           "scripts\\scr_menu_stad_habil_draw\\scr_menu_stad_habil_draw.gml:936",
+                                                           "scripts\\scr_menu_stad_habil_draw\\scr_menu_stad_habil_draw.gml:1761"
                                                        ],
+                    "HABIL":  [
+                                  "scripts\\scr_menu_stad_habil_draw\\scr_menu_stad_habil_draw.gml:1288"
+                              ],
+                    "Permite hacer dash dentro del rango de peligro de un enemigo. Funciona con la habilidad Dash o con los Zapatos Rápidos.":  [
+                                                                                                                                                    "scripts\\scr_menu_stad_habil_draw\\scr_menu_stad_habil_draw.gml:1537"
+                                                                                                                                                ],
+                    "Parece que te olvidas de algo importante.":  [
+                                                                      "scripts\\scr_notijeras_dialogos\\scr_notijeras_dialogos.gml:181"
+                                                                  ],
+                    "¿No te olvidas de algo importante?":  [
+                                                               "scripts\\scr_notijeras_dialogos\\scr_notijeras_dialogos.gml:194"
+                                                           ],
+                    "Maya siente que hace falta algo más...":  [
+                                                                   "scripts\\scr_notijeras_dialogos\\scr_notijeras_dialogos.gml:207"
+                                                               ],
+                    "Parece que olvidaste algo más":  [
+                                                          "scripts\\scr_notijeras_dialogos\\scr_notijeras_dialogos.gml:220"
+                                                      ],
+                    "Parecen alguna clase de lianas.":  [
+                                                            "scripts\\scr_notijeras_dialogos\\scr_notijeras_dialogos.gml:236"
+                                                        ],
+                    "Quizá Maya podría cortarlas con algo":  [
+                                                                 "scripts\\scr_notijeras_dialogos\\scr_notijeras_dialogos.gml:237",
+                                                                 "scripts\\scr_notijeras_dialogos\\scr_notijeras_dialogos.gml:265"
+                                                             ],
+                    "Parecen alguna clase de cables.":  [
+                                                            "scripts\\scr_notijeras_dialogos\\scr_notijeras_dialogos.gml:250"
+                                                        ],
+                    "Quizá Maya podría cortarlos con algo":  [
+                                                                 "scripts\\scr_notijeras_dialogos\\scr_notijeras_dialogos.gml:251"
+                                                             ],
+                    "Parecen alguna clase de cuerdas.":  [
+                                                             "scripts\\scr_notijeras_dialogos\\scr_notijeras_dialogos.gml:264"
+                                                         ],
                     "* Sientes que este lugar quedará grabado en tu memoria.":  [
                                                                                     "scripts\\scr_save_dialogues\\scr_save_dialogues.gml:124",
                                                                                     "scripts\\scr_save_dialogues\\scr_save_dialogues.gml:236"
@@ -877,50 +910,64 @@
                                  "scripts\\scr_save_room_names\\scr_save_room_names.gml:87"
                              ],
                     "Tienda 1":  [
-                                     "scripts\\scr_shop_data\\scr_shop_data.gml:131"
+                                     "scripts\\scr_shop_data\\scr_shop_data.gml:155"
                                  ],
                     "* Bienvenido. Todo cuesta 0 Sueños.":  [
-                                                                "scripts\\scr_shop_data\\scr_shop_data.gml:151"
+                                                                "scripts\\scr_shop_data\\scr_shop_data.gml:175"
                                                             ],
                     "Saludos":  [
-                                    "scripts\\scr_shop_data\\scr_shop_data.gml:195"
+                                    "scripts\\scr_shop_data\\scr_shop_data.gml:241"
                                 ],
                     "* ¡Hola! Bienvenido a la tienda.":  [
-                                                             "scripts\\scr_shop_data\\scr_shop_data.gml:201"
+                                                             "scripts\\scr_shop_data\\scr_shop_data.gml:247"
                                                          ],
                     "* Mira todo lo que quieras.":  [
-                                                        "scripts\\scr_shop_data\\scr_shop_data.gml:207"
+                                                        "scripts\\scr_shop_data\\scr_shop_data.gml:253"
                                                     ],
                     "Sobre esta tienda":  [
-                                              "scripts\\scr_shop_data\\scr_shop_data.gml:216"
+                                              "scripts\\scr_shop_data\\scr_shop_data.gml:262"
                                           ],
                     "* Aquí vendo algunas cosas que podrían serte útiles.":  [
-                                                                                 "scripts\\scr_shop_data\\scr_shop_data.gml:222"
+                                                                                 "scripts\\scr_shop_data\\scr_shop_data.gml:268"
                                                                              ],
                     "* También puedo comprarte objetos que ya no necesites.":  [
-                                                                                   "scripts\\scr_shop_data\\scr_shop_data.gml:228"
+                                                                                   "scripts\\scr_shop_data\\scr_shop_data.gml:274"
                                                                                ],
                     "¿Qué son los Sueños?":  [
-                                                 "scripts\\scr_shop_data\\scr_shop_data.gml:237"
+                                                 "scripts\\scr_shop_data\\scr_shop_data.gml:283"
                                              ],
                     "* Los Sueños son la moneda que usamos por aquí.":  [
-                                                                            "scripts\\scr_shop_data\\scr_shop_data.gml:243"
+                                                                            "scripts\\scr_shop_data\\scr_shop_data.gml:289"
                                                                         ],
                     "* Puedes conseguirlos en tus aventuras y gastarlos en tiendas.":  [
-                                                                                           "scripts\\scr_shop_data\\scr_shop_data.gml:252"
+                                                                                           "scripts\\scr_shop_data\\scr_shop_data.gml:298"
                                                                                        ],
                     "* Gracias por venir. Vuelve pronto.":  [
-                                                                "scripts\\scr_shop_data\\scr_shop_data.gml:264"
+                                                                "scripts\\scr_shop_data\\scr_shop_data.gml:310"
                                                             ],
                     "Tienda sin configurar":  [
-                                                  "scripts\\scr_shop_data\\scr_shop_data.gml:290"
+                                                  "scripts\\scr_shop_data\\scr_shop_data.gml:336"
                                               ],
                     "* Esta tienda todavía no está configurada.":  [
-                                                                       "scripts\\scr_shop_data\\scr_shop_data.gml:310"
+                                                                       "scripts\\scr_shop_data\\scr_shop_data.gml:356"
                                                                    ],
                     "* Hasta luego.":  [
-                                           "scripts\\scr_shop_data\\scr_shop_data.gml:323"
+                                           "scripts\\scr_shop_data\\scr_shop_data.gml:369"
                                        ],
+                    "Agotado":  [
+                                    "scripts\\scr_shop_stock_system\\scr_shop_stock_system.gml:341"
+                                ],
+                    "No quedan unidades disponibles.":  [
+                                                            "scripts\\scr_shop_stock_system\\scr_shop_stock_system.gml:346"
+                                                        ],
+                    "* Todo está agotado.":  [
+                                                 "scripts\\scr_shop_stock_system\\scr_shop_stock_system.gml:923",
+                                                 "scripts\\scr_shop_stock_system\\scr_shop_stock_system.gml:968"
+                                             ],
+                    "* Agotado.":  [
+                                       "scripts\\scr_shop_stock_system\\scr_shop_stock_system.gml:1177",
+                                       "scripts\\scr_shop_stock_system\\scr_shop_stock_system.gml:1210"
+                                   ],
                     "Brillitos":  [
                                       "scripts\\scr_toys_data\\scr_toys_data.gml:96"
                                   ],
