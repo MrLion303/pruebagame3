@@ -1,4 +1,3 @@
-
 // =========================================================
 // EVENTO: DRAW GUI
 // =========================================================
@@ -55,7 +54,7 @@ for (var i = 0; i < _total_enemigos; i++) {
     var _en = enemigos[i];
     var _en_x = _centro_pantalla_x;
     var _en_y = 75 * _s;
-    
+
     if (_total_enemigos == 1) {
         _en_x = _centro_pantalla_x;
     } else if (_total_enemigos == 2) {
@@ -66,18 +65,18 @@ for (var i = 0; i < _total_enemigos; i++) {
         if (i == 1) _en_x = _centro_pantalla_x;
         if (i == 2) _en_x = _centro_pantalla_x + (75 * _s);
     }
-    
+
     var _derrotado = variable_struct_exists(_en, "derrotado") && _en.derrotado;
-    
+
     if (!_derrotado && variable_struct_exists(_en, "shake_timer") && _en.shake_timer > 0) {
         _en_x += irandom_range(-2, 2) * _s;
         _en_y += irandom_range(-2, 2) * _s;
     }
-    
+
     var _en_color = _derrotado ? make_color_rgb(40, 40, 40) : c_white;
     var _img_idx = _derrotado ? 0 : _en.anim_index;
     var _escala = variable_struct_exists(_en, "escala_sprite") ? _en.escala_sprite : 2.0;
-    
+
     draw_sprite_ext(
         _en.sprite,
         _img_idx,
@@ -89,10 +88,10 @@ for (var i = 0; i < _total_enemigos; i++) {
         _en_color,
         _alpha_final
     );
-    
+
     if (en_seleccion_enemigo && enemigo_seleccionado_idx == i) {
         var _txt_color_sel = _derrotado ? c_gray : c_yellow;
-        
+
         draw_text_color(
             _en_x - (string_width(_en.nombre) * 0.5 * 0.7 * _s),
             _en_y - (45 * _s),
@@ -617,9 +616,9 @@ if (variable_global_exists("font_main")) {
 
 // CAJA PRINCIPAL DE DIÁLOGO / MENÚ
 if ((!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario) && (!variable_instance_exists(id, "en_menu_toys") || !en_menu_toys)) {
-    
+
     var _tiene_cabeza = false;
-    
+
     if (
         head_visible &&
         head_sprite != noone &&
@@ -633,33 +632,33 @@ if ((!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario)
     ) {
         _tiene_cabeza = true;
     }
-    
+
     var _p_left_margin = _tiene_cabeza ? (65 * _s) : (24 * _s);
     var _p_avail_width = _tiene_cabeza ? (200 * _s) : (250 * _s);
-    
+
     if (setup == false) {
         setup = true;
         text_length = string_length(text_to_draw);
-        
+
         var _last_space = -1;
         var _line_start_char = 1;
         line_break_num = 0;
-        
+
         for (var c = 1; c <= text_length; c++) {
             var _char_current = string_char_at(text_to_draw, c);
-            
+
             if (_char_current == " ") {
                 _last_space = c;
             }
-            
+
             var _sub_str = string_copy(
                 text_to_draw,
                 _line_start_char,
                 c - _line_start_char + 1
             );
-            
+
             var _str_w = string_width(_sub_str);
-            
+
             if (_str_w > _p_avail_width) {
                 if (_last_space != -1 && _last_space >= _line_start_char) {
                     line_break_pos[line_break_num] = _last_space + 1;
@@ -674,52 +673,81 @@ if ((!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario)
                 }
             }
         }
-        
+
         for (var c = 0; c < text_length; c++) {
             var _char_pos = c + 1;
             char_array[c] = string_char_at(text_to_draw, _char_pos);
-            
+
             var _txt_x = (14 * _s) + _p_left_margin;
             var _txt_y = (125 * _s) + (8 * _s) + (1 * _s);
-            
+
             var _txt_line = 0;
             var _line_start_pos = 1;
-            
+
             for (var lb = 0; lb < line_break_num; lb++) {
                 if (_char_pos >= line_break_pos[lb]) {
                     _txt_line = lb + 1;
                     _line_start_pos = line_break_pos[lb];
                 }
             }
-            
+
             if (_line_start_pos == _char_pos && char_array[c] == " ") {
                 char_x[c] = -9999;
                 char_y[c] = -9999;
                 continue;
             }
-            
+
             var _str_copy = string_copy(
                 text_to_draw,
                 _line_start_pos,
                 _char_pos - _line_start_pos + 1
             );
-            
+
             var _current_txt_w = string_width(_str_copy);
-            
+
             char_x[c] = _txt_x + _current_txt_w - string_width(char_array[c]);
             char_y[c] = _txt_y + (_txt_line * (18 * _s));
         }
     }
-    
-    // DIBUJAR CABEZA
+
+    // =====================================================
+    // DIBUJAR CABEZA - CENTRADO Y UNIVERSAL
+    // =====================================================
+    //
+    // Antes se dibujaba con una Y fija:
+    //
+    //     (125 + 10) * _s
+    //
+    // Eso no centra el retrato: simplemente coloca su origen
+    // a 10 unidades de la parte superior del textbox.
+    //
+    // Ahora el CENTRO DE LA IMAGEN COMPLETA de cualquier
+    // head_sprite coincide exactamente con el centro Y del
+    // cuadro de diálogo, respetando además su origin Y.
+    //
+    // Esto se hace AQUÍ, en el Draw GUI que realmente dibuja
+    // el retrato. No depende de objetos auxiliares.
+    // =====================================================
     if (_tiene_cabeza) {
         var _head_scale = 1.35 * _s;
-        
+
+        var _dialog_top = 125 * _s;
+        var _dialog_height = sprite_get_height(spr_bbs_textbox) * _s;
+        var _dialog_center_y = _dialog_top + (_dialog_height * 0.5);
+
+        var _head_image_center_y = sprite_get_height(head_sprite) * 0.5;
+        var _head_origin_y = sprite_get_yoffset(head_sprite);
+
+        var _head_draw_y =
+            _dialog_center_y
+            -
+            ((_head_image_center_y - _head_origin_y) * _head_scale);
+
         draw_sprite_ext(
             head_sprite,
             0,
             (14 + 10) * _s,
-            (125 + 10) * _s,
+            _head_draw_y,
             _head_scale,
             _head_scale,
             0,
@@ -727,7 +755,7 @@ if ((!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario)
             _alpha_final
         );
     }
-    
+
     // =====================================================
     // TIMING DE ATAQUE
     // =====================================================
@@ -907,16 +935,16 @@ if ((!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario)
             c_white,
             _alpha_final
         );
-        
+
     // MENÚ FIGHT
     } else if (en_menu_fight && !en_modo_info) {
         var _tx = (14 + 16) * _s;
         var _ty = (125 + 10) * _s;
         var _op = [scr_loc_src("* Atacar"), scr_loc_src("* Info")];
-        
+
         for (var i = 0; i < 2; i++) {
             var _col = (opcion_fight_seleccionada == i) ? c_yellow : c_white;
-            
+
             draw_text_color(
                 _tx + (i * 120 * _s),
                 _ty,
@@ -928,7 +956,7 @@ if ((!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario)
                 _alpha_final
             );
         }
-        
+
         var _en_activo = enemigos[enemigo_seleccionado_idx];
         var _bar_en_x = _tx;
         var _bar_en_y = _ty + (20 * _s);
@@ -936,9 +964,9 @@ if ((!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario)
         var _bar_en_h = 5 * _s;
         var _vida_act = _en_activo.vida_actual;
         var _vida_max = _en_activo.vida_max;
-        
+
         draw_set_alpha(_alpha_final);
-        
+
         draw_rectangle_color(
             _bar_en_x,
             _bar_en_y,
@@ -950,10 +978,10 @@ if ((!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario)
             c_yellow,
             false
         );
-        
+
         var _porcentaje_vida_en = clamp(_vida_act / _vida_max, 0, 1);
         var _current_en_w = _bar_en_w * _porcentaje_vida_en;
-        
+
         if (_current_en_w > 0) {
             draw_rectangle_color(
                 _bar_en_x,
@@ -967,13 +995,13 @@ if ((!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario)
                 false
             );
         }
-        
+
         draw_set_alpha(1.0);
-        
+
     // TEXTO NORMAL O CINEMÁTICA
     } else {
         var _caracteres_visibles = floor(draw_char);
-        
+
         if (
             variable_instance_exists(id, "char_x") &&
             variable_instance_exists(id, "char_array")
@@ -997,13 +1025,13 @@ if ((!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario)
             }
         }
     }
-    
+
 } else if (en_menu_inventario) {
-    
+
     // INVENTARIO
     var _start_x = (14 * _s) + (18 * _s);
     var _start_y = (125 * _s) + (8 * _s);
-    
+
     if (
         instance_exists(obj_player) &&
         variable_instance_exists(obj_player, "inventory")
@@ -1012,15 +1040,15 @@ if ((!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario)
             var _index = i + (inv_scroll * 2);
             var _col = i % 2;
             var _row = floor(i / 2);
-            
+
             var _cx = _start_x + (_col * (130 * _s));
             var _cy = _start_y + (_row * (18 * _s));
-            
+
             var _is_selected = (inv_x == _col && inv_y == _row);
-            
+
             if (_index < array_length(obj_player.inventory)) {
                 var _item_key = obj_player.inventory[_index];
-                
+
                 var _nombre_item =
                     (_item_key != -1 && _item_key != undefined)
                     ?
@@ -1034,13 +1062,13 @@ if ((!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario)
                     )
                     :
                     "-----";
-                
+
                 var _txt_color = _is_selected ? c_yellow : c_white;
-                
+
                 if (_item_key == -1 || _item_key == undefined) {
                     _txt_color = _is_selected ? c_yellow : c_gray;
                 }
-                
+
                 draw_text_transformed_color(
                     _cx,
                     _cy,
@@ -1056,20 +1084,20 @@ if ((!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario)
                 );
             }
         }
-        
+
         var _total_items = array_length(obj_player.inventory);
         var _items_por_fila = 2;
         var _filas_totales = ceil(_total_items / _items_por_fila);
         var _filas_visibles = 2;
-        
+
         if (_filas_totales > _filas_visibles) {
             var _bar_x = (14 * _s) + (268 * _s);
             var _bar_y = _start_y;
             var _bar_w = 4 * _s;
             var _bar_h = 36 * _s;
-            
+
             draw_set_alpha(_alpha_final * 0.4);
-            
+
             draw_rectangle_color(
                 _bar_x,
                 _bar_y,
@@ -1081,15 +1109,15 @@ if ((!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario)
                 c_gray,
                 false
             );
-            
+
             var _max_scroll = _filas_totales - _filas_visibles;
             var _thumb_h = max(
                 (_filas_visibles / _filas_totales) * _bar_h,
                 8 * _s
             );
-            
+
             var _scroll_ratio = 0;
-            
+
             if (_max_scroll > 0) {
                 _scroll_ratio = clamp(
                     inv_scroll / _max_scroll,
@@ -1097,11 +1125,11 @@ if ((!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario)
                     1
                 );
             }
-            
+
             var _thumb_y = _bar_y + (_scroll_ratio * (_bar_h - _thumb_h));
-            
+
             draw_set_alpha(_alpha_final);
-            
+
             draw_rectangle_color(
                 _bar_x,
                 _thumb_y,
@@ -1113,7 +1141,7 @@ if ((!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario)
                 c_white,
                 false
             );
-            
+
             draw_set_alpha(1.0);
         }
     }
@@ -1453,7 +1481,7 @@ var _pos_x_btn = [132.371, 177.0, 221.0769, 265.0];
 
 for (var i = 0; i < 4; i++) {
     var _frame = (opcion_seleccionada == i) ? 1 : 0;
-    
+
     draw_sprite_ext(
         opciones[i],
         _frame,

@@ -88,27 +88,27 @@
                                                   "objects\\obj_batalla_ui\\Create_0.gml:943"
                                               ],
                     "* Elige a quien usar el toy!":  [
-                                                         "objects\\obj_batalla_ui\\Draw_64.gml:898"
+                                                         "objects\\obj_batalla_ui\\Draw_64.gml:926"
                                                      ],
                     "* Elige a quien atacar!":  [
-                                                    "objects\\obj_batalla_ui\\Draw_64.gml:898"
+                                                    "objects\\obj_batalla_ui\\Draw_64.gml:926"
                                                 ],
                     "¡Elige el enemigo!":  [
-                                               "objects\\obj_batalla_ui\\Draw_64.gml:903"
+                                               "objects\\obj_batalla_ui\\Draw_64.gml:931"
                                            ],
                     "* Atacar":  [
-                                     "objects\\obj_batalla_ui\\Draw_64.gml:915",
-                                     "objects\\obj_batalla_ui\\Draw_64.gml:935"
+                                     "objects\\obj_batalla_ui\\Draw_64.gml:943",
+                                     "objects\\obj_batalla_ui\\Draw_64.gml:963"
                                  ],
                     "* Info":  [
-                                   "objects\\obj_batalla_ui\\Draw_64.gml:915"
+                                   "objects\\obj_batalla_ui\\Draw_64.gml:943"
                                ],
                     "Noelle":  [
-                                   "objects\\obj_batalla_ui\\Draw_64.gml:1288",
+                                   "objects\\obj_batalla_ui\\Draw_64.gml:1316",
                                    "scripts\\scr_localizacion\\scr_localizacion.gml:76"
                                ],
                     "HP":  [
-                               "objects\\obj_batalla_ui\\Draw_64.gml:1303",
+                               "objects\\obj_batalla_ui\\Draw_64.gml:1331",
                                "objects\\obj_mapa_combate_fx\\Draw_64.gml:719"
                            ],
                     "¡Subiste de nivel!":  [

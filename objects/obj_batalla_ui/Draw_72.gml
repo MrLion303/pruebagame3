@@ -4,9 +4,9 @@
 /// =========================================================
 ///
 /// - Conserva el arreglo del crash por `anim_index`.
-/// - Ya NO cambia el origen de ningún sprite.
-/// - Crea el helper visual que corrige solamente el retrato
-///   grande del diálogo en Draw GUI End.
+/// - El retrato de diálogo YA se centra directamente dentro
+///   del Draw GUI real de obj_batalla_ui.
+/// - El viejo helper visual deja de utilizarse.
 /// =========================================================
 
 
@@ -103,29 +103,24 @@ if (
 
 
 // =========================================================
-// ASEGURAR HELPER VISUAL
+// DESACTIVAR EL HELPER VIEJO DEL RETRATO
+// =========================================================
+//
+// Si quedó una instancia creada por una versión anterior,
+// destruirla para que no vuelva a pintar encima del retrato
+// que ahora dibuja correctamente el propio Draw GUI.
 // =========================================================
 
-var _visual_fix_obj =
+var _old_visual_fix_obj =
     asset_get_index(
         "obj_batalla_ui_visual_fix"
     );
 
 
-if (
-    _visual_fix_obj != -1
-    &&
-    instance_number(
-        _visual_fix_obj
-    )
-    <=
-    0
-)
+if (_old_visual_fix_obj != -1)
 {
-    instance_create_depth(
-        0,
-        0,
-        -100000000,
-        _visual_fix_obj
-    );
+    with (_old_visual_fix_obj)
+    {
+        instance_destroy();
+    }
 }
