@@ -236,16 +236,33 @@ if (
     // ATAQUE
     // =====================================================
 
-    var _attacking =
+    var _horizontal_attack_visual =
         (
             variable_instance_exists(
                 id,
-                "platform_attack_timer"
+                "platform_horizontal_attack_visual_timer"
             )
             &&
-            platform_attack_timer
+            platform_horizontal_attack_visual_timer
             >
             0
+        );
+
+
+    var _attacking =
+        (
+            (
+                variable_instance_exists(
+                    id,
+                    "platform_attack_timer"
+                )
+                &&
+                platform_attack_timer
+                >
+                0
+            )
+            ||
+            _horizontal_attack_visual
         );
 
 
@@ -253,14 +270,20 @@ if (
     {
         var _attack_dir =
             (
-                variable_instance_exists(
-                    id,
-                    "platform_attack_direction"
-                )
+                _horizontal_attack_visual
                 ?
-                platform_attack_direction
-                :
                 "horizontal"
+                :
+                (
+                    variable_instance_exists(
+                        id,
+                        "platform_attack_direction"
+                    )
+                    ?
+                    platform_attack_direction
+                    :
+                    "horizontal"
+                )
             );
 
 
@@ -518,22 +541,46 @@ else if (!_cutscene_locked)
         {
             case 0:
                 _desired_name =
-                    "spr_maya_agachada_derecha";
+                    (
+                        _target_active
+                        ?
+                        "spr_maya_agachada_derecha_target"
+                        :
+                        "spr_maya_agachada_derecha"
+                    );
                 break;
 
             case 1:
                 _desired_name =
-                    "spr_maya_agachada_izquierda";
+                    (
+                        _target_active
+                        ?
+                        "spr_maya_agachada_izquierda_target"
+                        :
+                        "spr_maya_agachada_izquierda"
+                    );
                 break;
 
             case 2:
                 _desired_name =
-                    "spr_maya_agachada_abajo";
+                    (
+                        _target_active
+                        ?
+                        "spr_maya_agachada_abajo_target"
+                        :
+                        "spr_maya_agachada_abajo"
+                    );
                 break;
 
             case 3:
                 _desired_name =
-                    "spr_maya_agachada_arriba";
+                    (
+                        _target_active
+                        ?
+                        "spr_maya_agachada_arriba_target"
+                        :
+                        "spr_maya_agachada_arriba"
+                    );
                 break;
         }
     }
@@ -661,6 +708,70 @@ if (_desired_name != "")
 
 
 // =========================================================
+// FALLBACK DE AGACHADA TARGET
+// =========================================================
+//
+// Si todavía no existe una variante *_target, conservar la
+// pose agachada normal de esa misma dirección.
+// =========================================================
+
+if (
+    _crouch_visual
+    &&
+    _draw_sprite == sprite_index
+    &&
+    _target_active
+)
+{
+    var _crouch_fallback_name =
+        "";
+
+
+    switch (facing_direction)
+    {
+        case 0:
+            _crouch_fallback_name =
+                "spr_maya_agachada_derecha";
+            break;
+
+        case 1:
+            _crouch_fallback_name =
+                "spr_maya_agachada_izquierda";
+            break;
+
+        case 2:
+            _crouch_fallback_name =
+                "spr_maya_agachada_abajo";
+            break;
+
+        case 3:
+            _crouch_fallback_name =
+                "spr_maya_agachada_arriba";
+            break;
+    }
+
+
+    var _crouch_fallback =
+        asset_get_index(
+            _crouch_fallback_name
+        );
+
+
+    if (
+        _crouch_fallback != -1
+        &&
+        sprite_exists(
+            _crouch_fallback
+        )
+    )
+    {
+        _draw_sprite =
+            _crouch_fallback;
+    }
+}
+
+
+// =========================================================
 // VALIDAR SPRITE
 // =========================================================
 
@@ -706,6 +817,47 @@ if (_force_frame >= 0)
             _force_frame,
             0,
             _frame_count - 1
+        );
+}
+
+
+// =========================================================
+// ATAQUE HORIZONTAL: ÚLTIMO FRAME MÁS LARGO
+// =========================================================
+//
+// Todos los frames anteriores avanzan a 1 frame por step.
+// El último queda visible 4 frames en total.
+// =========================================================
+
+else if (
+    _platformer
+    &&
+    variable_instance_exists(
+        id,
+        "platform_horizontal_attack_visual_timer"
+    )
+    &&
+    platform_horizontal_attack_visual_timer > 0
+    &&
+    variable_instance_exists(
+        id,
+        "platform_horizontal_attack_visual_total"
+    )
+)
+{
+    var _attack_elapsed =
+        max(
+            0,
+            platform_horizontal_attack_visual_total
+            -
+            platform_horizontal_attack_visual_timer
+        );
+
+
+    _draw_frame =
+        min(
+            _frame_count - 1,
+            _attack_elapsed
         );
 }
 
@@ -894,6 +1046,34 @@ else
 
 
 // =========================================================
+// AGACHADA: NO CAMINAR VISUALMENTE
+// =========================================================
+//
+// Aunque Maya intente avanzar contra una colisión mientras
+// está agachada, la pose no debe parecer una caminata.
+//
+// Las poses agachadas quedan fijas en su primer frame.
+// =========================================================
+
+if (_crouch_visual)
+{
+    _draw_frame =
+        0;
+
+
+    // Blindaje extra:
+    // aunque la lógica siga intentando avanzar contra una
+    // colisión, Maya agachada no debe verse caminando.
+    image_index =
+        0;
+
+
+    image_speed =
+        0;
+}
+
+
+// =========================================================
 // ANCLAJE VISUAL A LOS PIES REALES
 // =========================================================
 //
@@ -934,6 +1114,37 @@ var _draw_x =
 
 var _draw_y =
     y;
+
+
+// =========================================================
+// AJUSTE VISUAL DE AGACHADA HACIA LA DERECHA
+// =========================================================
+//
+// El sprite spr_maya_agachada_derecha queda 15 px a la
+// izquierda respecto al punto normal de Maya.
+//
+// Solo es visual:
+//     - no mueve x;
+//     - no mueve la colisión;
+//     - no afecta otras direcciones.
+//
+if (
+    _crouch_visual
+    &&
+    (
+        _desired_name
+        ==
+        "spr_maya_agachada_derecha"
+        ||
+        _desired_name
+        ==
+        "spr_maya_agachada_derecha_target"
+    )
+)
+{
+    _draw_x -=
+        15;
+}
 
 
 if (

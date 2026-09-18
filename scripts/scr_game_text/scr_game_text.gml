@@ -46,7 +46,7 @@ function scr_game_text(_text_id){
                         "El... keke? Oh! Claro que me gusta!"
                     ),
                     c_white,
-                    spr_maya_normal,
+                    spr_cabeza_maya_normal,
                     snd_txtmaya
                 );
 
@@ -147,7 +147,7 @@ function scr_game_text(_text_id){
                     "El... keke? Oh! Claro que me gusta!"
                 ),
                 c_white,
-                spr_maya_normal,
+                spr_cabeza_maya_normal,
                 snd_txtmaya
             );
 
@@ -206,8 +206,8 @@ function scr_game_text(_text_id){
 
 		case "npc":
     // Diálogo con Maya y su respectivo sprite de cabeza a la izquierda
-    scr_text(scr_loc("Hola, soy Maya y este es mi dialogo con retrato."), c_white, spr_maya_normal, snd_txtmaya);
-    scr_text(scr_loc("Este segundo renglon tambien se acomoda solito respetando la cabeza."), c_white, spr_maya_normal, snd_txtmaya);
+    scr_text(scr_loc("Hola, soy Maya y este es mi dialogo con retrato."), c_white, spr_cabeza_maya_normal, snd_txtmaya);
+    scr_text(scr_loc("Este segundo renglon tambien se acomoda solito respetando la cabeza."), c_white, spr_cabeza_maya_normal, snd_txtmaya);
     
     // Diálogo normal sin sprite por si quieres alternar en la misma caja
     scr_text(scr_loc("Y este mensaje vuelve a ser normal sin cabeza."));

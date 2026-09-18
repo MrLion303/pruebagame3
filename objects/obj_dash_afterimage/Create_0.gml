@@ -1,28 +1,31 @@
 /// =========================================================
 /// OBJ_DASH_AFTERIMAGE
-/// CREATE - NUEVO
+/// CREATE COMPLETO
 /// =========================================================
 ///
-/// **PARENT: ninguno**
-///
 /// No se coloca manualmente en rooms.
-/// obj_player lo crea durante el Dash.
+/// Maya lo crea durante sus Dash.
 /// =========================================================
 
 ghost_sprite =
     -1;
 
+
 ghost_frame =
     0;
+
 
 ghost_xscale =
     1;
 
+
 ghost_yscale =
     1;
 
+
 ghost_angle =
     0;
+
 
 ghost_blend =
     c_white;
@@ -31,8 +34,18 @@ ghost_blend =
 ghost_dir_x =
     0;
 
+
 ghost_dir_y =
     0;
+
+
+// false:
+//     este Draw todavía debe aplicar 39/28.
+//
+// true:
+//     quien creó el afterimage ya entregó la escala final.
+ghost_already_maya_scaled =
+    false;
 
 
 // Transparencia inicial.

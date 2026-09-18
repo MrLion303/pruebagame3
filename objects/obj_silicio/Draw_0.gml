@@ -285,8 +285,46 @@ else
                 true;
 
 
+            // El nombre pedido spr_silicio_deslizamiento_target
+            // se usa cuando MAYA está dentro del rango de ataque,
+            // porque el estado de peligro del mapa gira alrededor
+            // de la posición de Maya.
+            var _silicio_target_active =
+                false;
+
+
+            if (instance_exists(obj_mapa_combate_fx))
+            {
+                var _silicio_fx =
+                    instance_find(
+                        obj_mapa_combate_fx,
+                        0
+                    );
+
+
+                if (
+                    _silicio_fx != noone
+                    &&
+                    variable_instance_exists(
+                        _silicio_fx,
+                        "danger_active"
+                    )
+                )
+                {
+                    _silicio_target_active =
+                        _silicio_fx.danger_active;
+                }
+            }
+
+
             _desired_name =
-                "spr_silicio_deslizamiento";
+                (
+                    _silicio_target_active
+                    ?
+                    "spr_silicio_deslizamiento_target"
+                    :
+                    "spr_silicio_deslizamiento"
+                );
         }
     }
 }
@@ -318,6 +356,38 @@ if (_desired_name != "")
     {
         _draw_sprite =
             _candidate;
+    }
+}
+
+
+// Si la variante target todavía no existe, conservar la
+// animación normal de deslizamiento.
+if (
+    _downslide_visual
+    &&
+    _desired_name
+    ==
+    "spr_silicio_deslizamiento_target"
+    &&
+    _draw_sprite == sprite_index
+)
+{
+    var _silicio_slide_fallback =
+        asset_get_index(
+            "spr_silicio_deslizamiento"
+        );
+
+
+    if (
+        _silicio_slide_fallback != -1
+        &&
+        sprite_exists(
+            _silicio_slide_fallback
+        )
+    )
+    {
+        _draw_sprite =
+            _silicio_slide_fallback;
     }
 }
 
