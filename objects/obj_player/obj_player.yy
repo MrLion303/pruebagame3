@@ -35,8 +35,8 @@
   "resourceVersion":"2.0",
   "solid":false,
   "spriteId":{
-    "name":"pendejo_abajo",
-    "path":"sprites/pendejo_abajo/pendejo_abajo.yy",
+    "name":"spr_maya_abajo",
+    "path":"sprites/spr_maya_abajo/spr_maya_abajo.yy",
   },
   "spriteMaskId":null,
   "visible":true,
