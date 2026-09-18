@@ -3,17 +3,9 @@
 /// DRAW COMPLETO
 /// =========================================================
 ///
-/// SPRITES ESPERADOS:
-///
-///     spr_maya_platform_dash_izquierda
-///     spr_maya_platform_dash_derecha
-///
-/// Si el sprite de Dash no existe, se conserva visualmente el
-/// sprite que Maya ya tenía antes del Dash.
-///
-/// Maya se dibuja a escala:
-///
-///     37 / 28 = 1.321428571...
+/// - Maya usa 39/28 = 139.29% de escala visual.
+/// - El crecimiento queda anclado a los pies.
+/// - El sprite visual final se comunica al FX rojo.
 /// =========================================================
 
 if (
@@ -112,7 +104,7 @@ if (_frame < 0)
 // =========================================================
 
 var _maya_scale =
-    37
+    39
     /
     28;
 
@@ -159,21 +151,115 @@ else
 }
 
 
-// Sprites separados para izquierda/derecha:
-// no hacemos mirror horizontal.
+// Sprites izquierda/derecha separados:
+// nunca hacemos mirror automático.
 _base_xscale =
     abs(
         _base_xscale
     );
 
 
+var _draw_xscale =
+    _base_xscale
+    *
+    _maya_scale;
+
+
+var _draw_yscale =
+    _base_yscale
+    *
+    _maya_scale;
+
+
+// =========================================================
+// ANCLAR A LOS PIES
+// =========================================================
+
+var _foot_local_y =
+    sprite_get_bbox_bottom(
+        _spr
+    )
+    -
+    sprite_get_yoffset(
+        _spr
+    );
+
+
+var _draw_x =
+    owner_ref.x;
+
+
+var _draw_y =
+    owner_ref.y
+    +
+    (
+        _foot_local_y
+        *
+        _base_yscale
+        *
+        (
+            1
+            -
+            _maya_scale
+        )
+    );
+
+
+// =========================================================
+// CACHÉ PARA EL EFECTO ROJO
+// =========================================================
+
+owner_ref.maya_visual_valid =
+    true;
+
+
+owner_ref.maya_visual_sprite =
+    _spr;
+
+
+owner_ref.maya_visual_frame =
+    _frame;
+
+
+owner_ref.maya_visual_world_x =
+    _draw_x;
+
+
+owner_ref.maya_visual_world_y =
+    _draw_y;
+
+
+owner_ref.maya_visual_xscale =
+    _draw_xscale;
+
+
+owner_ref.maya_visual_yscale =
+    _draw_yscale;
+
+
+owner_ref.maya_visual_angle =
+    0;
+
+
+owner_ref.maya_visual_blend =
+    c_white;
+
+
+owner_ref.maya_visual_alpha =
+    1;
+
+
+// =========================================================
+// DIBUJAR
+// =========================================================
+
 draw_sprite_ext(
     _spr,
     _frame,
-    owner_ref.x,
-    owner_ref.y,
-    _base_xscale * _maya_scale,
-    _base_yscale * _maya_scale,
+    _draw_x,
+    _draw_y,
+    _draw_xscale,
+    _draw_yscale,
     0,
     c_white,
     1

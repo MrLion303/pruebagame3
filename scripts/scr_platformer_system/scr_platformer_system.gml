@@ -1642,7 +1642,7 @@ function scr_platformer_player_leave()
 
 
         sprite_index =
-            pendejo_izquierda;
+            spr_maya_izquierda;
     }
     else
     {
@@ -1659,7 +1659,7 @@ function scr_platformer_player_leave()
 
 
         sprite_index =
-            pendejo_derecha;
+            spr_maya_derecha;
     }
 
 
@@ -3723,9 +3723,9 @@ function scr_platformer_player_apply_sprite()
                 (
                     platform_facing < 0
                     ?
-                    pendejo_izquierda
+                    spr_maya_izquierda
                     :
-                    pendejo_derecha
+                    spr_maya_derecha
                 )
             );
 
@@ -3749,9 +3749,9 @@ function scr_platformer_player_apply_sprite()
                 (
                     platform_facing < 0
                     ?
-                    pendejo_izquierda
+                    spr_maya_izquierda
                     :
-                    pendejo_derecha
+                    spr_maya_derecha
                 )
             );
     }
@@ -3767,7 +3767,7 @@ function scr_platformer_player_apply_sprite()
             _new_sprite =
                 scr_platformer_sprite(
                     "spr_maya_platform_run_izquierda",
-                    pendejo_izquierda
+                    spr_maya_izquierda
                 );
         }
         else
@@ -3775,7 +3775,7 @@ function scr_platformer_player_apply_sprite()
             _new_sprite =
                 scr_platformer_sprite(
                     "spr_maya_platform_run_derecha",
-                    pendejo_derecha
+                    spr_maya_derecha
                 );
         }
     }
@@ -3791,7 +3791,7 @@ function scr_platformer_player_apply_sprite()
             _new_sprite =
                 scr_platformer_sprite(
                     "spr_maya_platform_idle_izquierda",
-                    pendejo_izquierda
+                    spr_maya_izquierda
                 );
         }
         else
@@ -3799,7 +3799,7 @@ function scr_platformer_player_apply_sprite()
             _new_sprite =
                 scr_platformer_sprite(
                     "spr_maya_platform_idle_derecha",
-                    pendejo_derecha
+                    spr_maya_derecha
                 );
         }
     }

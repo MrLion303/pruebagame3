@@ -16,6 +16,8 @@
     {"$GMSpriteFrame":"v1","%Name":"417f4081-05e2-41d1-a031-e2fec0e37013","name":"417f4081-05e2-41d1-a031-e2fec0e37013","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
     {"$GMSpriteFrame":"v1","%Name":"60d8fc24-16bc-4b9d-86d3-79c0d316b37e","name":"60d8fc24-16bc-4b9d-86d3-79c0d316b37e","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
     {"$GMSpriteFrame":"v1","%Name":"3ce0cf80-dd18-4020-8ac6-de525ad7f58f","name":"3ce0cf80-dd18-4020-8ac6-de525ad7f58f","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"e2ab27e9-9f49-4f2a-9f5b-557589a9afae","name":"e2ab27e9-9f49-4f2a-9f5b-557589a9afae","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
+    {"$GMSpriteFrame":"v1","%Name":"d1d3453e-1647-4e00-99cc-1637146ad0ed","name":"d1d3453e-1647-4e00-99cc-1637146ad0ed","resourceType":"GMSpriteFrame","resourceVersion":"2.0",},
   ],
   "gridX":0,
   "gridY":0,
@@ -71,7 +73,7 @@
     },
     "eventStubScript":null,
     "eventToFunction":{},
-    "length":4.0,
+    "length":6.0,
     "lockOrigin":false,
     "moments":{
       "$KeyframeStore<MomentsEventKeyframe>":"",
@@ -102,6 +104,12 @@
             {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
                 "0":{"$SpriteFrameKeyframe":"","Id":{"name":"3ce0cf80-dd18-4020-8ac6-de525ad7f58f","path":"sprites/spr_maya_ataque_platform_derecha/spr_maya_ataque_platform_derecha.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
               },"Disabled":false,"id":"5b33f6f4-c1ff-4a17-952d-f9af64fa5140","IsCreationKey":false,"Key":3.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"e2ab27e9-9f49-4f2a-9f5b-557589a9afae","path":"sprites/spr_maya_ataque_platform_derecha/spr_maya_ataque_platform_derecha.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"ce6b8d5d-b661-47f5-8514-42735f7ed25b","IsCreationKey":false,"Key":4.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
+            {"$Keyframe<SpriteFrameKeyframe>":"","Channels":{
+                "0":{"$SpriteFrameKeyframe":"","Id":{"name":"d1d3453e-1647-4e00-99cc-1637146ad0ed","path":"sprites/spr_maya_ataque_platform_derecha/spr_maya_ataque_platform_derecha.yy",},"resourceType":"SpriteFrameKeyframe","resourceVersion":"2.0",},
+              },"Disabled":false,"id":"47c17766-32cd-442b-858c-e82b3921338f","IsCreationKey":false,"Key":5.0,"Length":1.0,"resourceType":"Keyframe<SpriteFrameKeyframe>","resourceVersion":"2.0","Stretch":false,},
           ],"resourceType":"KeyframeStore<SpriteFrameKeyframe>","resourceVersion":"2.0",},"modifiers":[],"name":"frames","resourceType":"GMSpriteFramesTrack","resourceVersion":"2.0","spriteId":null,"trackColour":0,"tracks":[],"traits":0,},
     ],
     "visibleRange":null,

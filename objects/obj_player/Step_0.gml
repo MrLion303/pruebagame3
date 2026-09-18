@@ -722,22 +722,22 @@ else
     {
         case "derecha":
             sprite_index =
-                pendejo_derecha;
+                spr_maya_derecha;
             break;
 
         case "izquierda":
             sprite_index =
-                pendejo_izquierda;
+                spr_maya_izquierda;
             break;
 
         case "arriba":
             sprite_index =
-                pendejo_arriba;
+                spr_maya_arriba;
             break;
 
         case "abajo":
             sprite_index =
-                pendejo_abajo;
+                spr_maya_abajo;
             break;
     }
 }
@@ -762,7 +762,7 @@ if (
     //
     // Quinto fotograma exclusivo:
     //
-    //     pendejo_abajo frame 4
+    //     spr_maya_abajo frame 4
     //
     // Moverse a los lados NO cambia sprite ni frame.
     // =====================================================
@@ -770,7 +770,7 @@ if (
     if (downslide_active)
     {
         sprite_index =
-            pendejo_abajo;
+            spr_maya_abajo;
 
         direccion =
             "abajo";
@@ -787,7 +787,7 @@ if (
 
         var _slide_frames =
             sprite_get_number(
-                pendejo_abajo
+                spr_maya_abajo
             );
 
 
@@ -883,10 +883,10 @@ if (
                 );
 
 
-            // pendejo_abajo frame 4 es EXCLUSIVO del
+            // spr_maya_abajo frame 4 es EXCLUSIVO del
             // deslizamiento hacia abajo.
             if (
-                sprite_index == pendejo_abajo
+                sprite_index == spr_maya_abajo
                 &&
                 _ice_frames >= 5
             )
@@ -973,10 +973,10 @@ if (
                 );
 
 
-            // El quinto frame de pendejo_abajo NO pertenece
+            // El quinto frame de spr_maya_abajo NO pertenece
             // a la caminata normal.
             if (
-                sprite_index == pendejo_abajo
+                sprite_index == spr_maya_abajo
                 &&
                 _frames >= 5
             )
@@ -1006,7 +1006,7 @@ if (
             // desde ESE MISMO frame.
             // =================================================
 
-            // Para pendejo_abajo con frame 4 reservado NO
+            // Para spr_maya_abajo con frame 4 reservado NO
             // forzamos el frame 1 aquí.
             //
             // Su animador manual de abajo recorrerá:
@@ -1020,9 +1020,9 @@ if (
                 floor(image_index) <= 0
                 &&
                 !(
-                    sprite_index == pendejo_abajo
+                    sprite_index == spr_maya_abajo
                     &&
-                    sprite_get_number(pendejo_abajo) >= 5
+                    sprite_get_number(spr_maya_abajo) >= 5
                 )
             )
             {
@@ -1036,7 +1036,7 @@ if (
         // REPRODUCCIÓN NORMAL
         // =================================================
         //
-        // En pendejo_abajo hay 5 frames, pero el frame 4 es
+        // En spr_maya_abajo hay 5 frames, pero el frame 4 es
         // exclusivo del deslizamiento. Por eso esa dirección
         // se anima manualmente solamente entre 1..3.
         //
@@ -1045,9 +1045,9 @@ if (
         // =================================================
 
         if (
-            sprite_index == pendejo_abajo
+            sprite_index == spr_maya_abajo
             &&
-            sprite_get_number(pendejo_abajo) >= 5
+            sprite_get_number(spr_maya_abajo) >= 5
         )
         {
             image_speed =
@@ -1056,13 +1056,13 @@ if (
 
             var _asset_speed =
                 sprite_get_speed(
-                    pendejo_abajo
+                    spr_maya_abajo
                 );
 
 
             var _asset_speed_type =
                 sprite_get_speed_type(
-                    pendejo_abajo
+                    spr_maya_abajo
                 );
 
 
@@ -1213,25 +1213,25 @@ walk_anim_was_moving =
 // FACING
 // =========================================================
 
-if (sprite_index == pendejo_abajo)
+if (sprite_index == spr_maya_abajo)
 {
     facing_direction = 2;
 }
 
 
-if (sprite_index == pendejo_arriba)
+if (sprite_index == spr_maya_arriba)
 {
     facing_direction = 3;
 }
 
 
-if (sprite_index == pendejo_derecha)
+if (sprite_index == spr_maya_derecha)
 {
     facing_direction = 0;
 }
 
 
-if (sprite_index == pendejo_izquierda)
+if (sprite_index == spr_maya_izquierda)
 {
     facing_direction = 1;
 }

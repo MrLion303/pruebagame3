@@ -39,7 +39,7 @@ function scr_enemigos_data(_id_enemigo)
                         "El... keke? Oh! Claro que me gusta!"
                     ),
                 head: spr_bbs_prota_head,
-                snd: snd_noelle
+                snd: snd_txtmaya
             },
 
             {
@@ -85,7 +85,7 @@ function scr_enemigos_data(_id_enemigo)
                             "El... keke? Oh! Claro que me gusta!"
                         ),
                     head: spr_bbs_prota_head,
-                    snd: snd_noelle
+                    snd: snd_txtmaya
                 },
 
                 {
@@ -190,7 +190,7 @@ function scr_enemigos_data(_id_enemigo)
                             "¡Cuidado con este viscoso amigo!"
                         ),
                     head: spr_bbs_prota_head,
-                    snd: snd_noelle
+                    snd: snd_txtmaya
                 },
 
                 {
@@ -287,7 +287,7 @@ function scr_enemigos_data(_id_enemigo)
                             "¡Cuidado! Este enemigo no parece estar jugando."
                         ),
                     head: spr_bbs_prota_head,
-                    snd: snd_noelle
+                    snd: snd_txtmaya
                 },
 
                 {
@@ -362,7 +362,7 @@ function scr_enemigos_data(_id_enemigo)
                             "¿Estás seguro de que podemos con todos?"
                         ),
                     head: spr_bbs_prota_head,
-                    snd: snd_noelle
+                    snd: snd_txtmaya
                 },
 
                 {
@@ -380,7 +380,7 @@ function scr_enemigos_data(_id_enemigo)
                             "¡Mira cómo se mueven!"
                         ),
                     head: spr_bbs_prota_head,
-                    snd: snd_noelle
+                    snd: snd_txtmaya
                 }
             ];
 

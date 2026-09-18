@@ -259,7 +259,7 @@ if (
 
 
                 _p.sprite_index =
-                    pendejo_abajo;
+                    spr_maya_abajo;
 
                 break;
 
@@ -282,7 +282,7 @@ if (
 
 
                 _p.sprite_index =
-                    pendejo_izquierda;
+                    spr_maya_izquierda;
 
                 break;
 
@@ -305,7 +305,7 @@ if (
 
 
                 _p.sprite_index =
-                    pendejo_derecha;
+                    spr_maya_derecha;
 
                 break;
 
@@ -328,7 +328,7 @@ if (
 
 
                 _p.sprite_index =
-                    pendejo_arriba;
+                    spr_maya_arriba;
 
                 break;
         }

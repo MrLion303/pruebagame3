@@ -21,6 +21,9 @@
 /// anchor_offset_y:
 ///     desplaza el punto usado como "pies".
 ///
+/// NUEVO:
+/// En modo plataforma Maya SIEMPRE queda visualmente delante
+/// de Silicio, independientemente de la Y de ambos.
 /// =========================================================
 
 
@@ -182,14 +185,7 @@ function scr_depth_sort_apply(_actor)
     // PUNTO DE APOYO = PARTE BAJA DE LA MÁSCARA
     // =====================================================
     //
-    // Multiplicamos por 10 para tener espacio para pequeños
-    // biases sin cambiar de "fila" visual.
-    //
     // GameMaker dibuja delante los depth MÁS BAJOS.
-    //
-    // Y mayor:
-    //     depth más negativo
-    //     queda delante.
     // =====================================================
 
     var _feet_y =
@@ -252,6 +248,7 @@ function scr_depth_sort_update()
                 1
             );
 
+
             continue;
         }
 
@@ -259,5 +256,74 @@ function scr_depth_sort_update()
         scr_depth_sort_apply(
             _actor
         );
+    }
+
+
+    // =====================================================
+    // PLATAFORMA: MAYA SIEMPRE DELANTE DE SILICIO
+    // =====================================================
+    //
+    // Primero se hace el Y-sort normal de todos.
+    // Después, únicamente en modo plataforma, Silicio queda
+    // exactamente una unidad de depth detrás de Maya.
+    //
+    // depth menor = más al frente.
+    // =====================================================
+
+    var _platformer =
+        (
+            variable_global_exists(
+                "platformer_active"
+            )
+            &&
+            global.platformer_active
+        );
+
+
+    if (
+        _platformer
+        &&
+        instance_exists(
+            obj_player
+        )
+        &&
+        instance_exists(
+            obj_silicio
+        )
+    )
+    {
+        var _maya =
+            instance_find(
+                obj_player,
+                0
+            );
+
+
+        var _silicio =
+            instance_find(
+                obj_silicio,
+                0
+            );
+
+
+        if (
+            _maya != noone
+            &&
+            instance_exists(
+                _maya
+            )
+            &&
+            _silicio != noone
+            &&
+            instance_exists(
+                _silicio
+            )
+        )
+        {
+            _silicio.depth =
+                _maya.depth
+                +
+                1;
+        }
     }
 }

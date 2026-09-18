@@ -214,7 +214,7 @@ ice_normal_tap_frame =
 // DESLIZAMIENTO HACIA ABAJO
 // =========================================================
 //
-// pendejo_abajo:
+// spr_maya_abajo:
 //
 //     frames 0..3 = animación normal
 //     frame 4     = deslizamiento exclusivo
@@ -258,6 +258,6 @@ downslide_prev_bottom =
 
 
 // Acumulador manual únicamente para que el quinto frame de
-// pendejo_abajo jamás entre en la caminata normal.
+// spr_maya_abajo jamás entre en la caminata normal.
 walk_down_anim_accum =
     0;

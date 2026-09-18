@@ -30,7 +30,7 @@ function scr_bosses_cinematica_bbs(_id_cinematica) {
                 {
                     texto: scr_loc_src("¿De verdad creíste que esto sería tan fácil?"),
                     head: spr_bbs_prota_head,
-                    snd: snd_noelle,
+                    snd: snd_txtmaya,
                     music: mus_battle_1 // <-- ESTO REPRODUCE LA NUEVA MÚSICA
                 },
                 {
@@ -60,7 +60,7 @@ function scr_bosses_cinematica_bbs(_id_cinematica) {
                 {
                     texto: scr_loc_src("Oh no..."),
                     head: spr_bbs_prota_head,
-                    snd: snd_noelle,
+                    snd: snd_txtmaya,
                     
                 },
                 {

@@ -1,27 +1,23 @@
 /// =========================================================
 /// OBJ_MAPA_COMBATE_FX
-/// DRAW GUI
+/// DRAW GUI COMPLETO
 /// =========================================================
 ///
-/// SISTEMA VISUAL INDEPENDIENTE DEL OBJ_BATALLA_UI.
+/// Mantiene el sistema actual de oscuridad/HUD.
 ///
-/// El HUD de mapa solo reutiliza sprites visuales:
+/// ARREGLO:
+/// La copia roja de Maya ya NO usa directamente sprite_index
+/// y la escala sin modificar. Ahora usa exactamente el sprite,
+/// frame, posición y escala que obj_player (o el Dash) dibujó
+/// ese mismo frame.
 ///
-///     spr_bbs_textbox
-///     spr_bbs_prota_head
-///
-/// No comparte estados, menús ni lógica con las batallas
-/// normales.
-///
-/// Mientras hay peligro:
-///     - oscurece el entorno
-///     - Maya se vuelve roja
-///     - enemigos/balas quedan iluminados
-///
-/// El HUD:
-///     - entra desde debajo de la pantalla
-///     - hace fade-in mientras sube
-///     - al salir baja y hace fade-out
+/// Por eso coincide con:
+/// - escala 39/28;
+/// - anclaje a los pies;
+/// - agachada +15 px;
+/// - sprites Target;
+/// - sprites de plataforma;
+/// - Dash.
 /// =========================================================
 
 
@@ -108,7 +104,7 @@ var _sy =
 
 
 // =========================================================
-// COPIA SEGURA PARA LOS BLOQUES WITH
+// COPIA SEGURA PARA LOS BLOQUES with()
 // =========================================================
 
 fx_cam_x =
@@ -141,18 +137,9 @@ var _p =
 // =========================================================
 // EFECTO DE PELIGRO DEL MAPA
 // =========================================================
-//
-// Este efecto solo existe mientras realmente seguimos
-// dentro del rango. El HUD, en cambio, puede continuar
-// unos frames más durante su animación de salida.
-// =========================================================
 
 if (fx_anim > 0)
 {
-    // -----------------------------------------------------
-    // EASING DEL EFECTO
-    // -----------------------------------------------------
-
     var _fx_t =
         clamp(
             fx_anim,
@@ -173,9 +160,9 @@ if (fx_anim > 0)
         );
 
 
-    // -----------------------------------------------------
-    // OSCURECER ENTORNO CON FADE
-    // -----------------------------------------------------
+    // =====================================================
+    // OSCURECER ENTORNO
+    // =====================================================
 
     draw_set_alpha(
         clamp(
@@ -212,56 +199,156 @@ if (fx_anim > 0)
     );
 
 
-    // Copia segura para los bloques with().
     fx_ease_actual =
         _fx_ease;
 
 
-    // -----------------------------------------------------
-    // MAYA - ROJA
-    // -----------------------------------------------------
+    // =====================================================
+    // MAYA - COPIA ROJA DEL VISUAL REAL
+    // =====================================================
+
+    var _red_sprite =
+        _p.sprite_index;
+
+
+    var _red_frame =
+        _p.image_index;
+
+
+    var _red_world_x =
+        _p.x;
+
+
+    var _red_world_y =
+        _p.y;
+
+
+    var _red_xscale =
+        _p.image_xscale;
+
+
+    var _red_yscale =
+        _p.image_yscale;
+
+
+    var _red_angle =
+        _p.image_angle;
+
+
+    var _red_alpha =
+        _p.image_alpha;
+
+
+    var _has_visual_cache =
+        (
+            variable_instance_exists(
+                _p,
+                "maya_visual_valid"
+            )
+            &&
+            _p.maya_visual_valid
+            &&
+            variable_instance_exists(
+                _p,
+                "maya_visual_sprite"
+            )
+            &&
+            _p.maya_visual_sprite != -1
+            &&
+            sprite_exists(
+                _p.maya_visual_sprite
+            )
+        );
+
+
+    if (_has_visual_cache)
+    {
+        _red_sprite =
+            _p.maya_visual_sprite;
+
+
+        _red_frame =
+            _p.maya_visual_frame;
+
+
+        _red_world_x =
+            _p.maya_visual_world_x;
+
+
+        _red_world_y =
+            _p.maya_visual_world_y;
+
+
+        _red_xscale =
+            _p.maya_visual_xscale;
+
+
+        _red_yscale =
+            _p.maya_visual_yscale;
+
+
+        _red_angle =
+            _p.maya_visual_angle;
+
+
+        _red_alpha =
+            _p.maya_visual_alpha;
+    }
+
 
     if (
         _p.visible
         &&
-        _p.sprite_index != -1
+        _red_sprite != -1
+        &&
+        sprite_exists(
+            _red_sprite
+        )
     )
     {
         var _pgx =
-            (_p.x - _cam_x)
+            (
+                _red_world_x
+                -
+                _cam_x
+            )
             *
             _sx;
 
 
         var _pgy =
-            (_p.y - _cam_y)
+            (
+                _red_world_y
+                -
+                _cam_y
+            )
             *
             _sy;
 
 
         draw_sprite_ext(
-            _p.sprite_index,
-            _p.image_index,
+            _red_sprite,
+            _red_frame,
             _pgx,
             _pgy,
-            _p.image_xscale * _sx,
-            _p.image_yscale * _sy,
-            _p.image_angle,
+            _red_xscale * _sx,
+            _red_yscale * _sy,
+            _red_angle,
             merge_color(
                 c_white,
                 c_red,
                 _fx_ease
             ),
-            _p.image_alpha
+            _red_alpha
             *
             _fx_ease
         );
     }
 
 
-    // -----------------------------------------------------
+    // =====================================================
     // ENEMIGOS ACTIVOS - SIN OSCURECER
-    // -----------------------------------------------------
+    // =====================================================
 
     with (obj_enemigo_mapa_parent)
     {
@@ -274,13 +361,21 @@ if (fx_anim > 0)
         )
         {
             var _egx =
-                (x - other.fx_cam_x)
+                (
+                    x
+                    -
+                    other.fx_cam_x
+                )
                 *
                 other.fx_scale_x;
 
 
             var _egy =
-                (y - other.fx_cam_y)
+                (
+                    y
+                    -
+                    other.fx_cam_y
+                )
                 *
                 other.fx_scale_y;
 
@@ -302,9 +397,9 @@ if (fx_anim > 0)
     }
 
 
-    // -----------------------------------------------------
+    // =====================================================
     // BALAS ACTIVAS - SIN OSCURECER
-    // -----------------------------------------------------
+    // =====================================================
 
     with (obj_proyectil_mapa)
     {
@@ -334,13 +429,21 @@ if (fx_anim > 0)
         )
         {
             var _bgx =
-                (x - other.fx_cam_x)
+                (
+                    x
+                    -
+                    other.fx_cam_x
+                )
                 *
                 other.fx_scale_x;
 
 
             var _bgy =
-                (y - other.fx_cam_y)
+                (
+                    y
+                    -
+                    other.fx_cam_y
+                )
                 *
                 other.fx_scale_y;
 
@@ -366,23 +469,9 @@ if (fx_anim > 0)
 // =========================================================
 // HUD DE COMBATE EN MAPA
 // =========================================================
-//
-// Aunque danger_active ya sea false, seguimos dibujándolo
-// hasta que hud_anim llegue a 0, para completar la salida.
-// =========================================================
 
 if (hud_anim > 0)
 {
-    // -----------------------------------------------------
-    // EASING
-    // -----------------------------------------------------
-    //
-    // smoothstep:
-    //     empieza suave
-    //     acelera
-    //     termina suave
-    // -----------------------------------------------------
-
     var _hud_t =
         clamp(
             hud_anim,
@@ -407,9 +496,9 @@ if (hud_anim > 0)
         _hud_ease;
 
 
-    // -----------------------------------------------------
+    // =====================================================
     // FUENTE
-    // -----------------------------------------------------
+    // =====================================================
 
     if (
         variable_global_exists(
@@ -423,9 +512,9 @@ if (hud_anim > 0)
     }
 
 
-    // -----------------------------------------------------
+    // =====================================================
     // MONITOREAR DAÑO / FRAME DE DOLOR
-    // -----------------------------------------------------
+    // =====================================================
 
     var _hp_actual =
         _p.hp;
@@ -492,9 +581,9 @@ if (hud_anim > 0)
         );
 
 
-    // -----------------------------------------------------
-    // ESCALA MÁS PEQUEÑA
-    // -----------------------------------------------------
+    // =====================================================
+    // ESCALA / POSICIÓN DEL HUD
+    // =====================================================
 
     var _hud_s =
         min(
@@ -505,14 +594,6 @@ if (hud_anim > 0)
         hud_size_factor;
 
 
-    // -----------------------------------------------------
-    // POSICIÓN FINAL
-    // -----------------------------------------------------
-    //
-    // Basada en la misma caja izquierda de BBS, pero
-    // reducida y separada ligeramente del borde inferior.
-    // -----------------------------------------------------
-
     var _hud_target_y =
         _gui_h
         -
@@ -521,22 +602,11 @@ if (hud_anim > 0)
         (6 * _hud_s);
 
 
-    // -----------------------------------------------------
-    // POSICIÓN OCULTA
-    // -----------------------------------------------------
-    //
-    // Toda la interfaz queda debajo de la pantalla.
-    // -----------------------------------------------------
-
     var _hud_hidden_y =
         _gui_h
         +
         (10 * _hud_s);
 
-
-    // -----------------------------------------------------
-    // DESLIZAMIENTO
-    // -----------------------------------------------------
 
     var _hud_base_y =
         lerp(
@@ -546,9 +616,9 @@ if (hud_anim > 0)
         );
 
 
-    // -----------------------------------------------------
+    // =====================================================
     // CAJA
-    // -----------------------------------------------------
+    // =====================================================
 
     draw_sprite_ext(
         spr_bbs_textbox,
@@ -563,9 +633,9 @@ if (hud_anim > 0)
     );
 
 
-    // -----------------------------------------------------
+    // =====================================================
     // CABEZA
-    // -----------------------------------------------------
+    // =====================================================
 
     draw_sprite_ext(
         spr_bbs_prota_head,
@@ -582,9 +652,9 @@ if (hud_anim > 0)
     );
 
 
-    // -----------------------------------------------------
+    // =====================================================
     // NOMBRE
-    // -----------------------------------------------------
+    // =====================================================
 
     var _info_x =
         55 * _hud_s;
@@ -627,9 +697,9 @@ if (hud_anim > 0)
     );
 
 
-    // -----------------------------------------------------
+    // =====================================================
     // HP LABEL
-    // -----------------------------------------------------
+    // =====================================================
 
     var _hp_label_y =
         _info_y
@@ -660,9 +730,9 @@ if (hud_anim > 0)
     );
 
 
-    // -----------------------------------------------------
+    // =====================================================
     // HP ACTUAL / MÁXIMO
-    // -----------------------------------------------------
+    // =====================================================
 
     var _hp_texto =
         string(
@@ -729,9 +799,9 @@ if (hud_anim > 0)
     );
 
 
-    // -----------------------------------------------------
+    // =====================================================
     // BARRA DE VIDA
-    // -----------------------------------------------------
+    // =====================================================
 
     var _bar_left =
         _info_x;

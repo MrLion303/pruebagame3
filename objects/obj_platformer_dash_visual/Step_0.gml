@@ -73,9 +73,9 @@ var _jump_fallback =
             (
                 _left
                 ?
-                pendejo_izquierda
+                spr_maya_izquierda
                 :
-                pendejo_derecha
+                spr_maya_derecha
             )
         )
     );

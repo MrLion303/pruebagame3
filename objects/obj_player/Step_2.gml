@@ -434,7 +434,7 @@ if (
                     "derecha";
 
                 sprite_index =
-                    pendejo_derecha;
+                    spr_maya_derecha;
             }
             else if (_raw_x < 0)
             {
@@ -448,7 +448,7 @@ if (
                     "izquierda";
 
                 sprite_index =
-                    pendejo_izquierda;
+                    spr_maya_izquierda;
             }
             else if (_raw_y > 0)
             {
@@ -462,7 +462,7 @@ if (
                     "abajo";
 
                 sprite_index =
-                    pendejo_abajo;
+                    spr_maya_abajo;
             }
             else
             {
@@ -476,7 +476,7 @@ if (
                     "arriba";
 
                 sprite_index =
-                    pendejo_arriba;
+                    spr_maya_arriba;
             }
 
 

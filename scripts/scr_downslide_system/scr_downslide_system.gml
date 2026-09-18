@@ -18,7 +18,7 @@
 /// - Al llegar al final, sale unos píxeles extra por abajo.
 /// - Mientras está activo usa exclusivamente:
 ///
-///       pendejo_abajo -> frame 4
+///       spr_maya_abajo -> frame 4
 ///
 ///   (quinto fotograma).
 /// =========================================================

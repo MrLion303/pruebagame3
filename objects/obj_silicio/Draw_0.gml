@@ -1,23 +1,15 @@
 /// =========================================================
 /// OBJ_SILICIO
-/// DRAW COMPLETO - NUEVO EVENTO
+/// DRAW COMPLETO
 /// =========================================================
 ///
-/// Añade soporte visual para:
-///
-/// - spr_silicio_deslizamiento
-/// - platform idle izquierda/derecha
-/// - platform run izquierda/derecha
-/// - platform salto izquierda/derecha
-/// - platform sentón izquierda/derecha
-/// - platform dash izquierda/derecha
-///
-/// SALTO:
-///     frame 0 = subiendo
-///     frame 1 = cayendo
-///
-/// Si cualquiera de estos sprites no existe, Silicio conserva
-/// visualmente el sprite que ya estaba usando.
+/// - Conserva los sprites especiales de plataforma.
+/// - Idle/Run/Dash/Sentón con varios frames se animan.
+/// - Usa la velocidad configurada en el sprite.
+/// - Si la velocidad configurada es 0, usa 6 FPS.
+/// - Salto:
+///       frame 0 = subiendo
+///       frame 1 = cayendo
 /// =========================================================
 
 
@@ -56,8 +48,8 @@ if (_platformer)
         );
 
 
-    // Mientras un abanico tiene autoridad sobre Silicio,
-    // conservar exactamente el sprite que ya dejó el sistema.
+    // Mientras un abanico controla a Silicio, conservar el
+    // sprite que ya dejó el sistema del viento.
     if (!_fan_detached)
     {
         var _left =
@@ -184,9 +176,6 @@ if (_platformer)
             }
 
 
-            // El follower reproduce desplazamientos históricos.
-            // Si VSP está prácticamente a cero, move_y permite
-            // distinguir subida y caída del snapshot reproducido.
             if (
                 abs(_vertical_speed)
                 <=
@@ -326,7 +315,7 @@ if (_desired_name != "")
 
 
 // =========================================================
-// SI NO HAY NINGÚN SPRITE VÁLIDO
+// VALIDAR
 // =========================================================
 
 if (
@@ -360,6 +349,7 @@ var _draw_frame =
     );
 
 
+// Salto/caída: frame fijo.
 if (_force_frame >= 0)
 {
     _draw_frame =
@@ -369,8 +359,170 @@ if (_force_frame >= 0)
             _frame_count - 1
         );
 }
+
+
+// =========================================================
+// ANIMACIÓN MANUAL PLATAFORMERA
+// =========================================================
+
+else if (
+    _platformer
+    &&
+    _desired_name != ""
+)
+{
+    if (
+        !variable_instance_exists(
+            id,
+            "silicio_platform_visual_anim_sprite"
+        )
+    )
+    {
+        silicio_platform_visual_anim_sprite =
+            -1;
+
+        silicio_platform_visual_anim_frame =
+            0;
+
+        silicio_platform_visual_anim_accum =
+            0;
+    }
+
+
+    if (
+        silicio_platform_visual_anim_sprite
+        !=
+        _draw_sprite
+    )
+    {
+        silicio_platform_visual_anim_sprite =
+            _draw_sprite;
+
+        silicio_platform_visual_anim_frame =
+            0;
+
+        silicio_platform_visual_anim_accum =
+            0;
+    }
+
+
+    var _anim_speed =
+        sprite_get_speed(
+            _draw_sprite
+        );
+
+
+    var _anim_speed_type =
+        sprite_get_speed_type(
+            _draw_sprite
+        );
+
+
+    var _anim_fps =
+        0;
+
+
+    if (
+        _anim_speed_type
+        ==
+        spritespeed_framespersecond
+    )
+    {
+        _anim_fps =
+            _anim_speed;
+    }
+    else
+    {
+        _anim_fps =
+            _anim_speed
+            *
+            max(
+                1,
+                game_get_speed(
+                    gamespeed_fps
+                )
+            );
+    }
+
+
+    if (_anim_fps <= 0)
+    {
+        _anim_fps =
+            6;
+    }
+
+
+    var _dt_seconds =
+        min(
+            delta_time,
+            100000
+        )
+        /
+        1000000;
+
+
+    silicio_platform_visual_anim_accum +=
+        _anim_fps
+        *
+        _dt_seconds;
+
+
+    while (
+        silicio_platform_visual_anim_accum
+        >=
+        1
+    )
+    {
+        silicio_platform_visual_anim_accum -=
+            1;
+
+
+        silicio_platform_visual_anim_frame =
+            (
+                silicio_platform_visual_anim_frame
+                +
+                1
+            )
+            mod
+            _frame_count;
+    }
+
+
+    _draw_frame =
+        clamp(
+            silicio_platform_visual_anim_frame,
+            0,
+            _frame_count - 1
+        );
+}
+
+
+// =========================================================
+// RESTO DE ESTADOS: image_index NORMAL
+// =========================================================
+
 else
 {
+    if (
+        variable_instance_exists(
+            id,
+            "silicio_platform_visual_anim_sprite"
+        )
+        &&
+        !_platformer
+    )
+    {
+        silicio_platform_visual_anim_sprite =
+            -1;
+
+        silicio_platform_visual_anim_frame =
+            0;
+
+        silicio_platform_visual_anim_accum =
+            0;
+    }
+
+
     _draw_frame =
         _draw_frame
         mod

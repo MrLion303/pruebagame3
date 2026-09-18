@@ -457,7 +457,7 @@ function scr_cutscene_data(_id)
                         "* Hay algo de malas vibras por aquí..."
                     ),
                     spr_noelle_normal,
-                    snd_noelle
+                    snd_txtmaya
                 ),
 
 
@@ -518,7 +518,7 @@ function scr_cutscene_data(_id)
                         "* Esto se va a poner muy feo..."
                     ),
                     spr_noelle_normal,
-                    snd_noelle
+                    snd_txtmaya
                 ),
 
 
@@ -547,7 +547,7 @@ function scr_cutscene_data(_id)
                         "* Bueno... sí estuvo feo. Fahaha."
                     ),
                     spr_noelle_normal,
-                    snd_noelle
+                    snd_txtmaya
                 ),
 				
 				cs_music_play(
@@ -587,7 +587,7 @@ case "encuentro_joker_2":
                 "* Hay algo de malas vibras por aquí..."
             ),
             spr_noelle_normal,
-            snd_noelle
+            snd_txtmaya
         ),
 
 
@@ -627,7 +627,7 @@ case "encuentro_joker_2":
                 "* Esto se va a poner muy feo..."
             ),
             spr_noelle_normal,
-            snd_noelle
+            snd_txtmaya
         ),
 
 
@@ -658,7 +658,7 @@ case "encuentro_joker_2":
                 "* Bueno... sí estuvo feo. Fahaha."
             ),
             spr_noelle_normal,
-            snd_noelle
+            snd_txtmaya
         ),
 
 
@@ -747,7 +747,7 @@ case "encuentro_joker_2":
                 "* ¿Eso qué es?..."
             ),
             spr_noelle_normal,
-            snd_noelle
+            snd_txtmaya
         ),
 
 
@@ -783,7 +783,7 @@ case "encuentro_joker_2":
                 "* Ya..."
             ),
             spr_noelle_normal,
-            snd_noelle
+            snd_txtmaya
         ),
 
 
@@ -845,7 +845,7 @@ case "encuentro_joker_2":
                 "* Ok?..."
             ),
             spr_noelle_normal,
-            snd_noelle
+            snd_txtmaya
         ),
 
 

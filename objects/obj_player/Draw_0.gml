@@ -3,16 +3,30 @@
 /// DRAW COMPLETO
 /// =========================================================
 ///
-/// SISTEMA VISUAL MAYA
+/// ARREGLOS VISUALES:
 ///
-/// - Usa los nuevos nombres spr_maya_*.
-/// - Conserva el sprite actual si el sprite nuevo no existe.
-/// - Escala visual de Maya: 37 / 28 = 1.321428571...
-/// - Soporta target, sigilo/agachada, deslizamiento.
-/// - Soporta todos los estados visuales de plataforma.
-/// - El salto usa frame 0 subiendo y frame 1 cayendo.
-/// - El Dash plataformero lo dibuja obj_platformer_dash_visual.
-/// - Las cinemáticas conservan su sprite propio.
+/// - Maya pasa de 37 px aprox. a 39 px aprox. tomando como
+///   referencia los sprites originales de 28 px:
+///
+///       39 / 28 = 1.392857... = 139.29%
+///
+/// - El crecimiento queda ANCLADO A LOS PIES.
+///   La parte inferior del sprite no baja al escalarlo:
+///   el crecimiento ocurre hacia arriba.
+///
+/// - Las poses agachadas se dibujan 15 px más abajo.
+///
+/// - Los sprites de plataforma con varios frames vuelven a
+///   animarse usando la velocidad configurada en el propio
+///   sprite. Si la velocidad del sprite es 0, usa 6 FPS.
+///
+/// - Salto:
+///       frame 0 = subiendo
+///       frame 1 = cayendo
+///
+/// - Guarda el sprite/posición/escala visual final de Maya
+///   para que obj_mapa_combate_fx pueda dibujar exactamente
+///   el mismo sprite en rojo.
 /// =========================================================
 
 
@@ -27,11 +41,26 @@ if (room == bbs)
 
 
 // =========================================================
+// INVALIDAR CACHÉ VISUAL DEL FRAME
+// =========================================================
+//
+// Durante un Dash plataformero, obj_platformer_dash_visual
+// volverá a rellenar estos datos con el sprite del Dash.
+// =========================================================
+
+maya_visual_valid =
+    false;
+
+
+// =========================================================
 // ESCALA VISUAL UNIVERSAL DE MAYA
+// =========================================================
+//
+// 28 px originales -> 39 px visuales.
 // =========================================================
 
 var _maya_scale =
-    37
+    39
     /
     28;
 
@@ -95,14 +124,6 @@ var _cutscene_locked =
 // =========================================================
 // PELIGRO / RANGO DE ATAQUE
 // =========================================================
-//
-// obj_mapa_combate_fx.danger_active se activa cuando al menos
-// un enemigo del mapa tiene a Maya dentro de su rango real
-// de ataque.
-//
-// De esta forma TARGET usa exactamente el mismo estado de
-// peligro que ya usa el resto del proyecto.
-// =========================================================
 
 var _target_active =
     false;
@@ -135,13 +156,6 @@ if (instance_exists(obj_mapa_combate_fx))
 // =========================================================
 // SPRITE A DIBUJAR
 // =========================================================
-//
-// IMPORTANTE:
-//
-// Nunca sustituimos el sprite actual por -1.
-// Si el recurso solicitado no existe, se conserva visualmente
-// sprite_index tal como estaba antes.
-// =========================================================
 
 var _desired_name =
     "";
@@ -151,7 +165,7 @@ var _force_frame =
     -1;
 
 
-var _freeze_visual =
+var _crouch_visual =
     false;
 
 
@@ -194,9 +208,7 @@ if (
     // DASH
     // =====================================================
     //
-    // Durante el Dash el propio sistema vuelve transparente
-    // a Maya y obj_platformer_dash_visual dibuja la pose.
-    // Aquí no la duplicamos.
+    // El sprite lo dibuja obj_platformer_dash_visual.
     // =====================================================
 
     var _platform_dash =
@@ -314,9 +326,6 @@ if (
     //
     // frame 0 = subiendo
     // frame 1 = cayendo
-    //
-    // También funciona al simplemente caer desde una cornisa,
-    // porque depende de platform_vsp, no de haber saltado.
     // =====================================================
 
     else if (
@@ -359,10 +368,6 @@ if (
                 :
                 1
             );
-
-
-        _freeze_visual =
-            true;
     }
 
 
@@ -409,7 +414,7 @@ if (
 
 
     // =====================================================
-    // CORRER
+    // RUN
     // =====================================================
 
     else if (
@@ -477,7 +482,7 @@ else if (!_cutscene_locked)
 
 
     // =====================================================
-    // AGACHADA / SIGILO CON S
+    // AGACHADA / SIGILO
     // =====================================================
 
     else if (
@@ -489,6 +494,10 @@ else if (!_cutscene_locked)
         sigilo_activo
     )
     {
+        _crouch_visual =
+            true;
+
+
         switch (facing_direction)
         {
             case 0:
@@ -547,18 +556,6 @@ else if (!_cutscene_locked)
 
     // =====================================================
     // SPRITES BASE NUEVOS
-    // =====================================================
-    //
-    // Sustituyen visualmente:
-    //
-    // pendejo_arriba    -> spr_maya_arriba
-    // pendejo_derecha   -> spr_maya_derecha
-    // pendejo_abajo     -> spr_maya_abajo
-    // pendejo_izquierda -> spr_maya_izquierda
-    //
-    // Los antiguos pueden seguir existiendo como fallback
-    // interno del código actual. Ya no se dibujan si el nuevo
-    // recurso correspondiente existe.
     // =====================================================
 
     else
@@ -620,7 +617,7 @@ if (_desired_name != "")
 
 
 // =========================================================
-// VALIDAR SPRITE ACTUAL
+// VALIDAR SPRITE
 // =========================================================
 
 if (
@@ -654,6 +651,10 @@ var _draw_frame =
     );
 
 
+// =========================================================
+// SALTO: FRAME FIJO SEGÚN DIRECCIÓN VERTICAL
+// =========================================================
+
 if (_force_frame >= 0)
 {
     _draw_frame =
@@ -663,8 +664,171 @@ if (_force_frame >= 0)
             _frame_count - 1
         );
 }
+
+
+// =========================================================
+// ANIMACIÓN MANUAL DE SPRITES DE PLATAFORMA
+// =========================================================
+//
+// El sprite visual puede ser distinto de sprite_index.
+// Por eso image_index del objeto no basta para animarlo.
+//
+// Se usa la velocidad configurada en el sprite.
+// Si esa velocidad es 0, fallback = 6 FPS.
+// =========================================================
+
+else if (_platformer)
+{
+    if (
+        !variable_instance_exists(
+            id,
+            "maya_platform_visual_anim_sprite"
+        )
+    )
+    {
+        maya_platform_visual_anim_sprite =
+            -1;
+
+        maya_platform_visual_anim_frame =
+            0;
+
+        maya_platform_visual_anim_accum =
+            0;
+    }
+
+
+    if (
+        maya_platform_visual_anim_sprite
+        !=
+        _draw_sprite
+    )
+    {
+        maya_platform_visual_anim_sprite =
+            _draw_sprite;
+
+        maya_platform_visual_anim_frame =
+            0;
+
+        maya_platform_visual_anim_accum =
+            0;
+    }
+
+
+    var _anim_speed =
+        sprite_get_speed(
+            _draw_sprite
+        );
+
+
+    var _anim_speed_type =
+        sprite_get_speed_type(
+            _draw_sprite
+        );
+
+
+    var _anim_fps =
+        0;
+
+
+    if (
+        _anim_speed_type
+        ==
+        spritespeed_framespersecond
+    )
+    {
+        _anim_fps =
+            _anim_speed;
+    }
+    else
+    {
+        _anim_fps =
+            _anim_speed
+            *
+            max(
+                1,
+                game_get_speed(
+                    gamespeed_fps
+                )
+            );
+    }
+
+
+    if (_anim_fps <= 0)
+    {
+        _anim_fps =
+            6;
+    }
+
+
+    var _dt_seconds =
+        min(
+            delta_time,
+            100000
+        )
+        /
+        1000000;
+
+
+    maya_platform_visual_anim_accum +=
+        _anim_fps
+        *
+        _dt_seconds;
+
+
+    while (
+        maya_platform_visual_anim_accum
+        >=
+        1
+    )
+    {
+        maya_platform_visual_anim_accum -=
+            1;
+
+
+        maya_platform_visual_anim_frame =
+            (
+                maya_platform_visual_anim_frame
+                +
+                1
+            )
+            mod
+            _frame_count;
+    }
+
+
+    _draw_frame =
+        clamp(
+            maya_platform_visual_anim_frame,
+            0,
+            _frame_count - 1
+        );
+}
+
+
+// =========================================================
+// RPG: CONSERVAR image_index NORMAL
+// =========================================================
+
 else
 {
+    if (
+        variable_instance_exists(
+            id,
+            "maya_platform_visual_anim_sprite"
+        )
+    )
+    {
+        maya_platform_visual_anim_sprite =
+            -1;
+
+        maya_platform_visual_anim_frame =
+            0;
+
+        maya_platform_visual_anim_accum =
+            0;
+    }
+
+
     _draw_frame =
         _draw_frame
         mod
@@ -680,14 +844,113 @@ else
 
 
 // =========================================================
+// ANCLAR EL CRECIMIENTO A LOS PIES
+// =========================================================
+//
+// draw_sprite_ext escala alrededor del origen del sprite.
+// Para que el crecimiento NO empuje los pies hacia abajo,
+// compensamos exactamente la diferencia de escala usando la
+// parte inferior real del bounding box.
+//
+// Resultado:
+//     el punto de los pies queda donde estaba sin escalar;
+//     todo el crecimiento extra se dirige hacia arriba.
+// =========================================================
+
+var _foot_local_y =
+    sprite_get_bbox_bottom(
+        _draw_sprite
+    )
+    -
+    sprite_get_yoffset(
+        _draw_sprite
+    );
+
+
+var _draw_x =
+    x;
+
+
+var _draw_y =
+    y
+    +
+    (
+        _foot_local_y
+        *
+        image_yscale
+        *
+        (
+            1
+            -
+            _maya_scale
+        )
+    );
+
+
+// =========================================================
+// AGACHADA: 15 PX MÁS ABAJO
+// =========================================================
+
+if (_crouch_visual)
+{
+    _draw_y +=
+        15;
+}
+
+
+// =========================================================
+// GUARDAR VISUAL FINAL PARA EL EFECTO ROJO
+// =========================================================
+
+maya_visual_valid =
+    true;
+
+
+maya_visual_sprite =
+    _draw_sprite;
+
+
+maya_visual_frame =
+    _draw_frame;
+
+
+maya_visual_world_x =
+    _draw_x;
+
+
+maya_visual_world_y =
+    _draw_y;
+
+
+maya_visual_xscale =
+    _draw_xscale;
+
+
+maya_visual_yscale =
+    _draw_yscale;
+
+
+maya_visual_angle =
+    image_angle;
+
+
+maya_visual_blend =
+    image_blend;
+
+
+maya_visual_alpha =
+    image_alpha;
+
+
+// =========================================================
 // DIBUJAR
 // =========================================================
 
 draw_sprite_ext(
     _draw_sprite,
     _draw_frame,
-    x,
-    y,
+    _draw_x,
+    _draw_y,
     _draw_xscale,
     _draw_yscale,
     image_angle,
