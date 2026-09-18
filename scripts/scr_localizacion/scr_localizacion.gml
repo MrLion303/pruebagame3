@@ -67,6 +67,23 @@ function scr_loc_init() {
 function scr_loc(_texto_fuente) {
     if (!is_string(_texto_fuente)) return _texto_fuente;
 
+    // =====================================================
+    // COMPATIBILIDAD DEL NOMBRE ANTIGUO
+    // =====================================================
+    //
+    // Algunas interfaces antiguas todavía llaman:
+    //
+    //     scr_loc("Noelle")
+    //
+    // La protagonista ahora es Maya. Centralizar el cambio
+    // aquí evita que vuelva a aparecer "Noelle" en batalla u
+    // otra interfaz vieja que todavía conserve ese literal.
+    // =====================================================
+
+    if (_texto_fuente == "Noelle") {
+        _texto_fuente = "Maya";
+    }
+
     scr_loc_init();
 
     if (is_struct(global.loc_data) && struct_exists(global.loc_data, _texto_fuente)) {

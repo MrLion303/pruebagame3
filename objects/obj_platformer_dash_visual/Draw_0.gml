@@ -172,7 +172,15 @@ var _draw_yscale =
 
 
 // =========================================================
-// ANCLAR A LOS PIES
+// ANCLAR AL PIE FÍSICO DEL PLATAFORMERO
+// =========================================================
+//
+// Igual que obj_player Draw:
+// el pie visual del Dash debe coincidir con:
+//
+//     owner_ref.y + owner_ref.platform_hit_bottom
+//
+// y NO con el bbox normal del obj_player.
 // =========================================================
 
 var _foot_local_y =
@@ -190,19 +198,50 @@ var _draw_x =
 
 
 var _draw_y =
-    owner_ref.y
-    +
-    (
-        _foot_local_y
-        *
-        _base_yscale
-        *
+    owner_ref.y;
+
+
+if (
+    variable_instance_exists(
+        owner_ref,
+        "platform_hit_bottom"
+    )
+)
+{
+    var _platform_foot_world_y =
+        owner_ref.y
+        +
+        owner_ref.platform_hit_bottom;
+
+
+    _draw_y =
+        _platform_foot_world_y
+        -
         (
-            1
-            -
-            _maya_scale
-        )
-    );
+            _foot_local_y
+            *
+            _draw_yscale
+        );
+}
+else
+{
+    // Fallback seguro si por cualquier razón el estado
+    // plataformero todavía no terminó de inicializarse.
+    _draw_y =
+        owner_ref.y
+        +
+        (
+            _foot_local_y
+            *
+            _base_yscale
+            *
+            (
+                1
+                -
+                _maya_scale
+            )
+        );
+}
 
 
 // =========================================================

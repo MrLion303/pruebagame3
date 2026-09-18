@@ -169,6 +169,10 @@ var _crouch_visual =
     false;
 
 
+var _downslide_visual =
+    false;
+
+
 // =========================================================
 // MODO PLATAFORMERO
 // =========================================================
@@ -476,8 +480,20 @@ else if (!_cutscene_locked)
         downslide_active
     )
     {
+        _downslide_visual =
+            true;
+
+
+        // Mientras Maya se desliza y está dentro del rango
+        // de ataque, usar la variante TARGET.
         _desired_name =
-            "spr_maya_deslizamiento";
+            (
+                _target_active
+                ?
+                "spr_maya_deslizamiento_target"
+                :
+                "spr_maya_deslizamiento"
+            );
     }
 
 
@@ -613,6 +629,34 @@ if (_desired_name != "")
         _draw_sprite =
             _candidate;
     }
+    else if (
+        _downslide_visual
+        &&
+        _desired_name
+        ==
+        "spr_maya_deslizamiento_target"
+    )
+    {
+        // Si todavía no existe la variante TARGET, conservar
+        // spr_maya_deslizamiento como fallback.
+        var _slide_fallback =
+            asset_get_index(
+                "spr_maya_deslizamiento"
+            );
+
+
+        if (
+            _slide_fallback != -1
+            &&
+            sprite_exists(
+                _slide_fallback
+            )
+        )
+        {
+            _draw_sprite =
+                _slide_fallback;
+        }
+    }
 }
 
 
@@ -667,17 +711,23 @@ if (_force_frame >= 0)
 
 
 // =========================================================
-// ANIMACIÓN MANUAL DE SPRITES DE PLATAFORMA
+// ANIMACIÓN MANUAL DE PLATAFORMA Y DESLIZAMIENTO
 // =========================================================
 //
 // El sprite visual puede ser distinto de sprite_index.
 // Por eso image_index del objeto no basta para animarlo.
+// También se usa para spr_maya_deslizamiento y para
+// spr_maya_deslizamiento_target.
 //
 // Se usa la velocidad configurada en el sprite.
 // Si esa velocidad es 0, fallback = 6 FPS.
 // =========================================================
 
-else if (_platformer)
+else if (
+    _platformer
+    ||
+    _downslide_visual
+)
 {
     if (
         !variable_instance_exists(
@@ -806,7 +856,7 @@ else if (_platformer)
 
 
 // =========================================================
-// RPG: CONSERVAR image_index NORMAL
+// RESTO DEL RPG: CONSERVAR image_index NORMAL
 // =========================================================
 
 else
@@ -844,17 +894,28 @@ else
 
 
 // =========================================================
-// ANCLAR EL CRECIMIENTO A LOS PIES
+// ANCLAJE VISUAL A LOS PIES REALES
 // =========================================================
 //
-// draw_sprite_ext escala alrededor del origen del sprite.
-// Para que el crecimiento NO empuje los pies hacia abajo,
-// compensamos exactamente la diferencia de escala usando la
-// parte inferior real del bounding box.
+// IMPORTANTE EN PLATAFORMA:
 //
-// Resultado:
-//     el punto de los pies queda donde estaba sin escalar;
-//     todo el crecimiento extra se dirige hacia arriba.
+// La física de plataforma NO usa bbox_bottom del sprite.
+// Usa su propia caja rectangular:
+//
+//     y + platform_hit_bottom
+//
+// Por eso anclar el sprite usando el bbox normal podía dejar
+// a Maya varios píxeles flotando sobre el suelo.
+//
+// Ahora, en plataforma, la PARTE INFERIOR REAL DEL SPRITE
+// visual se coloca exactamente en:
+//
+//     y + platform_hit_bottom
+//
+// Así la imagen coincide con la colisión real.
+//
+// En RPG conservamos el crecimiento desde los pies que ya
+// teníamos.
 // =========================================================
 
 var _foot_local_y =
@@ -872,19 +933,55 @@ var _draw_x =
 
 
 var _draw_y =
-    y
-    +
-    (
-        _foot_local_y
-        *
-        image_yscale
-        *
+    y;
+
+
+if (
+    _platformer
+    &&
+    variable_instance_exists(
+        id,
+        "platform_hit_bottom"
+    )
+)
+{
+    var _platform_foot_world_y =
+        y
+        +
+        platform_hit_bottom;
+
+
+    // _draw_yscale YA contiene el 39/28.
+    // De esta forma el bbox inferior del sprite queda
+    // exactamente sobre el pie físico del plataformero.
+    _draw_y =
+        _platform_foot_world_y
+        -
         (
-            1
-            -
-            _maya_scale
-        )
-    );
+            _foot_local_y
+            *
+            _draw_yscale
+        );
+}
+else
+{
+    // RPG: crecimiento anclado a los pies sin modificar la
+    // posición física del jugador.
+    _draw_y =
+        y
+        +
+        (
+            _foot_local_y
+            *
+            image_yscale
+            *
+            (
+                1
+                -
+                _maya_scale
+            )
+        );
+}
 
 
 // =========================================================

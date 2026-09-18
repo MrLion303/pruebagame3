@@ -104,11 +104,12 @@
                                    "objects\\obj_batalla_ui\\Draw_64.gml:915"
                                ],
                     "Noelle":  [
-                                   "objects\\obj_batalla_ui\\Draw_64.gml:1288"
+                                   "objects\\obj_batalla_ui\\Draw_64.gml:1288",
+                                   "scripts\\scr_localizacion\\scr_localizacion.gml:76"
                                ],
                     "HP":  [
                                "objects\\obj_batalla_ui\\Draw_64.gml:1303",
-                               "objects\\obj_mapa_combate_fx\\Draw_64.gml:649"
+                               "objects\\obj_mapa_combate_fx\\Draw_64.gml:719"
                            ],
                     "¡Subiste de nivel!":  [
                                                "objects\\obj_batalla_ui\\Step_0.gml:447"
@@ -162,7 +163,7 @@
                                                                          "objects\\obj_game_over_texto\\Create_0.gml:184"
                                                                      ],
                     "Maya":  [
-                                 "objects\\obj_mapa_combate_fx\\Draw_64.gml:616",
+                                 "objects\\obj_mapa_combate_fx\\Draw_64.gml:686",
                                  "scripts\\scr_platformer_system\\scr_platformer_system.gml:4723"
                              ],
                     "INV":  [

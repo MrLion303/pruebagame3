@@ -456,7 +456,7 @@ function scr_cutscene_data(_id)
                     scr_loc_src(
                         "* Hay algo de malas vibras por aquí..."
                     ),
-                    spr_noelle_normal,
+                    spr_maya_normal,
                     snd_txtmaya
                 ),
 
@@ -517,7 +517,7 @@ function scr_cutscene_data(_id)
                     scr_loc_src(
                         "* Esto se va a poner muy feo..."
                     ),
-                    spr_noelle_normal,
+                    spr_maya_normal,
                     snd_txtmaya
                 ),
 
@@ -546,7 +546,7 @@ function scr_cutscene_data(_id)
                     scr_loc_src(
                         "* Bueno... sí estuvo feo. Fahaha."
                     ),
-                    spr_noelle_normal,
+                    spr_maya_normal,
                     snd_txtmaya
                 ),
 				
@@ -586,7 +586,7 @@ case "encuentro_joker_2":
             scr_loc_src(
                 "* Hay algo de malas vibras por aquí..."
             ),
-            spr_noelle_normal,
+            spr_maya_normal,
             snd_txtmaya
         ),
 
@@ -626,7 +626,7 @@ case "encuentro_joker_2":
             scr_loc_src(
                 "* Esto se va a poner muy feo..."
             ),
-            spr_noelle_normal,
+            spr_maya_normal,
             snd_txtmaya
         ),
 
@@ -657,7 +657,7 @@ case "encuentro_joker_2":
             scr_loc_src(
                 "* Bueno... sí estuvo feo. Fahaha."
             ),
-            spr_noelle_normal,
+            spr_maya_normal,
             snd_txtmaya
         ),
 
@@ -746,7 +746,7 @@ case "encuentro_joker_2":
             scr_loc_src(
                 "* ¿Eso qué es?..."
             ),
-            spr_noelle_normal,
+            spr_maya_normal,
             snd_txtmaya
         ),
 
@@ -782,7 +782,7 @@ case "encuentro_joker_2":
             scr_loc_src(
                 "* Ya..."
             ),
-            spr_noelle_normal,
+            spr_maya_normal,
             snd_txtmaya
         ),
 
@@ -844,7 +844,7 @@ case "encuentro_joker_2":
             scr_loc_src(
                 "* Ok?..."
             ),
-            spr_noelle_normal,
+            spr_maya_normal,
             snd_txtmaya
         ),
 

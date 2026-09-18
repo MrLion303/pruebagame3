@@ -31,6 +31,10 @@ var _force_frame =
     -1;
 
 
+var _downslide_visual =
+    false;
+
+
 // =========================================================
 // PLATAFORMERO
 // =========================================================
@@ -277,6 +281,10 @@ else
             _special == "downslide_exit"
         )
         {
+            _downslide_visual =
+                true;
+
+
             _desired_name =
                 "spr_silicio_deslizamiento";
         }
@@ -362,11 +370,15 @@ if (_force_frame >= 0)
 
 
 // =========================================================
-// ANIMACIÓN MANUAL PLATAFORMERA
+// ANIMACIÓN MANUAL PLATAFORMERA Y DESLIZAMIENTO
 // =========================================================
 
 else if (
-    _platformer
+    (
+        _platformer
+        ||
+        _downslide_visual
+    )
     &&
     _desired_name != ""
 )
