@@ -6,6 +6,9 @@
 /// - Maya usa 39/28 = 139.29% de escala visual.
 /// - El crecimiento queda anclado a los pies.
 /// - El sprite visual final se comunica al FX rojo.
+/// - Usa spr_maya_platform_dash_izquierda / derecha.
+/// - En peligro intenta automáticamente la variante *_target;
+///   si no existe, vuelve al Dash normal.
 /// =========================================================
 
 if (
@@ -26,13 +29,55 @@ var _left =
     0;
 
 
-var _desired_name =
+var _base_name =
     (
         _left
         ?
         "spr_maya_platform_dash_izquierda"
         :
         "spr_maya_platform_dash_derecha"
+    );
+
+
+// =========================================================
+// PELIGRO / TARGET
+// =========================================================
+
+var _target_active =
+    false;
+
+
+if (instance_exists(obj_mapa_combate_fx))
+{
+    var _fx =
+        instance_find(
+            obj_mapa_combate_fx,
+            0
+        );
+
+
+    if (
+        _fx != noone
+        &&
+        variable_instance_exists(
+            _fx,
+            "danger_active"
+        )
+    )
+    {
+        _target_active =
+            _fx.danger_active;
+    }
+}
+
+
+var _desired_name =
+    (
+        _target_active
+        ?
+        _base_name + "_target"
+        :
+        _base_name
     );
 
 
@@ -43,7 +88,30 @@ var _spr =
 
 
 // =========================================================
-// FALLBACK: SPRITE ACTUAL DE MAYA
+// FALLBACK 1: DASH NORMAL
+// =========================================================
+
+if (
+    (
+        _spr == -1
+        ||
+        !sprite_exists(
+            _spr
+        )
+    )
+    &&
+    _target_active
+)
+{
+    _spr =
+        asset_get_index(
+            _base_name
+        );
+}
+
+
+// =========================================================
+// FALLBACK 2: SPRITE ACTUAL DE MAYA
 // =========================================================
 
 if (

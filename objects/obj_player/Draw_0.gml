@@ -20,6 +20,14 @@
 ///   animarse usando la velocidad configurada en el propio
 ///   sprite. Si la velocidad del sprite es 0, usa 6 FPS.
 ///
+/// - En modo plataforma, cuando Maya entra en rango de ataque,
+///   se intenta usar automáticamente el mismo sprite visual
+///   con "_target" al final. Si no existe, se conserva el
+///   sprite normal como fallback.
+///
+/// - Las poses agachadas siguen la misma regla *_target y
+///   ahora sí recorren sus frames mientras Maya camina.
+///
 /// - Salto:
 ///       frame 0 = subiendo
 ///       frame 1 = cayendo
@@ -158,6 +166,13 @@ if (instance_exists(obj_mapa_combate_fx))
 // =========================================================
 
 var _desired_name =
+    "";
+
+
+// Cuando se intenta usar una variante *_target, aquí se
+// guarda el sprite normal correspondiente para usarlo si la
+// variante todavía no existe.
+var _fallback_name =
     "";
 
 
@@ -399,48 +414,6 @@ if (
 
 
     // =====================================================
-    // TARGET EN PLATAFORMA
-    // =====================================================
-
-    else if (_target_active)
-    {
-        switch (facing_direction)
-        {
-            case 0:
-                _desired_name =
-                    "spr_maya_target_platform_derecha";
-                break;
-
-            case 1:
-                _desired_name =
-                    "spr_maya_target_platform_izquierda";
-                break;
-
-            case 2:
-                _desired_name =
-                    "spr_maya_target_platform_abajo";
-                break;
-
-            case 3:
-                _desired_name =
-                    "spr_maya_target_platform_arriba";
-                break;
-
-            default:
-                _desired_name =
-                    (
-                        _left
-                        ?
-                        "spr_maya_target_platform_izquierda"
-                        :
-                        "spr_maya_target_platform_derecha"
-                    );
-                break;
-        }
-    }
-
-
-    // =====================================================
     // RUN
     // =====================================================
 
@@ -481,6 +454,38 @@ if (
                 "spr_maya_platform_idle_derecha"
             );
     }
+
+
+    // =====================================================
+    // VARIANTE TARGET AUTOMÁTICA DE PLATAFORMA
+    // =====================================================
+    //
+    // Regla universal:
+    //
+    //     sprite normal:
+    //         spr_maya_platform_run_derecha
+    //
+    //     sprite target:
+    //         spr_maya_platform_run_derecha_target
+    //
+    // Se aplica a idle, run, salto, sentón y ataques.
+    // Si la variante *_target no existe, se conserva el
+    // sprite normal.
+    // =====================================================
+
+    if (
+        _target_active
+        &&
+        _desired_name != ""
+    )
+    {
+        _fallback_name =
+            _desired_name;
+
+
+        _desired_name +=
+            "_target";
+    }
 }
 
 
@@ -507,16 +512,19 @@ else if (!_cutscene_locked)
             true;
 
 
-        // Mientras Maya se desliza y está dentro del rango
-        // de ataque, usar la variante TARGET.
         _desired_name =
-            (
-                _target_active
-                ?
-                "spr_maya_deslizamiento_target"
-                :
-                "spr_maya_deslizamiento"
-            );
+            "spr_maya_deslizamiento";
+
+
+        if (_target_active)
+        {
+            _fallback_name =
+                _desired_name;
+
+
+            _desired_name +=
+                "_target";
+        }
     }
 
 
@@ -541,47 +549,41 @@ else if (!_cutscene_locked)
         {
             case 0:
                 _desired_name =
-                    (
-                        _target_active
-                        ?
-                        "spr_maya_agachada_derecha_target"
-                        :
-                        "spr_maya_agachada_derecha"
-                    );
+                    "spr_maya_agachada_derecha";
                 break;
 
             case 1:
                 _desired_name =
-                    (
-                        _target_active
-                        ?
-                        "spr_maya_agachada_izquierda_target"
-                        :
-                        "spr_maya_agachada_izquierda"
-                    );
+                    "spr_maya_agachada_izquierda";
                 break;
 
             case 2:
                 _desired_name =
-                    (
-                        _target_active
-                        ?
-                        "spr_maya_agachada_abajo_target"
-                        :
-                        "spr_maya_agachada_abajo"
-                    );
+                    "spr_maya_agachada_abajo";
                 break;
 
             case 3:
                 _desired_name =
-                    (
-                        _target_active
-                        ?
-                        "spr_maya_agachada_arriba_target"
-                        :
-                        "spr_maya_agachada_arriba"
-                    );
+                    "spr_maya_agachada_arriba";
                 break;
+        }
+
+
+        // Igual que en plataforma: mismo nombre + _target.
+        // Si todavía no existe, se conserva la pose agachada
+        // normal de esa dirección.
+        if (
+            _target_active
+            &&
+            _desired_name != ""
+        )
+        {
+            _fallback_name =
+                _desired_name;
+
+
+            _desired_name +=
+                "_target";
         }
     }
 
@@ -676,97 +678,25 @@ if (_desired_name != "")
         _draw_sprite =
             _candidate;
     }
-    else if (
-        _downslide_visual
-        &&
-        _desired_name
-        ==
-        "spr_maya_deslizamiento_target"
-    )
+    else if (_fallback_name != "")
     {
-        // Si todavía no existe la variante TARGET, conservar
-        // spr_maya_deslizamiento como fallback.
-        var _slide_fallback =
+        var _fallback_sprite =
             asset_get_index(
-                "spr_maya_deslizamiento"
+                _fallback_name
             );
 
 
         if (
-            _slide_fallback != -1
+            _fallback_sprite != -1
             &&
             sprite_exists(
-                _slide_fallback
+                _fallback_sprite
             )
         )
         {
             _draw_sprite =
-                _slide_fallback;
+                _fallback_sprite;
         }
-    }
-}
-
-
-// =========================================================
-// FALLBACK DE AGACHADA TARGET
-// =========================================================
-//
-// Si todavía no existe una variante *_target, conservar la
-// pose agachada normal de esa misma dirección.
-// =========================================================
-
-if (
-    _crouch_visual
-    &&
-    _draw_sprite == sprite_index
-    &&
-    _target_active
-)
-{
-    var _crouch_fallback_name =
-        "";
-
-
-    switch (facing_direction)
-    {
-        case 0:
-            _crouch_fallback_name =
-                "spr_maya_agachada_derecha";
-            break;
-
-        case 1:
-            _crouch_fallback_name =
-                "spr_maya_agachada_izquierda";
-            break;
-
-        case 2:
-            _crouch_fallback_name =
-                "spr_maya_agachada_abajo";
-            break;
-
-        case 3:
-            _crouch_fallback_name =
-                "spr_maya_agachada_arriba";
-            break;
-    }
-
-
-    var _crouch_fallback =
-        asset_get_index(
-            _crouch_fallback_name
-        );
-
-
-    if (
-        _crouch_fallback != -1
-        &&
-        sprite_exists(
-            _crouch_fallback
-        )
-    )
-    {
-        _draw_sprite =
-            _crouch_fallback;
     }
 }
 
@@ -863,13 +793,16 @@ else if (
 
 
 // =========================================================
-// ANIMACIÓN MANUAL DE PLATAFORMA Y DESLIZAMIENTO
+// ANIMACIÓN MANUAL DE SPRITES VISUALES ALTERNOS
 // =========================================================
 //
 // El sprite visual puede ser distinto de sprite_index.
 // Por eso image_index del objeto no basta para animarlo.
-// También se usa para spr_maya_deslizamiento y para
-// spr_maya_deslizamiento_target.
+//
+// Se usa para:
+//     - sprites de plataforma;
+//     - deslizamiento;
+//     - agachamiento mientras Maya realmente camina.
 //
 // Se usa la velocidad configurada en el sprite.
 // Si esa velocidad es 0, fallback = 6 FPS.
@@ -879,6 +812,12 @@ else if (
     _platformer
     ||
     _downslide_visual
+    ||
+    (
+        _crouch_visual
+        &&
+        movimiento
+    )
 )
 {
     if (
@@ -1046,30 +985,35 @@ else
 
 
 // =========================================================
-// AGACHADA: NO CAMINAR VISUALMENTE
+// AGACHADA: IDLE EN FRAME 0, CAMINANDO ANIMADA
 // =========================================================
 //
-// Aunque Maya intente avanzar contra una colisión mientras
-// está agachada, la pose no debe parecer una caminata.
+// Antes las poses agachadas se forzaban SIEMPRE al frame 0,
+// por lo que nunca podían animarse caminando.
 //
-// Las poses agachadas quedan fijas en su primer frame.
+// Ahora:
+//     movimiento == true  -> usa el animador manual anterior.
+//     movimiento == false -> vuelve al frame 0.
 // =========================================================
 
 if (_crouch_visual)
 {
-    _draw_frame =
-        0;
-
-
-    // Blindaje extra:
-    // aunque la lógica siga intentando avanzar contra una
-    // colisión, Maya agachada no debe verse caminando.
-    image_index =
-        0;
-
-
+    // sprite_index sigue siendo el sprite RPG base del objeto;
+    // detener su animación evita que avance por detrás mientras
+    // Draw usa la pose agachada alternativa.
     image_speed =
         0;
+
+
+    if (!movimiento)
+    {
+        _draw_frame =
+            0;
+
+
+        image_index =
+            0;
+    }
 }
 
 

@@ -12,6 +12,16 @@
 ///
 /// Además, cada copia fantasma se ancla al mismo pie físico
 /// del modo plataforma que el sprite principal de Maya.
+///
+/// TARGET:
+///
+/// Si Maya está dentro del rango de ataque de un enemigo,
+/// intenta usar:
+///
+///     spr_maya_platform_dash_izquierda_target
+///     spr_maya_platform_dash_derecha_target
+///
+/// Si la variante no existe, usa el Dash normal.
 /// =========================================================
 
 
@@ -71,6 +81,38 @@ var _left =
     0;
 
 
+// =========================================================
+// PELIGRO / TARGET
+// =========================================================
+
+var _target_active =
+    false;
+
+
+if (instance_exists(obj_mapa_combate_fx))
+{
+    var _fx =
+        instance_find(
+            obj_mapa_combate_fx,
+            0
+        );
+
+
+    if (
+        _fx != noone
+        &&
+        variable_instance_exists(
+            _fx,
+            "danger_active"
+        )
+    )
+    {
+        _target_active =
+            _fx.danger_active;
+    }
+}
+
+
 var _jump_fallback =
     scr_platformer_ext_sprite(
         (
@@ -93,17 +135,35 @@ var _jump_fallback =
     );
 
 
-var _dash_sprite =
+var _dash_base_name =
+    (
+        _left
+        ?
+        "spr_maya_platform_dash_izquierda"
+        :
+        "spr_maya_platform_dash_derecha"
+    );
+
+
+var _dash_normal_sprite =
     scr_platformer_ext_sprite(
-        (
-            _left
-            ?
-            "spr_maya_platform_dash_izquierda"
-            :
-            "spr_maya_platform_dash_derecha"
-        ),
+        _dash_base_name,
         _jump_fallback
     );
+
+
+var _dash_sprite =
+    _dash_normal_sprite;
+
+
+if (_target_active)
+{
+    _dash_sprite =
+        scr_platformer_ext_sprite(
+            _dash_base_name + "_target",
+            _dash_normal_sprite
+        );
+}
 
 
 if (
