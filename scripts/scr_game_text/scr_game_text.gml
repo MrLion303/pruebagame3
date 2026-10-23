@@ -1,4 +1,4 @@
-// pasar renglon \n
+// pasar renglon \neeeeeeeeeee
 
 //--------------ANIMACIONES----------------
 // scr_text_wave hace el movimiento de ola

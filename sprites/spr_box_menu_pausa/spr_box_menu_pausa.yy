@@ -44,8 +44,8 @@
   },
   "origin":0,
   "parent":{
-    "name":"Sprites",
-    "path":"folders/MSistema de Batallas/Sprites.yy",
+    "name":"Items",
+    "path":"folders/Items.yy",
   },
   "preMultiplyAlpha":false,
   "resourceType":"GMSprite",
