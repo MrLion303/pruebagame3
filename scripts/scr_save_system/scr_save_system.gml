@@ -809,7 +809,7 @@ function scr_cargar_juego(_seccion)
         );
 
 
-    global.playtime_frames =
+    var _playtime_guardado =
         ini_read_real(
             _seccion,
             "playtime",
@@ -830,22 +830,48 @@ function scr_cargar_juego(_seccion)
     // DECODIFICAR
     // =====================================================
 
-    var _json_string =
-        base64_decode(
-            _extra
+    var _save_data = undefined;
+
+    // Un archivo dañado no debe cerrar el juego ni alterar
+    // el tiempo de la partida que ya está cargada.
+    try
+    {
+        var _json_string =
+            base64_decode(
+                _extra
+            );
+
+        _save_data =
+            json_parse(
+                _json_string
+            );
+    }
+    catch (_error)
+    {
+        show_debug_message(
+            "[SAVE] El archivo del slot \"" 
+            + string(_seccion)
+            + "\" está dañado o no contiene JSON válido."
         );
 
-
-    var _save_data =
-        json_parse(
-            _json_string
-        );
-
+        return false;
+    }
 
     if (!is_struct(_save_data))
     {
+        show_debug_message(
+            "[SAVE] El slot \"" 
+            + string(_seccion)
+            + "\" no contiene datos de partida válidos."
+        );
+
         return false;
     }
+
+    // Solo aplicar el tiempo después de validar el contenido
+    // para no contaminar la sesión si falla la carga.
+    global.playtime_frames =
+        max(0, _playtime_guardado);
 
 
     // =====================================================
