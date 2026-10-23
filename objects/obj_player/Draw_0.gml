@@ -61,16 +61,29 @@ maya_visual_valid =
 
 
 // =========================================================
-// ESCALA VISUAL UNIVERSAL DE MAYA
+// ESCALA VISUAL DE MAYA
 // =========================================================
 //
-// 28 px originales -> 39 px visuales.
+// RPG: conservar el tamaño original de los sprites.
+// Plataforma: mantener la escala visual de 28 px a 39 px.
 // =========================================================
 
 var _maya_scale =
-    39
-    /
-    28;
+    (
+        variable_global_exists(
+            "platformer_active"
+        )
+        &&
+        global.platformer_active
+    )
+    ?
+    (
+        39
+        /
+        28
+    )
+    :
+    1;
 
 
 var _draw_xscale =
