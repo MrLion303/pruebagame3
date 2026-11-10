@@ -36,3 +36,10 @@ if (
         0
     );
 }
+
+
+// La referencia del combatiente activo solo vive durante la batalla.
+if (variable_global_exists("battle_active_actor"))
+{
+    global.battle_active_actor = "maya";
+}
