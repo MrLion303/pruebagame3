@@ -59,6 +59,26 @@ if (fade_salida_activa) {
 if (!variable_instance_exists(id, "en_resultado_ataque")) en_resultado_ataque = false;
 if (!variable_instance_exists(id, "en_dialogo_victoria_final")) en_dialogo_victoria_final = false;
 
+// La tarjeta activa sube; la inactiva se desliza detrás del diálogo.
+if (!variable_instance_exists(id, "maya_card_y")) maya_card_y = 99;
+if (!variable_instance_exists(id, "silicio_card_y")) silicio_card_y = 121;
+
+var _actor_tarjeta =
+    variable_global_exists("battle_active_actor")
+    ?
+    global.battle_active_actor
+    :
+    "maya";
+
+var _maya_card_objetivo = (_actor_tarjeta == "maya") ? 99 : 121;
+var _silicio_card_objetivo = (_actor_tarjeta == "silicio") ? 99 : 121;
+
+maya_card_y = lerp(maya_card_y, _maya_card_objetivo, 0.22);
+silicio_card_y = lerp(silicio_card_y, _silicio_card_objetivo, 0.22);
+
+if (abs(maya_card_y - _maya_card_objetivo) < 0.15) maya_card_y = _maya_card_objetivo;
+if (abs(silicio_card_y - _silicio_card_objetivo) < 0.15) silicio_card_y = _silicio_card_objetivo;
+
 for (var i = 0; i < array_length(enemigos); i++) {
     if (!variable_struct_exists(enemigos[i], "shake_timer")) enemigos[i].shake_timer = 0;
     if (enemigos[i].shake_timer > 0) enemigos[i].shake_timer--;
@@ -425,12 +445,16 @@ if (_todos_derrotados && en_dialogo_victoria_final) {
             // niveles antes/después. Así la victoria funciona igual aunque la
             // batalla haya sido iniciada desde una cinemática.
             var _subidas_nivel = 0;
+            var _subidas_silicio = 0;
 
             if (victoria_xp > 0) {
                 _subidas_nivel = scr_level_ganar_experiencia(victoria_xp);
+                _subidas_silicio = scr_silicio_ganar_experiencia(victoria_xp);
             }
 
-            var _subio = (_subidas_nivel > 0);
+            var _subio_maya = (_subidas_nivel > 0);
+            var _subio_silicio = (_subidas_silicio > 0);
+            var _subio = _subio_maya || _subio_silicio;
             victoria_etapa = _subio ? 1 : 2;
 
             if (_subio) {
@@ -444,7 +468,16 @@ if (_todos_derrotados && en_dialogo_victoria_final) {
                 keyboard_clear(ord("Z"));
                 keyboard_clear(vk_enter);
 
-                f_procesar_dialogo(scr_loc("¡Subiste de nivel!"));
+                var _texto_nivel = "";
+                if (_subio_maya && _subio_silicio) {
+                    _texto_nivel = scr_loc_src("¡Maya y Silicio subieron de nivel!");
+                } else if (_subio_silicio) {
+                    _texto_nivel = scr_loc_src("¡Silicio subió de nivel!");
+                } else {
+                    _texto_nivel = scr_loc("¡Subiste de nivel!");
+                }
+
+                f_procesar_dialogo(_texto_nivel);
             } else {
                 if (instance_exists(obj_batalla_controller)) {
                     obj_batalla_controller.victoria_finalizada = true;
@@ -617,20 +650,62 @@ if (draw_char < text_length) {
 
                 if (_item_valido) {
                     var _item_data = global.item_db[$ _item_key];
-                    var _hp_antes = instance_exists(obj_player) ? obj_player.hp : 0;
+                    var _usa_silicio =
+                        variable_global_exists("battle_active_actor")
+                        &&
+                        global.battle_active_actor == "silicio";
+
+                    var _objetivo_combate =
+                        _usa_silicio
+                        ?
+                        scr_silicio_stats_data()
+                        :
+                        instance_find(obj_player, 0);
+
+                    var _nombre_objetivo =
+                        _usa_silicio
+                        ?
+                        scr_loc("Silicio")
+                        :
+                        scr_loc("Maya");
+
+                    var _hp_antes =
+                        is_struct(_objetivo_combate)
+                        ?
+                        _objetivo_combate.hp
+                        :
+                        _objetivo_combate.hp;
 
                     if (variable_struct_exists(_item_data, "efecto")) {
-                        _item_data.efecto();
+                        _item_data.efecto(_objetivo_combate);
                     }
 
-                    var _hp_curado = instance_exists(obj_player) ? obj_player.hp - _hp_antes : 0;
+                    if (_usa_silicio) {
+                        global.silicio_stats = _objetivo_combate;
+                    }
+
+                    var _hp_despues =
+                        is_struct(_objetivo_combate)
+                        ?
+                        _objetivo_combate.hp
+                        :
+                        _objetivo_combate.hp;
+
+                    var _hp_curado = max(0, _hp_despues - _hp_antes);
                     obj_player.inventory[_inv_index] = -1;
 
                     var _texto_item = "";
                     if (_hp_curado > 0) {
-                        _texto_item = scr_locf("* Consumiste {item}! Te curaste {hp} de vida!", { item: scr_loc(_item_data.nombre), hp: string(_hp_curado) });
-                    } else if (instance_exists(obj_player) && _hp_antes >= obj_player.hp_max) {
-                        _texto_item = scr_locf("* Consumiste {item}, pero ya tienes la vida llena!", { item: scr_loc(_item_data.nombre) });
+                        _texto_item = scr_locf("* Consumiste {item}! {actor} recupera {hp} HP.", {
+                            item: scr_loc(_item_data.nombre),
+                            actor: _nombre_objetivo,
+                            hp: string(_hp_curado)
+                        });
+                    } else if (_hp_antes >= _objetivo_combate.hp_max) {
+                        _texto_item = scr_locf("* Consumiste {item}, pero {actor} ya tiene la vida llena.", {
+                            item: scr_loc(_item_data.nombre),
+                            actor: _nombre_objetivo
+                        });
                     } else {
                         _texto_item = scr_locf("* Consumiste {item}!", { item: scr_loc(_item_data.nombre) });
                     }
@@ -683,7 +758,19 @@ if (draw_char < text_length) {
             }
 
         } else if (en_resultado_ataque) {
-            en_resultado_ataque = false;
+            var _control_batalla =
+                instance_exists(obj_batalla_controller)
+                ?
+                instance_find(obj_batalla_controller, 0)
+                :
+                noone;
+
+            var _fase_resultado =
+                (_control_batalla != noone)
+                ?
+                _control_batalla.fase_actual
+                :
+                -1;
 
             var _chequear_todos = true;
             for (var i = 0; i < array_length(enemigos); i++) {
@@ -693,7 +780,18 @@ if (draw_char < text_length) {
                 }
             }
 
+            en_menu_fight = false;
+            en_seleccion_enemigo = false;
+            en_modo_info = false;
+            en_menu_toys = false;
+            en_menu_inventario = false;
+            opcion_seleccionada = 0;
+            toy_selected_key = -1;
+            toy_selected_slot = -1;
+            setup = false;
+
             if (_chequear_todos) {
+                en_resultado_ataque = false;
                 f_iniciar_victoria();
 
                 audio_play_sound(
@@ -701,36 +799,81 @@ if (draw_char < text_length) {
                     10,
                     false
                 );
-            } else {
-                en_menu_fight = false;
-                en_seleccion_enemigo = false;
-                en_modo_info = false;
-                en_menu_toys = false;
-                opcion_seleccionada = 0;
-                toy_selected_key = -1;
-                toy_selected_slot = -1;
-                setup = false;
+            }
+            else if (_control_batalla != noone && _fase_resultado == FASE_BATALLA.JUGADOR_MENU)
+            {
+                // Maya terminó su acción. Ahora actúa Silicio si sigue en pie.
+                en_resultado_ataque = false;
+
+                var _stats_silicio_turno = scr_silicio_stats_data();
+
+                if (_stats_silicio_turno.hp > 0)
+                {
+                    _control_batalla.fase_actual = FASE_BATALLA.SILICIO_MENU;
+                    global.battle_active_actor = "silicio";
+
+                    f_procesar_dialogo(
+                        scr_loc_src("* ¡Silicio, es tu turno!")
+                    );
+                }
+                else
+                {
+                    _control_batalla.turno_enemigo_idx = 0;
+                    _control_batalla.fase_actual = FASE_BATALLA.ENEMIGO_TURNO;
+                    global.battle_active_actor = "maya";
+
+                    var _texto_enemigos = texto_inicio_batalla;
+
+                    if (
+                        _control_batalla.primer_turno_pasado
+                        &&
+                        array_length(_control_batalla.dialogos_turno_actual) > 0
+                    )
+                    {
+                        var _idx_enemigos =
+                            irandom(array_length(_control_batalla.dialogos_turno_actual) - 1);
+
+                        _texto_enemigos =
+                            _control_batalla.dialogos_turno_actual[_idx_enemigos];
+                    }
+
+                    f_procesar_dialogo(_texto_enemigos);
+                }
+
                 audio_play_sound(snd_menumove, 10, false);
+            }
+            else if (_control_batalla != noone && _fase_resultado == FASE_BATALLA.SILICIO_MENU)
+            {
+                // Silicio terminó. Comienza la ronda enemiga.
+                en_resultado_ataque = false;
 
-                if (instance_exists(obj_batalla_controller)) {
-                    if (obj_batalla_controller.fase_actual == FASE_BATALLA.JUGADOR_MENU) {
-                        obj_batalla_controller.turno_enemigo_idx = 0;
-                        obj_batalla_controller.fase_actual = FASE_BATALLA.ENEMIGO_TURNO;
-                    }
+                _control_batalla.turno_enemigo_idx = 0;
+                _control_batalla.fase_actual = FASE_BATALLA.ENEMIGO_TURNO;
+                global.battle_active_actor = "maya";
+
+                var _texto_enemigos = texto_inicio_batalla;
+
+                if (
+                    _control_batalla.primer_turno_pasado
+                    &&
+                    array_length(_control_batalla.dialogos_turno_actual) > 0
+                )
+                {
+                    var _idx_enemigos =
+                        irandom(array_length(_control_batalla.dialogos_turno_actual) - 1);
+
+                    _texto_enemigos =
+                        _control_batalla.dialogos_turno_actual[_idx_enemigos];
                 }
 
-                var _siguiente_origen = texto_inicio_batalla;
-
-                if (instance_exists(obj_batalla_controller)) {
-                    if (variable_instance_exists(obj_batalla_controller, "primer_turno_pasado") && obj_batalla_controller.primer_turno_pasado) {
-                        if (variable_instance_exists(obj_batalla_controller, "dialogos_turno_actual") && array_length(obj_batalla_controller.dialogos_turno_actual) > 0) {
-                            var _idx_azar = irandom(array_length(obj_batalla_controller.dialogos_turno_actual) - 1);
-                            _siguiente_origen = obj_batalla_controller.dialogos_turno_actual[_idx_azar];
-                        }
-                    }
-                }
-
-                f_procesar_dialogo(_siguiente_origen);
+                f_procesar_dialogo(_texto_enemigos);
+                audio_play_sound(snd_menumove, 10, false);
+            }
+            else
+            {
+                // Resultado de un enemigo: limpiamos la espera, pero
+                // el controller conserva el índice y avanza al siguiente.
+                en_resultado_ataque = false;
             }
 
         } else if (!en_menu_fight && !en_seleccion_enemigo) {
