@@ -592,6 +592,211 @@ var _dialog_scale_y =
     /
     sprite_get_height(spr_bbs_textbox);
 
+// =========================================================
+// TARJETAS DE VIDA DE MAYA Y SILICIO
+// =========================================================
+// La tarjeta activa queda encima del diálogo. La inactiva se
+// desliza hacia abajo y queda oculta detrás del cuadro grande.
+// =========================================================
+
+var _maya_hp_card = 80;
+var _maya_hp_max_card = 80;
+
+if (instance_exists(obj_player))
+{
+    _maya_hp_card = obj_player.hp;
+    _maya_hp_max_card = max(1, obj_player.hp_max);
+}
+
+var _silicio_stats_card = scr_silicio_stats_data();
+var _silicio_hp_card = _silicio_stats_card.hp;
+var _silicio_hp_max_card = max(1, _silicio_stats_card.hp_max);
+
+if (maya_hp_anterior == -1) {
+    maya_hp_anterior = _maya_hp_card;
+} else if (_maya_hp_card < maya_hp_anterior) {
+    maya_timer_dolor = game_get_speed(gamespeed_fps) * 0.5;
+    maya_hp_anterior = _maya_hp_card;
+} else {
+    maya_hp_anterior = _maya_hp_card;
+}
+
+if (silicio_hp_anterior == -1) {
+    silicio_hp_anterior = _silicio_hp_card;
+} else if (_silicio_hp_card < silicio_hp_anterior) {
+    silicio_timer_dolor = game_get_speed(gamespeed_fps) * 0.5;
+    silicio_hp_anterior = _silicio_hp_card;
+} else {
+    silicio_hp_anterior = _silicio_hp_card;
+}
+
+var _card_scale = _s;
+var _card_w = 116 * _card_scale;
+var _card_h = 19 * _card_scale;
+var _card_x_maya = 42 * _card_scale;
+var _card_x_silicio = 162 * _card_scale;
+var _card_y_maya = maya_card_y * _card_scale;
+var _card_y_silicio = silicio_card_y * _card_scale;
+
+draw_sprite_stretched_ext(
+    spr_bbs_textbox,
+    0,
+    _card_x_maya,
+    _card_y_maya,
+    _card_w,
+    _card_h,
+    c_white,
+    _alpha_final
+);
+
+draw_sprite_stretched_ext(
+    spr_bbs_textbox,
+    0,
+    _card_x_silicio,
+    _card_y_silicio,
+    _card_w,
+    _card_h,
+    c_white,
+    _alpha_final
+);
+
+var _maya_head_frame = (maya_timer_dolor > 0) ? 1 : 0;
+var _silicio_head_frame = 0;
+
+if (maya_timer_dolor > 0) maya_timer_dolor--;
+if (silicio_timer_dolor > 0) silicio_timer_dolor--;
+
+draw_sprite_ext(
+    spr_bbs_prota_head,
+    clamp(_maya_head_frame, 0, sprite_get_number(spr_bbs_prota_head) - 1),
+    _card_x_maya + (4 * _card_scale),
+    _card_y_maya + (1 * _card_scale),
+    0.45 * _card_scale,
+    0.45 * _card_scale,
+    0,
+    c_white,
+    _alpha_final
+);
+
+draw_sprite_ext(
+    spr_silicio_abajo,
+    _silicio_head_frame,
+    _card_x_silicio + (5 * _card_scale),
+    _card_y_silicio + (0 * _card_scale),
+    0.34 * _card_scale,
+    0.34 * _card_scale,
+    0,
+    c_white,
+    _alpha_final
+);
+
+draw_text_transformed_color(
+    _card_x_maya + (23 * _card_scale),
+    _card_y_maya + (1 * _card_scale),
+    scr_loc("MAYA"),
+    0.62,
+    0.62,
+    0,
+    c_white,
+    c_white,
+    c_white,
+    c_white,
+    _alpha_final
+);
+
+draw_text_transformed_color(
+    _card_x_silicio + (23 * _card_scale),
+    _card_y_silicio + (1 * _card_scale),
+    scr_loc("Silicio"),
+    0.62,
+    0.62,
+    0,
+    c_white,
+    c_white,
+    c_white,
+    c_white,
+    _alpha_final
+);
+
+var _maya_hp_y = _card_y_maya + (8 * _card_scale);
+var _silicio_hp_y = _card_y_silicio + (8 * _card_scale);
+
+draw_text_transformed_color(
+    _card_x_maya + (23 * _card_scale),
+    _maya_hp_y,
+    "HP " + string(_maya_hp_card) + "/" + string(_maya_hp_max_card),
+    0.48,
+    0.48,
+    0,
+    c_white,
+    c_white,
+    c_white,
+    c_white,
+    _alpha_final
+);
+
+draw_text_transformed_color(
+    _card_x_silicio + (23 * _card_scale),
+    _silicio_hp_y,
+    "HP " + string(_silicio_hp_card) + "/" + string(_silicio_hp_max_card),
+    0.48,
+    0.48,
+    0,
+    c_white,
+    c_white,
+    c_white,
+    c_white,
+    _alpha_final
+);
+
+var _maya_bar_left = _card_x_maya + (23 * _card_scale);
+var _silicio_bar_left = _card_x_silicio + (23 * _card_scale);
+var _maya_bar_right = _card_x_maya + (111 * _card_scale);
+var _silicio_bar_right = _card_x_silicio + (111 * _card_scale);
+var _maya_bar_y = _card_y_maya + (15 * _card_scale);
+var _silicio_bar_y = _card_y_silicio + (15 * _card_scale);
+
+draw_set_alpha(_alpha_final);
+draw_set_color($202020);
+
+draw_rectangle(
+    _maya_bar_left,
+    _maya_bar_y,
+    _maya_bar_right,
+    _maya_bar_y + (2 * _card_scale),
+    false
+);
+
+draw_rectangle(
+    _silicio_bar_left,
+    _silicio_bar_y,
+    _silicio_bar_right,
+    _silicio_bar_y + (2 * _card_scale),
+    false
+);
+
+draw_set_color(c_yellow);
+
+draw_rectangle(
+    _maya_bar_left,
+    _maya_bar_y,
+    _maya_bar_left + ((_maya_bar_right - _maya_bar_left) * clamp(_maya_hp_card / _maya_hp_max_card, 0, 1)),
+    _maya_bar_y + (2 * _card_scale),
+    false
+);
+
+draw_rectangle(
+    _silicio_bar_left,
+    _silicio_bar_y,
+    _silicio_bar_left + ((_silicio_bar_right - _silicio_bar_left) * clamp(_silicio_hp_card / _silicio_hp_max_card, 0, 1)),
+    _silicio_bar_y + (2 * _card_scale),
+    false
+);
+
+draw_set_alpha(1);
+draw_set_color(c_white);
+
+
 draw_sprite_stretched_ext(
     spr_bbs_textbox,
     0,
@@ -1264,131 +1469,7 @@ else if (en_menu_toys) {
     }
 }
 
-// MONITOREO DE DAÑO Y FRAME DE LA CABEZA DEL PROTAGONISTA
-var _hp_actual = 80;
-var _hp_max = 80;
-
-if (instance_exists(obj_player)) {
-    _hp_actual = obj_player.hp;
-    _hp_max = max(1, obj_player.hp_max);
-}
-
-if (hp_anterior == -1) {
-    hp_anterior = _hp_actual;
-} else if (_hp_actual < hp_anterior) {
-    timer_dolor = game_get_speed(gamespeed_fps) * 0.5;
-    hp_anterior = _hp_actual;
-} else {
-    hp_anterior = _hp_actual;
-}
-
-var _prota_head_frame = 0;
-
-if (timer_dolor > 0) {
-    timer_dolor--;
-    _prota_head_frame = 1;
-}
-
-// Tarjeta compacta de Maya en la esquina superior izquierda.
-draw_sprite_stretched_ext(
-    spr_bbs_textbox,
-    0,
-    6 * _s,
-    5 * _s,
-    132 * _s,
-    34 * _s,
-    c_white,
-    _alpha_final
-);
-
-_prota_head_frame = clamp(_prota_head_frame, 0, sprite_get_number(spr_bbs_prota_head) - 1);
-
-draw_sprite_ext(
-    spr_bbs_prota_head,
-    _prota_head_frame,
-    10 * _s,
-    7 * _s,
-    0.55 * _s,
-    0.55 * _s,
-    0,
-    c_white,
-    _alpha_final
-);
-
-var _info_x = 35 * _s;
-var _info_y = 7 * _s;
-
-draw_set_halign(fa_left);
-
-draw_text_transformed_color(
-    _info_x,
-    _info_y,
-    scr_loc("Maya"),
-    0.7,
-    0.7,
-    0,
-    c_white,
-    c_white,
-    c_white,
-    c_white,
-    _alpha_final
-);
-
-var _hp_label_y = 20 * _s;
-var _hp_scale = 0.55;
-
-draw_text_transformed_color(
-    _info_x,
-    _hp_label_y,
-    scr_loc("HP"),
-    _hp_scale,
-    _hp_scale,
-    0,
-    c_white,
-    c_white,
-    c_white,
-    c_white,
-    _alpha_final
-);
-
-var _hp_texto = string(_hp_actual) + " / " + string(_hp_max);
-var _hp_right = _info_x + (91 * _s);
-var _hp_ancho_actual = string_width(_hp_texto) * _hp_scale;
-var _hp_texto_x = _hp_right - _hp_ancho_actual;
-
-draw_text_transformed_color(
-    _hp_texto_x,
-    _hp_label_y,
-    _hp_texto,
-    _hp_scale,
-    _hp_scale,
-    0,
-    c_white,
-    c_white,
-    c_white,
-    c_white,
-    _alpha_final
-);
-
-var _bar_left = _info_x;
-var _bar_right = _hp_right;
-var _bar_y1 = 29 * _s;
-var _bar_y2 = 32 * _s;
-
-draw_set_alpha(_alpha_final);
-draw_set_color($202020);
-draw_rectangle(_bar_left, _bar_y1, _bar_right, _bar_y2, false);
-
-var _porcentaje_hp = clamp(_hp_actual / _hp_max, 0, 1);
-draw_set_color(c_yellow);
-draw_rectangle(
-    _bar_left,
-    _bar_y1,
-    _bar_left + ((_bar_right - _bar_left) * _porcentaje_hp),
-    _bar_y2,
-    false
-);
-draw_set_alpha(1);
+// HP de los dos protagonistas: las tarjetas se dibujan encima del diálogo.
 
 // Botones centrados dentro de las cuatro celdas inferiores.
 draw_set_color(c_white);
