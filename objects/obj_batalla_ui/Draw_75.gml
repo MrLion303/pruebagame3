@@ -283,18 +283,15 @@ var _button_selected_for_draw =
 
 
 var _btn_scale =
-    1.310613
+    battle_action_button_scale
     *
     _s;
 
 
-var _btn_x =
-    [
-        132.371,
-        177.0,
-        221.0769,
-        265.0
-    ];
+var _cell_w =
+    (battle_action_panel_width_base / 4)
+    *
+    _s;
 
 
 for (
@@ -383,15 +380,51 @@ for (
     }
 
 
+    var _btn_w =
+        sprite_get_width(_spr_btn)
+        *
+        _btn_scale;
+
+
+    var _btn_h =
+        sprite_get_height(_spr_btn)
+        *
+        _btn_scale;
+
+
+    var _btn_x =
+        battle_action_panel_x_base
+        *
+        _s
+        +
+        (_b * _cell_w)
+        +
+        ((_cell_w - _btn_w) * 0.5);
+
+
+    var _btn_y =
+        battle_action_panel_y_base
+        *
+        _s
+        +
+        (
+            (
+                battle_action_panel_height_base
+                *
+                _s
+                -
+                _btn_h
+            )
+            *
+            0.5
+        );
+
+
     draw_sprite_ext(
         _spr_btn,
         _btn_frame,
-        _btn_x[_b]
-        *
-        _s,
-        192
-        *
-        _s,
+        _btn_x,
+        _btn_y,
         _btn_scale,
         _btn_scale,
         0,
@@ -432,7 +465,7 @@ var _box_left =
 
 
 var _box_top =
-    125
+    battle_dialog_y_base
     *
     _s;
 
@@ -448,9 +481,7 @@ var _box_w =
 
 
 var _box_h =
-    sprite_get_height(
-        spr_bbs_textbox
-    )
+    battle_dialog_height_base
     *
     _s;
 
