@@ -60,12 +60,29 @@ function scr_item_db()
                 10,
 
             efecto:
-                function()
+                function(_objetivo = noone)
                 {
-                    var _p =
-                        obj_player;
+                    var _p = _objetivo;
 
-                    if (instance_exists(_p))
+                    if (_p == noone)
+                        _p = obj_player;
+
+                    if (is_struct(_p))
+                    {
+                        if (
+                            variable_struct_exists(_p, "hp")
+                            &&
+                            variable_struct_exists(_p, "hp_max")
+                        )
+                        {
+                            _p.hp =
+                                min(
+                                    _p.hp_max,
+                                    _p.hp + 10
+                                );
+                        }
+                    }
+                    else if (instance_exists(_p))
                     {
                         _p.hp =
                             min(
@@ -122,12 +139,29 @@ function scr_item_db()
                 20,
 
             efecto:
-                function()
+                function(_objetivo = noone)
                 {
-                    var _p =
-                        obj_player;
+                    var _p = _objetivo;
 
-                    if (instance_exists(_p))
+                    if (_p == noone)
+                        _p = obj_player;
+
+                    if (is_struct(_p))
+                    {
+                        if (
+                            variable_struct_exists(_p, "hp")
+                            &&
+                            variable_struct_exists(_p, "hp_max")
+                        )
+                        {
+                            _p.hp =
+                                min(
+                                    _p.hp_max,
+                                    _p.hp + 20
+                                );
+                        }
+                    }
+                    else if (instance_exists(_p))
                     {
                         _p.hp =
                             min(
@@ -184,12 +218,29 @@ function scr_item_db()
                 30,
 
             efecto:
-                function()
+                function(_objetivo = noone)
                 {
-                    var _p =
-                        obj_player;
+                    var _p = _objetivo;
 
-                    if (instance_exists(_p))
+                    if (_p == noone)
+                        _p = obj_player;
+
+                    if (is_struct(_p))
+                    {
+                        if (
+                            variable_struct_exists(_p, "hp")
+                            &&
+                            variable_struct_exists(_p, "hp_max")
+                        )
+                        {
+                            _p.hp =
+                                min(
+                                    _p.hp_max,
+                                    _p.hp + 30
+                                );
+                        }
+                    }
+                    else if (instance_exists(_p))
                     {
                         _p.hp =
                             min(
@@ -246,12 +297,29 @@ function scr_item_db()
                 15,
 
             efecto:
-                function()
+                function(_objetivo = noone)
                 {
-                    var _p =
-                        obj_player;
+                    var _p = _objetivo;
 
-                    if (instance_exists(_p))
+                    if (_p == noone)
+                        _p = obj_player;
+
+                    if (is_struct(_p))
+                    {
+                        if (
+                            variable_struct_exists(_p, "hp")
+                            &&
+                            variable_struct_exists(_p, "hp_max")
+                        )
+                        {
+                            _p.hp =
+                                min(
+                                    _p.hp_max,
+                                    _p.hp + 15
+                                );
+                        }
+                    }
+                    else if (instance_exists(_p))
                     {
                         _p.hp =
                             min(
@@ -308,12 +376,29 @@ function scr_item_db()
                 50,
 
             efecto:
-                function()
+                function(_objetivo = noone)
                 {
-                    var _p =
-                        obj_player;
+                    var _p = _objetivo;
 
-                    if (instance_exists(_p))
+                    if (_p == noone)
+                        _p = obj_player;
+
+                    if (is_struct(_p))
+                    {
+                        if (
+                            variable_struct_exists(_p, "hp")
+                            &&
+                            variable_struct_exists(_p, "hp_max")
+                        )
+                        {
+                            _p.hp =
+                                min(
+                                    _p.hp_max,
+                                    _p.hp + 50
+                                );
+                        }
+                    }
+                    else if (instance_exists(_p))
                     {
                         _p.hp =
                             min(
