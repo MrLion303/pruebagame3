@@ -376,6 +376,15 @@ function()
         return false;
 
 
+    if (
+        variable_global_exists("battle_active_actor")
+        &&
+        global.battle_active_actor == "silicio"
+    )
+    {
+        return false;
+    }
+
     return
         random(1.0)
         <
@@ -403,6 +412,14 @@ function()
 
 
     var _mult =
+        (
+            variable_global_exists("battle_active_actor")
+            &&
+            global.battle_active_actor == "silicio"
+        )
+        ?
+        1
+        :
         scr_battle_player_attack_multiplier(
             controller_ref
         );
