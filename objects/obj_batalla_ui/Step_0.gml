@@ -843,11 +843,11 @@ if (draw_char < text_length) {
                         array_length(_control_batalla.dialogos_turno_actual) > 0
                     )
                     {
-                        var _idx_enemigos =
+                        var _idx_enemigos_maya =
                             irandom(array_length(_control_batalla.dialogos_turno_actual) - 1);
 
                         _texto_enemigos_maya =
-                            _control_batalla.dialogos_turno_actual[_idx_enemigos];
+                            _control_batalla.dialogos_turno_actual[_idx_enemigos_maya];
                     }
 
                     f_procesar_dialogo(_texto_enemigos_maya);
@@ -872,11 +872,11 @@ if (draw_char < text_length) {
                     array_length(_control_batalla.dialogos_turno_actual) > 0
                 )
                 {
-                    var _idx_enemigos =
+                    var _idx_enemigos_silicio =
                         irandom(array_length(_control_batalla.dialogos_turno_actual) - 1);
 
                     _texto_enemigos_silicio =
-                        _control_batalla.dialogos_turno_actual[_idx_enemigos];
+                        _control_batalla.dialogos_turno_actual[_idx_enemigos_silicio];
                 }
 
                 f_procesar_dialogo(_texto_enemigos_silicio);
