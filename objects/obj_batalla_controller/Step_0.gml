@@ -656,6 +656,38 @@ switch (fase_actual)
                     _silicio_stats_obj.defensa_base
                 );
         }
+        else
+        {
+            // Conserva el debilitamiento de defensa de Maya que ya
+            // aplicaban los Toys antes de introducir a Silicio.
+            _ataque_base_enemigo =
+                max(
+                    0,
+                    round(
+                        _ataque_base_enemigo
+                        *
+                        scr_battle_player_received_damage_multiplier(id)
+                    )
+                );
+
+            _ataque_real =
+                max(
+                    0,
+                    round(
+                        _ataque_base_enemigo
+                        *
+                        _multiplicador_ataque
+                    )
+                );
+
+            _dano_enemigo =
+                max(
+                    0,
+                    _ataque_real
+                    +
+                    irandom_range(0, 3)
+                );
+        }
 
 
         // =================================================
