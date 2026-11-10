@@ -76,7 +76,6 @@ if (audio_exists(musica_batalla_actual)) {
 turno_enemigo_idx = 0;
 temporizador_turno_enemigo = 0;
 esperando_input_texto_enemigo = false;
-silicio_turnos_stun = 0;
 
 
 // =========================================================
