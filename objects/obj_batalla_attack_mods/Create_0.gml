@@ -1839,47 +1839,82 @@ function()
     var _curado =
         0;
 
+    var _silicio_activo =
+        variable_global_exists("battle_active_actor")
+        &&
+        global.battle_active_actor == "silicio";
 
     if (
         action_heal > 0
         &&
         action_total_damage > 0
-        &&
-        instance_exists(
-            obj_player
-        )
     )
     {
-        var _hp_before =
-            obj_player.hp;
+        if (_silicio_activo)
+        {
+            var _stats_silicio_curacion =
+                scr_silicio_stats_data();
 
+            var _hp_before =
+                _stats_silicio_curacion.hp;
 
-        obj_player.hp =
-            min(
-                obj_player.hp_max,
+            _stats_silicio_curacion.hp =
+                min(
+                    _stats_silicio_curacion.hp_max,
+                    _stats_silicio_curacion.hp
+                    +
+                    action_heal
+                );
+
+            _curado =
+                _stats_silicio_curacion.hp
+                -
+                _hp_before;
+
+            global.silicio_stats =
+                _stats_silicio_curacion;
+        }
+        else if (instance_exists(obj_player))
+        {
+            var _hp_before =
+                obj_player.hp;
+
+            obj_player.hp =
+                min(
+                    obj_player.hp_max,
+                    obj_player.hp
+                    +
+                    action_heal
+                );
+
+            _curado =
                 obj_player.hp
-                +
-                action_heal
-            );
+                -
+                _hp_before;
 
-
-        _curado =
-            obj_player.hp
-            -
-            _hp_before;
-
-
-        global.player_hp_current =
-            obj_player.hp;
+            global.player_hp_current =
+                obj_player.hp;
+        }
     }
 
 
     if (_curado > 0)
     {
+        var _nombre_curado =
+            _silicio_activo
+            ?
+            scr_loc("Silicio")
+            :
+            scr_loc("Maya");
+
         _ui.f_procesar_dialogo(
             _ui.attack_result_text
             +
-            "\n* Recuperaste "
+            "\n* "
+            +
+            _nombre_curado
+            +
+            " recupera "
             +
             string(_curado)
             +
