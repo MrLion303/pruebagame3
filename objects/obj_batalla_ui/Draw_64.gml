@@ -592,13 +592,23 @@ if (
 // desliza hacia abajo y queda oculta detrás del cuadro grande.
 // =========================================================
 
-var _maya_hp_card = 80;
+var _maya_hp_card = 0;
 var _maya_hp_max_card = 80;
 
 if (instance_exists(obj_player))
 {
     _maya_hp_card = obj_player.hp;
     _maya_hp_max_card = max(1, obj_player.hp_max);
+}
+else if (
+    variable_global_exists("level_data")
+    &&
+    is_struct(global.level_data)
+    &&
+    variable_struct_exists(global.level_data, "hp_max")
+)
+{
+    _maya_hp_max_card = max(1, global.level_data.hp_max);
 }
 
 var _silicio_stats_card = scr_silicio_stats_data();
