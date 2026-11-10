@@ -8,13 +8,13 @@
 // Estos valores solo afectan al dibujo de la interfaz.
 // =========================================================
 battle_dialog_x_base = 14;
-battle_dialog_y_base = 112;
-battle_dialog_height_base = 82;
+battle_dialog_y_base = 119;
+battle_dialog_height_base = 86;
 
-battle_action_panel_x_base = 36;
-battle_action_panel_y_base = 193;
-battle_action_panel_width_base = 248;
-battle_action_panel_height_base = 24;
+battle_action_panel_x_base = 44;
+battle_action_panel_y_base = 204;
+battle_action_panel_width_base = 232;
+battle_action_panel_height_base = 25;
 battle_action_button_scale = 0.72;
 
 opcion_seleccionada = 0;
