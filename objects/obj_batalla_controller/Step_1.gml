@@ -160,15 +160,14 @@ if (
 }
 
 
-// DEF down del jugador.
-// Reconstruimos desde ataque_base_runtime para no acumular.
+// Restauramos siempre el ataque base del enemigo aquí.
+// El debilitamiento de defensa de Maya se aplica después, solo
+// si el enemigo elige atacarla; Silicio usa su propia defensa.
 _en.ataque =
     max(
         0,
         round(
             _en.ataque_base_runtime
-            *
-            scr_battle_player_received_damage_multiplier(id)
         )
     );
 
