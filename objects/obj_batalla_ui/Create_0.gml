@@ -2,6 +2,21 @@
 // =========================================================
 // EVENTO: CREAR
 // =========================================================
+// =========================================================
+// DISTRIBUCIÓN VISUAL DE LA BATALLA
+// Coordenadas base del diseño 320x240.
+// Estos valores solo afectan al dibujo de la interfaz.
+// =========================================================
+battle_dialog_x_base = 14;
+battle_dialog_y_base = 112;
+battle_dialog_height_base = 82;
+
+battle_action_panel_x_base = 36;
+battle_action_panel_y_base = 193;
+battle_action_panel_width_base = 248;
+battle_action_panel_height_base = 24;
+battle_action_button_scale = 0.72;
+
 opcion_seleccionada = 0;
 opciones = [spr_bbs_fight, spr_bbs_item, spr_bbs_toy, spr_bbs_huir];
 en_menu_fight = false;
@@ -249,7 +264,7 @@ f_iniciar_timing_ataque = function(_enemy_idx)
     // CAJA PRINCIPAL EN COORDENADAS BASE 320x240
     // =====================================================
 
-    var _box_left = 14;
+    var _box_left = battle_dialog_x_base;
 
 
     var _box_width =
@@ -259,7 +274,7 @@ f_iniciar_timing_ataque = function(_enemy_idx)
 
 
     var _box_height =
-        sprite_get_height(spr_bbs_textbox);
+        battle_dialog_height_base;
 
 
     // =====================================================
