@@ -112,11 +112,13 @@ for (var i = 0; i < _total_enemigos; i++) {
     var _color_relleno = _derrotado ? make_color_rgb(190, 190, 190) : c_white;
     var _color_borde = (en_seleccion_enemigo && enemigo_seleccionado_idx == i) ? c_yellow : c_black;
 
+    draw_set_alpha(_alpha_final);
     draw_set_color(_color_relleno);
     draw_circle(_en_x, _en_y, _radio_enemigo, true);
 
     draw_set_color(_color_borde);
     draw_circle(_en_x, _en_y, _radio_enemigo, false);
+    draw_set_alpha(1);
     draw_set_color(c_white);
 
     if (en_seleccion_enemigo && enemigo_seleccionado_idx == i) {
@@ -614,6 +616,7 @@ draw_sprite_stretched_ext(
 );
 
 // Separadores que convierten la extensión en cuatro botones unidos.
+draw_set_alpha(_alpha_final);
 draw_set_color(c_black);
 for (var _sep = 1; _sep < 4; _sep++) {
     var _sep_x =
@@ -628,6 +631,7 @@ for (var _sep = 1; _sep < 4; _sep++) {
         false
     );
 }
+draw_set_alpha(1);
 draw_set_color(c_white);
 
 if (variable_global_exists("font_main")) {
@@ -1285,8 +1289,6 @@ if (timer_dolor > 0) {
     _prota_head_frame = 1;
 }
 
-draw_set_alpha(_alpha_final);
-
 // Tarjeta compacta de Maya en la esquina superior izquierda.
 draw_sprite_stretched_ext(
     spr_bbs_textbox,
@@ -1350,7 +1352,6 @@ draw_text_transformed_color(
 );
 
 var _hp_texto = string(_hp_actual) + " / " + string(_hp_max);
-var _hp_texto_ref = "80 / 80";
 var _hp_right = _info_x + (91 * _s);
 var _hp_ancho_actual = string_width(_hp_texto) * _hp_scale;
 var _hp_texto_x = _hp_right - _hp_ancho_actual;
@@ -1374,6 +1375,7 @@ var _bar_right = _hp_right;
 var _bar_y1 = 29 * _s;
 var _bar_y2 = 32 * _s;
 
+draw_set_alpha(_alpha_final);
 draw_set_color($202020);
 draw_rectangle(_bar_left, _bar_y1, _bar_right, _bar_y2, false);
 
@@ -1386,6 +1388,7 @@ draw_rectangle(
     _bar_y2,
     false
 );
+draw_set_alpha(1);
 
 // Botones centrados dentro de las cuatro celdas inferiores.
 draw_set_color(c_white);
