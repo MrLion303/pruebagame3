@@ -243,6 +243,41 @@ switch (fase_actual)
 
     case FASE_BATALLA.JUGADOR_MENU:
 
+        var _silicio_data_maya = scr_silicio_stats_data();
+
+        if (
+            !instance_exists(obj_player)
+            ||
+            obj_player.hp <= 0
+        )
+        {
+            if (_silicio_data_maya.hp > 0)
+            {
+                fase_actual = FASE_BATALLA.SILICIO_MENU;
+                global.battle_active_actor = "silicio";
+
+                if (instance_exists(obj_batalla_ui))
+                {
+                    obj_batalla_ui.en_menu_fight = false;
+                    obj_batalla_ui.en_seleccion_enemigo = false;
+                    obj_batalla_ui.en_menu_inventario = false;
+                    obj_batalla_ui.en_menu_toys = false;
+                    obj_batalla_ui.en_resultado_ataque = false;
+                    obj_batalla_ui.f_procesar_dialogo(
+                        scr_loc_src("* Maya no puede continuar. ¡Silicio, es tu turno!")
+                    );
+                }
+            }
+            else
+            {
+                fase_actual = FASE_BATALLA.DERROTA;
+            }
+
+            break;
+        }
+
+        global.battle_active_actor = "maya";
+
         if (
             instance_exists(obj_batalla_ui)
             &&
@@ -266,6 +301,58 @@ switch (fase_actual)
                 enemigos[i].derrotado =
                     true;
             }
+        }
+
+        break;
+
+
+    // =====================================================
+    // TURNO DE SILICIO
+    // =====================================================
+
+    case FASE_BATALLA.SILICIO_MENU:
+
+        var _silicio_data_turno = scr_silicio_stats_data();
+
+        if (_silicio_data_turno.hp <= 0)
+        {
+            if (
+                instance_exists(obj_player)
+                &&
+                obj_player.hp > 0
+            )
+            {
+                // Silicio no puede actuar. Al confirmar este texto
+                // comienza la ronda de los enemigos.
+                turno_enemigo_idx = -1;
+                fase_actual = FASE_BATALLA.ENEMIGO_ATACANDO;
+
+                if (instance_exists(obj_batalla_ui))
+                {
+                    obj_batalla_ui.en_resultado_ataque = true;
+                    obj_batalla_ui.f_procesar_dialogo(
+                        scr_loc_src("* Silicio está fuera de combate.")
+                    );
+                }
+            }
+            else
+            {
+                fase_actual = FASE_BATALLA.DERROTA;
+            }
+
+            break;
+        }
+
+        global.battle_active_actor = "silicio";
+
+        if (
+            instance_exists(obj_batalla_ui)
+            &&
+            obj_batalla_ui.enemigos != enemigos
+        )
+        {
+            obj_batalla_ui.enemigos =
+                enemigos;
         }
 
         break;
@@ -332,8 +419,31 @@ switch (fase_actual)
             turno_enemigo_idx =
                 0;
 
-            fase_actual =
-                FASE_BATALLA.JUGADOR_MENU;
+            var _silicio_data_ronda = scr_silicio_stats_data();
+            var _maya_sigue_en_pie =
+                instance_exists(obj_player)
+                &&
+                obj_player.hp > 0;
+
+            var _silicio_sigue_en_pie =
+                _silicio_data_ronda.hp > 0;
+
+            if (!_maya_sigue_en_pie && !_silicio_sigue_en_pie)
+            {
+                fase_actual = FASE_BATALLA.DERROTA;
+                break;
+            }
+
+            if (_maya_sigue_en_pie)
+            {
+                fase_actual = FASE_BATALLA.JUGADOR_MENU;
+                global.battle_active_actor = "maya";
+            }
+            else
+            {
+                fase_actual = FASE_BATALLA.SILICIO_MENU;
+                global.battle_active_actor = "silicio";
+            }
 
 
             primer_turno_pasado =
@@ -378,9 +488,18 @@ switch (fase_actual)
                 obj_batalla_ui.en_resultado_ataque =
                     false;
 
-                obj_batalla_ui.f_procesar_dialogo(
-                    _texto_a_usar
-                );
+                if (_maya_sigue_en_pie)
+                {
+                    obj_batalla_ui.f_procesar_dialogo(
+                        _texto_a_usar
+                    );
+                }
+                else
+                {
+                    obj_batalla_ui.f_procesar_dialogo(
+                        scr_loc_src("* Maya no puede continuar. ¡Silicio, es tu turno!")
+                    );
+                }
             }
 
 
@@ -482,6 +601,62 @@ switch (fase_actual)
                 irandom_range(0, 3)
             );
 
+        // Los enemigos pueden elegir a cualquiera de los dos
+        // protagonistas. Si uno cae, los ataques van al otro.
+        var _silicio_stats_obj = scr_silicio_stats_data();
+        var _maya_viva =
+            instance_exists(obj_player)
+            &&
+            obj_player.hp > 0;
+
+        var _silicio_vivo =
+            _silicio_stats_obj.hp > 0;
+
+        if (!_maya_viva && !_silicio_vivo)
+        {
+            fase_actual = FASE_BATALLA.DERROTA;
+            break;
+        }
+
+        var _objetivo_silicio =
+            _silicio_vivo
+            &&
+            (
+                !_maya_viva
+                ||
+                irandom(1) == 1
+            );
+
+        current_enemy_target_actor =
+            _objetivo_silicio
+            ?
+            "silicio"
+            :
+            "maya";
+
+        global.battle_active_actor =
+            current_enemy_target_actor;
+
+        var _nombre_objetivo =
+            _objetivo_silicio
+            ?
+            scr_loc("Silicio")
+            :
+            scr_loc("Maya");
+
+        // La defensa propia de Silicio reduce el daño recibido.
+        // La fórmula de daño que ya tenía Maya permanece intacta.
+        if (_objetivo_silicio)
+        {
+            _dano_enemigo =
+                max(
+                    0,
+                    _dano_enemigo
+                    -
+                    _silicio_stats_obj.defensa_base
+                );
+        }
+
 
         // =================================================
         // ARMA CON PARRY
@@ -492,7 +667,11 @@ switch (fase_actual)
         // minijuego de diana/aro.
         // =================================================
 
-        if (f_player_can_parry())
+        if (
+            !_objetivo_silicio
+            &&
+            f_player_can_parry()
+        )
         {
             f_parry_start(
                 turno_enemigo_idx,
@@ -518,7 +697,17 @@ switch (fase_actual)
         // ATAQUE NORMAL SIN PARRY
         // =================================================
 
-        if (instance_exists(obj_player))
+        if (_objetivo_silicio)
+        {
+            _silicio_stats_obj.hp =
+                max(
+                    0,
+                    _silicio_stats_obj.hp - _dano_enemigo
+                );
+
+            global.silicio_stats = _silicio_stats_obj;
+        }
+        else if (instance_exists(obj_player))
         {
             obj_player.hp =
                 max(
@@ -560,12 +749,15 @@ switch (fase_actual)
 
             obj_batalla_ui.f_procesar_dialogo(
                 scr_locf(
-                    "* {enemy} ataca y te causa {damage} de daño!",
+                    "* {enemy} ataca a {target} y le causa {damage} de daño!",
                     {
                         enemy:
                             scr_loc(
                                 _en_actual.nombre
                             ),
+
+                        target:
+                            _nombre_objetivo,
 
                         damage:
                             string(
@@ -1409,6 +1601,9 @@ switch (fase_actual)
     // =====================================================
 
     case FASE_BATALLA.DERROTA:
+
+        global.gameover_death_freeze_active = false;
+        room_goto(game_over);
 
         break;
 }
