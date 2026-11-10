@@ -56,6 +56,9 @@ if (fase == 0)
             nivel_max: 20
         };
 
+        // Una partida nueva también reinicia las estadísticas de Silicio.
+        scr_silicio_stats_data(true);
+
 
         // =================================================
         // INVENTARIO
