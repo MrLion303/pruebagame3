@@ -50,22 +50,57 @@ if (!variable_instance_exists(id, "enemigo_img_index")) {
 var _total_enemigos = array_length(enemigos);
 var _centro_pantalla_x = (320 * _s) / 2;
 
+// Tres posiciones diagonales para los enemigos.
+// Con uno se usa el centro; con dos, los extremos; con tres,
+// se ocupan las tres posiciones.
+var _enemy_slot_x = [232, 256, 280];
+var _enemy_slot_y = [36, 62, 88];
+
+// Protagonistas de placeholder: sprites normales de caminata,
+// orientados hacia los enemigos. No se crean instancias nuevas.
+var _maya_frames = max(1, sprite_get_number(spr_maya_derecha));
+var _silicio_frames = max(1, sprite_get_number(spr_silicio_derecha));
+var _maya_frame = floor(current_time / 200) mod _maya_frames;
+var _silicio_frame = floor(current_time / 200) mod _silicio_frames;
+
+draw_sprite_ext(
+    spr_silicio_derecha,
+    _silicio_frame,
+    38 * _s,
+    80 * _s,
+    _s,
+    _s,
+    0,
+    c_white,
+    _alpha_final
+);
+
+draw_sprite_ext(
+    spr_maya_derecha,
+    _maya_frame,
+    58 * _s,
+    41 * _s,
+    _s,
+    _s,
+    0,
+    c_white,
+    _alpha_final
+);
+
+// Los enemigos se representan provisionalmente con círculos.
+// Los datos, vida, selección y daño siguen ligados al enemigo real.
 for (var i = 0; i < _total_enemigos; i++) {
     var _en = enemigos[i];
-    var _en_x = _centro_pantalla_x;
-    var _en_y = 75 * _s;
 
-    if (_total_enemigos == 1) {
-        _en_x = _centro_pantalla_x;
-    } else if (_total_enemigos == 2) {
-        if (i == 0) _en_x = _centro_pantalla_x - (50 * _s);
-        if (i == 1) _en_x = _centro_pantalla_x + (50 * _s);
+    var _slot = 1;
+    if (_total_enemigos == 2) {
+        _slot = (i == 0) ? 0 : 2;
     } else if (_total_enemigos >= 3) {
-        if (i == 0) _en_x = _centro_pantalla_x - (75 * _s);
-        if (i == 1) _en_x = _centro_pantalla_x;
-        if (i == 2) _en_x = _centro_pantalla_x + (75 * _s);
+        _slot = min(i, 2);
     }
 
+    var _en_x = _enemy_slot_x[_slot] * _s;
+    var _en_y = _enemy_slot_y[_slot] * _s;
     var _derrotado = variable_struct_exists(_en, "derrotado") && _en.derrotado;
 
     if (!_derrotado && variable_struct_exists(_en, "shake_timer") && _en.shake_timer > 0) {
@@ -73,28 +108,23 @@ for (var i = 0; i < _total_enemigos; i++) {
         _en_y += irandom_range(-2, 2) * _s;
     }
 
-    var _en_color = _derrotado ? make_color_rgb(40, 40, 40) : c_white;
-    var _img_idx = _derrotado ? 0 : _en.anim_index;
-    var _escala = variable_struct_exists(_en, "escala_sprite") ? _en.escala_sprite : 2.0;
+    var _radio_enemigo = 10 * _s;
+    var _color_relleno = _derrotado ? make_color_rgb(190, 190, 190) : c_white;
+    var _color_borde = (en_seleccion_enemigo && enemigo_seleccionado_idx == i) ? c_yellow : c_black;
 
-    draw_sprite_ext(
-        _en.sprite,
-        _img_idx,
-        _en_x,
-        _en_y,
-        _escala * _s,
-        _escala * _s,
-        0,
-        _en_color,
-        _alpha_final
-    );
+    draw_set_color(_color_relleno);
+    draw_circle(_en_x, _en_y, _radio_enemigo, true);
+
+    draw_set_color(_color_borde);
+    draw_circle(_en_x, _en_y, _radio_enemigo, false);
+    draw_set_color(c_white);
 
     if (en_seleccion_enemigo && enemigo_seleccionado_idx == i) {
         var _txt_color_sel = _derrotado ? c_gray : c_yellow;
 
         draw_text_color(
             _en_x - (string_width(_en.nombre) * 0.5 * 0.7 * _s),
-            _en_y - (45 * _s),
+            _en_y - (16 * _s),
             "v " + scr_loc(_en.nombre),
             _txt_color_sel,
             _txt_color_sel,
@@ -126,74 +156,31 @@ if (
         enemigos[_popup_idx];
 
 
-    var _popup_enemy_x =
-        _centro_pantalla_x;
-
-
-    var _popup_enemy_y =
-        75 * _s;
-
+    var _popup_slot = 1;
 
     if (_total_enemigos == 2)
     {
-        if (_popup_idx == 0)
-        {
-            _popup_enemy_x =
-                _centro_pantalla_x
-                -
-                (50 * _s);
-        }
-        else if (_popup_idx == 1)
-        {
-            _popup_enemy_x =
-                _centro_pantalla_x
-                +
-                (50 * _s);
-        }
+        _popup_slot = (_popup_idx == 0) ? 0 : 2;
     }
     else if (_total_enemigos >= 3)
     {
-        if (_popup_idx == 0)
-        {
-            _popup_enemy_x =
-                _centro_pantalla_x
-                -
-                (75 * _s);
-        }
-        else if (_popup_idx == 1)
-        {
-            _popup_enemy_x =
-                _centro_pantalla_x;
-        }
-        else if (_popup_idx == 2)
-        {
-            _popup_enemy_x =
-                _centro_pantalla_x
-                +
-                (75 * _s);
-        }
+        _popup_slot = min(_popup_idx, 2);
     }
 
+    var _popup_enemy_x = _enemy_slot_x[_popup_slot] * _s;
+    var _popup_enemy_y = _enemy_slot_y[_popup_slot] * _s;
 
-    var _popup_enemy_scale =
-        variable_struct_exists(
-            _popup_enemy,
-            "escala_sprite"
-        )
+    var _popup_enemy_config_scale =
+        variable_struct_exists(_popup_enemy, "escala_sprite")
         ?
         _popup_enemy.escala_sprite
         :
         2.0;
 
+    var _popup_enemy_scale = max(0.5, _popup_enemy_config_scale * 0.25);
 
     var _enemy_half_w =
-        sprite_get_width(_popup_enemy.sprite)
-        *
-        _popup_enemy_scale
-        *
-        _s
-        *
-        0.5;
+        10 * _s;
 
 
     var _side =
@@ -598,17 +585,50 @@ if (
 }
 
 
-draw_sprite_ext(
+var _dialog_scale_y =
+    battle_dialog_height_base
+    /
+    sprite_get_height(spr_bbs_textbox);
+
+draw_sprite_stretched_ext(
     spr_bbs_textbox,
     0,
-    14 * _s,
-    125 * _s,
-    5.666667 * _s,
-    1.0 * _s,
-    0,
+    battle_dialog_x_base * _s,
+    battle_dialog_y_base * _s,
+    sprite_get_width(spr_bbs_textbox) * 5.666667 * _s,
+    battle_dialog_height_base * _s,
     c_white,
     _alpha_final
 );
+
+// Extensión inferior integrada al cuadro principal.
+draw_sprite_stretched_ext(
+    spr_bbs_textbox,
+    0,
+    battle_action_panel_x_base * _s,
+    battle_action_panel_y_base * _s,
+    battle_action_panel_width_base * _s,
+    battle_action_panel_height_base * _s,
+    c_white,
+    _alpha_final
+);
+
+// Separadores que convierten la extensión en cuatro botones unidos.
+draw_set_color(c_black);
+for (var _sep = 1; _sep < 4; _sep++) {
+    var _sep_x =
+        (battle_action_panel_x_base
+        + (battle_action_panel_width_base / 4) * _sep) * _s;
+
+    draw_rectangle(
+        _sep_x - 1,
+        (battle_action_panel_y_base + 3) * _s,
+        _sep_x + 1,
+        (battle_action_panel_y_base + battle_action_panel_height_base - 3) * _s,
+        false
+    );
+}
+draw_set_color(c_white);
 
 if (variable_global_exists("font_main")) {
     draw_set_font(global.font_main);
@@ -679,7 +699,7 @@ if ((!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario)
             char_array[c] = string_char_at(text_to_draw, _char_pos);
 
             var _txt_x = (14 * _s) + _p_left_margin;
-            var _txt_y = (125 * _s) + (8 * _s) + (1 * _s);
+            var _txt_y = (battle_dialog_y_base + 9) * _s;
 
             var _txt_line = 0;
             var _line_start_pos = 1;
@@ -731,8 +751,8 @@ if ((!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario)
     if (_tiene_cabeza) {
         var _head_scale = 1.35 * _s;
 
-        var _dialog_top = 125 * _s;
-        var _dialog_height = sprite_get_height(spr_bbs_textbox) * _s;
+        var _dialog_top = battle_dialog_y_base * _s;
+        var _dialog_height = battle_dialog_height_base * _s;
         var _dialog_center_y = _dialog_top + (_dialog_height * 0.5);
 
         var _head_image_center_y = sprite_get_height(head_sprite) * 0.5;
@@ -767,7 +787,7 @@ if ((!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario)
 
 
         var _attack_box_top =
-            125 * _s;
+            battle_dialog_y_base * _s;
 
 
         var _attack_box_w =
@@ -779,7 +799,7 @@ if ((!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario)
 
 
         var _attack_box_h =
-            sprite_get_height(spr_bbs_textbox)
+            battle_dialog_height_base
             *
             _s;
 
@@ -927,7 +947,7 @@ if ((!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario)
 
         draw_text_color(
             (14 + 16) * _s,
-            (125 + 10) * _s,
+            (battle_dialog_y_base + 10) * _s,
             scr_loc("¡Elige el enemigo!"),
             c_white,
             c_white,
@@ -939,7 +959,7 @@ if ((!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario)
     // MENÚ FIGHT
     } else if (en_menu_fight && !en_modo_info) {
         var _tx = (14 + 16) * _s;
-        var _ty = (125 + 10) * _s;
+        var _ty = (battle_dialog_y_base + 10) * _s;
         var _op = [scr_loc_src("* Atacar"), scr_loc_src("* Info")];
 
         for (var i = 0; i < 2; i++) {
@@ -1030,7 +1050,7 @@ if ((!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario)
 
     // INVENTARIO
     var _start_x = (14 * _s) + (18 * _s);
-    var _start_y = (125 * _s) + (8 * _s);
+    var _start_y = (battle_dialog_y_base + 8) * _s;
 
     if (
         instance_exists(obj_player) &&
@@ -1150,7 +1170,7 @@ if ((!variable_instance_exists(id, "en_menu_inventario") || !en_menu_inventario)
 else if (en_menu_toys) {
 
     var _toy_start_x = (14 * _s) + (18 * _s);
-    var _toy_start_y = (125 * _s) + (8 * _s);
+    var _toy_start_y = (battle_dialog_y_base + 8) * _s;
 
     if (variable_global_exists("toy_inventory")) {
         for (var i = 0; i < 4; i++) {
@@ -1246,7 +1266,7 @@ var _hp_max = 80;
 
 if (instance_exists(obj_player)) {
     _hp_actual = obj_player.hp;
-    _hp_max = obj_player.hp_max;
+    _hp_max = max(1, obj_player.hp_max);
 }
 
 if (hp_anterior == -1) {
@@ -1267,53 +1287,44 @@ if (timer_dolor > 0) {
 
 draw_set_alpha(_alpha_final);
 
-draw_sprite_ext(
+// Tarjeta compacta de Maya en la esquina superior izquierda.
+draw_sprite_stretched_ext(
     spr_bbs_textbox,
     0,
     6 * _s,
-    183 * _s,
-    2.27451 * _s,
-    1.0 * _s,
-    0,
+    5 * _s,
+    132 * _s,
+    34 * _s,
     c_white,
     _alpha_final
 );
 
-_prota_head_frame = clamp(_prota_head_frame, 0, 1);
+_prota_head_frame = clamp(_prota_head_frame, 0, sprite_get_number(spr_bbs_prota_head) - 1);
 
 draw_sprite_ext(
     spr_bbs_prota_head,
     _prota_head_frame,
-    14 * _s,
-    195 * _s,
-    1.0 * _s,
-    1.0 * _s,
+    10 * _s,
+    7 * _s,
+    0.55 * _s,
+    0.55 * _s,
     0,
     c_white,
     _alpha_final
 );
 
-draw_sprite_ext(
-    spr_bbs_textbox,
-    0,
-    126 * _s,
-    183 * _s,
-    3.666666 * _s,
-    1.0 * _s,
-    0,
-    c_white,
-    _alpha_final
-);
-
-var _info_x = 55 * _s;
-var _info_y = 189 * _s;
+var _info_x = 35 * _s;
+var _info_y = 7 * _s;
 
 draw_set_halign(fa_left);
 
-draw_text_color(
+draw_text_transformed_color(
     _info_x,
     _info_y,
-    scr_loc("Noelle"),
+    scr_loc("Maya"),
+    0.7,
+    0.7,
+    0,
     c_white,
     c_white,
     c_white,
@@ -1321,9 +1332,8 @@ draw_text_color(
     _alpha_final
 );
 
-var _hp_label_y = _info_y + 16 * _s;
-
-var _hp_scale = 0.7;
+var _hp_label_y = 20 * _s;
+var _hp_scale = 0.55;
 
 draw_text_transformed_color(
     _info_x,
@@ -1339,59 +1349,11 @@ draw_text_transformed_color(
     _alpha_final
 );
 
-
-// =========================================================
-// HP CON BORDE DERECHO FIJO
-// =========================================================
-//
-// El layout de referencia es "80 / 80".
-// Ese borde derecho queda fijo.
-//
-// Si HP pasa a:
-// 100 / 100
-// 999 / 999
-// etc.
-//
-// los números crecen HACIA LA IZQUIERDA y la barra se
-// acorta desde su lado izquierdo.
-// =========================================================
-
-var _hp_texto =
-    string(_hp_actual)
-    +
-    " / "
-    +
-    string(_hp_max);
-
-var _hp_texto_referencia =
-    "80 / 80";
-
-var _hp_texto_x_base =
-    _info_x
-    +
-    24 * _s;
-
-var _hp_ancho_ref =
-    string_width(_hp_texto_referencia)
-    *
-    _hp_scale;
-
-var _hp_ancho_actual =
-    string_width(_hp_texto)
-    *
-    _hp_scale;
-
-// Este es el borde derecho que NO se moverá.
-var _hp_right =
-    _hp_texto_x_base
-    +
-    _hp_ancho_ref;
-
-// Texto alineado a la derecha.
-var _hp_texto_x =
-    _hp_right
-    -
-    _hp_ancho_actual;
+var _hp_texto = string(_hp_actual) + " / " + string(_hp_max);
+var _hp_texto_ref = "80 / 80";
+var _hp_right = _info_x + (91 * _s);
+var _hp_ancho_actual = string_width(_hp_texto) * _hp_scale;
+var _hp_texto_x = _hp_right - _hp_ancho_actual;
 
 draw_text_transformed_color(
     _hp_texto_x,
@@ -1407,90 +1369,56 @@ draw_text_transformed_color(
     _alpha_final
 );
 
-// =========================================================
-// BARRA AL MARGEN DEL TEXTO
-// =========================================================
-//
-// El texto de HP puede crecer hacia la izquierda,
-// pero la barra NO se extiende exageradamente.
-//
-// La barra empieza justo en el margen donde comienza "HP"
-// y termina justo en el mismo borde derecho de los números.
-//
-// Resultado:
-// HP 71 / 100
-// └──────────┘
-//
-// Así queda contenida visualmente dentro del texto.
-// =========================================================
+var _bar_left = _info_x;
+var _bar_right = _hp_right;
+var _bar_y1 = 29 * _s;
+var _bar_y2 = 32 * _s;
 
-var _bar_left =
-    _info_x;
+draw_set_color($202020);
+draw_rectangle(_bar_left, _bar_y1, _bar_right, _bar_y2, false);
 
-var _bar_right =
-    _hp_right;
-
-var _bar_y1 =
-    _hp_label_y
-    +
-    10 * _s;
-
-var _bar_y2 =
-    _bar_y1
-    +
-    6 * _s;
-
-draw_rectangle_color(
+var _porcentaje_hp = clamp(_hp_actual / _hp_max, 0, 1);
+draw_set_color(c_yellow);
+draw_rectangle(
     _bar_left,
     _bar_y1,
-    _bar_right,
+    _bar_left + ((_bar_right - _bar_left) * _porcentaje_hp),
     _bar_y2,
-    $202020,
-    $202020,
-    $202020,
-    $202020,
     false
 );
 
-var _porcentaje_hp =
-    clamp(
-        _hp_actual / _hp_max,
-        0,
-        1
-    );
-
-draw_rectangle_color(
-    _bar_left,
-    _bar_y1,
-    _bar_left
-    +
-    ((_bar_right - _bar_left) * _porcentaje_hp),
-    _bar_y2,
-    c_yellow,
-    c_yellow,
-    c_yellow,
-    c_yellow,
-    false
-);
-
-draw_set_alpha(1.0);
-
-// BOTONES PRINCIPALES
-var _escala_btn = 1.310613 * _s;
-var _pos_x_btn = [132.371, 177.0, 221.0769, 265.0];
+// Botones centrados dentro de las cuatro celdas inferiores.
+draw_set_color(c_white);
+var _btn_scale = battle_action_button_scale * _s;
+var _cell_w = (battle_action_panel_width_base / 4) * _s;
 
 for (var i = 0; i < 4; i++) {
+    var _spr_btn = opciones[i];
+    var _btn_w = sprite_get_width(_spr_btn) * _btn_scale;
+    var _btn_h = sprite_get_height(_spr_btn) * _btn_scale;
+    var _btn_x =
+        battle_action_panel_x_base * _s
+        + (i * _cell_w)
+        + ((_cell_w - _btn_w) * 0.5);
+    var _btn_y =
+        battle_action_panel_y_base * _s
+        + ((battle_action_panel_height_base * _s - _btn_h) * 0.5);
     var _frame = (opcion_seleccionada == i) ? 1 : 0;
 
     draw_sprite_ext(
-        opciones[i],
+        _spr_btn,
         _frame,
-        _pos_x_btn[i] * _s,
-        192 * _s,
-        _escala_btn,
-        _escala_btn,
+        _btn_x,
+        _btn_y,
+        _btn_scale,
+        _btn_scale,
         0,
         c_white,
         _alpha_final
     );
 }
+
+draw_set_alpha(1.0);
+draw_set_color(c_white);
+draw_set_halign(fa_left);
+draw_set_valign(fa_top);
