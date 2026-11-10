@@ -654,7 +654,12 @@ draw_sprite_stretched_ext(
 );
 
 var _maya_head_frame = (maya_timer_dolor > 0) ? 1 : 0;
-var _silicio_head_frame = (silicio_timer_dolor > 0) ? 1 : 0;
+var _silicio_head_blend =
+    (silicio_timer_dolor > 0)
+    ?
+    c_red
+    :
+    c_white;
 
 if (maya_timer_dolor > 0) maya_timer_dolor--;
 if (silicio_timer_dolor > 0) silicio_timer_dolor--;
@@ -673,13 +678,13 @@ draw_sprite_ext(
 
 draw_sprite_ext(
     spr_silicio_abajo,
-    _silicio_head_frame,
-    _card_x_silicio + (5 * _card_scale),
-    _card_y_silicio + (0 * _card_scale),
+    0,
+    _card_x_silicio + (11 * _card_scale),
+    _card_y_silicio + (19 * _card_scale),
     0.34 * _card_scale,
     0.34 * _card_scale,
     0,
-    c_white,
+    _silicio_head_blend,
     _alpha_final
 );
 
