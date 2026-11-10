@@ -8,18 +8,18 @@
 // Estos valores solo afectan al dibujo de la interfaz.
 // =========================================================
 battle_dialog_x_base = 14;
-battle_dialog_y_base = 119;
-battle_dialog_height_base = 86;
+battle_dialog_y_base = 130;
+battle_dialog_height_base = 64;
 
-battle_action_panel_x_base = 44;
-battle_action_panel_y_base = 204;
-battle_action_panel_width_base = 232;
-battle_action_panel_height_base = 25;
-battle_action_button_scale = 0.72;
+battle_action_panel_x_base = 12;
+battle_action_panel_y_base = 199;
+battle_action_panel_width_base = 296;
+battle_action_panel_height_base = 27;
+battle_action_button_scale = 0.52;
 
-// Posiciones animadas de las tarjetas superiores.
-maya_card_y = 99;
-silicio_card_y = 121;
+// Las dos tarjetas permanecen alineadas y visibles.
+maya_card_y = 104;
+silicio_card_y = 104;
 maya_hp_anterior = -1;
 maya_timer_dolor = 0;
 silicio_hp_anterior = -1;

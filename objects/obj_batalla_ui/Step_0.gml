@@ -59,25 +59,15 @@ if (fade_salida_activa) {
 if (!variable_instance_exists(id, "en_resultado_ataque")) en_resultado_ataque = false;
 if (!variable_instance_exists(id, "en_dialogo_victoria_final")) en_dialogo_victoria_final = false;
 
-// La tarjeta activa sube; la inactiva se desliza detrás del diálogo.
-if (!variable_instance_exists(id, "maya_card_y")) maya_card_y = 99;
-if (!variable_instance_exists(id, "silicio_card_y")) silicio_card_y = 121;
+// Ambas tarjetas se mantienen visibles y alineadas durante todos los turnos.
+if (!variable_instance_exists(id, "maya_card_y")) maya_card_y = 104;
+if (!variable_instance_exists(id, "silicio_card_y")) silicio_card_y = 104;
 
-var _actor_tarjeta =
-    variable_global_exists("battle_active_actor")
-    ?
-    global.battle_active_actor
-    :
-    "maya";
+maya_card_y = lerp(maya_card_y, 104, 0.22);
+silicio_card_y = lerp(silicio_card_y, 104, 0.22);
 
-var _maya_card_objetivo = (_actor_tarjeta == "maya") ? 99 : 121;
-var _silicio_card_objetivo = (_actor_tarjeta == "silicio") ? 99 : 121;
-
-maya_card_y = lerp(maya_card_y, _maya_card_objetivo, 0.22);
-silicio_card_y = lerp(silicio_card_y, _silicio_card_objetivo, 0.22);
-
-if (abs(maya_card_y - _maya_card_objetivo) < 0.15) maya_card_y = _maya_card_objetivo;
-if (abs(silicio_card_y - _silicio_card_objetivo) < 0.15) silicio_card_y = _silicio_card_objetivo;
+if (abs(maya_card_y - 104) < 0.15) maya_card_y = 104;
+if (abs(silicio_card_y - 104) < 0.15) silicio_card_y = 104;
 
 for (var i = 0; i < array_length(enemigos); i++) {
     if (!variable_struct_exists(enemigos[i], "shake_timer")) enemigos[i].shake_timer = 0;

@@ -312,5 +312,9 @@
     "* Consumiste {item}, pero {actor} ya tiene la vida llena.":  "* Consumiste {item}, pero {actor} ya tiene la vida llena.",
     "¡Maya y Silicio subieron de nivel!":  "¡Maya y Silicio subieron de nivel!",
     "¡Silicio subió de nivel!":  "¡Silicio subió de nivel!",
-    "Silicio":  "Silicio"
+    "Silicio":  "Silicio",
+    "Atacar":  "Atacar",
+    "Objeto":  "Objeto",
+    "Toy":  "Toy",
+    "Huir":  "Huir"
 }

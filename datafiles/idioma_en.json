@@ -312,5 +312,9 @@
     "* Consumiste {item}, pero {actor} ya tiene la vida llena.":  "* You used {item}, but {actor} already has full HP.",
     "¡Maya y Silicio subieron de nivel!":  "Maya and Silicio leveled up!",
     "¡Silicio subió de nivel!":  "Silicio leveled up!",
-    "Silicio":  "Silicio"
+    "Silicio":  "Silicio",
+    "Atacar":  "Attack",
+    "Objeto":  "Item",
+    "Toy":  "Toy",
+    "Huir":  "Flee"
 }

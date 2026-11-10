@@ -284,17 +284,21 @@ var _button_selected_for_draw =
     opcion_seleccionada;
 
 
-var _btn_scale =
-    battle_action_button_scale
-    *
-    _s;
+var _button_gap_base = 4;
+var _cell_w = ((battle_action_panel_width_base - (_button_gap_base * 3)) / 4) * _s;
+var _cell_gap = _button_gap_base * _s;
+var _panel_y = battle_action_panel_y_base * _s;
+var _panel_h = battle_action_panel_height_base * _s;
+var _button_labels = [
+    scr_loc("Atacar"),
+    scr_loc("Objeto"),
+    scr_loc("Toy"),
+    scr_loc("Huir")
+];
 
-
-var _cell_w =
-    (battle_action_panel_width_base / 4)
-    *
-    _s;
-
+if (variable_global_exists("font_main")) {
+    draw_set_font(global.font_main);
+}
 
 for (
     var _b = 0;
@@ -302,125 +306,76 @@ for (
     _b++
 )
 {
-    var _spr_btn =
-        opciones[_b];
-
-
-    var _btn_frame =
-        0;
-
-
-    var _btn_blend =
-        c_white;
-
+    var _spr_btn = opciones[_b];
+    var _btn_frame = 0;
+    var _btn_blend = c_white;
 
     var _disabled =
-        (
-            _b == 1
-            &&
-            !_has_item
-        )
+        (_b == 1 && !_has_item)
         ||
-        (
-            _b == 2
-            &&
-            !_has_toy
-        );
+        (_b == 2 && !_has_toy);
 
-
-    // Durante el diálogo final de XP/SO conservamos el frame 1
-    // del ÚLTIMO botón utilizado, aunque Item/Toy se hayan vaciado.
     if (
         _victory_keep_selected
         &&
-        _button_selected_for_draw
-        ==
-        _b
+        _button_selected_for_draw == _b
     )
     {
-        _btn_frame =
-            1;
+        _btn_frame = 1;
     }
     else if (_disabled)
     {
-        // Frame 2 = gris/deshabilitado cuando el sprite ya tiene
-        // el tercer frame añadido por el usuario.
-        if (
-            sprite_get_number(
-                _spr_btn
-            )
-            >=
-            3
-        )
-        {
-            _btn_frame =
-                2;
-        }
-        else
-        {
-            _btn_frame =
-                0;
-
-            _btn_blend =
-                make_color_rgb(
-                    110,
-                    110,
-                    110
-                );
+        if (sprite_get_number(_spr_btn) >= 3) {
+            _btn_frame = 2;
+        } else {
+            _btn_frame = 0;
+            _btn_blend = make_color_rgb(110, 110, 110);
         }
     }
     else if (
         _main_action_deciding
         &&
-        _button_selected_for_draw
-        ==
-        _b
+        _button_selected_for_draw == _b
     )
     {
-        _btn_frame =
-            1;
+        _btn_frame = 1;
     }
 
+    var _panel_x = battle_action_panel_x_base * _s + (_b * (_cell_w + _cell_gap));
+    var _panel_w = _cell_w;
+    var _selected_visual = (_btn_frame == 1 && !_disabled);
+    var _border_color = _selected_visual ? make_color_rgb(194, 126, 255) : make_color_rgb(104, 97, 135);
+    var _fill_color = _selected_visual ? make_color_rgb(42, 22, 67) : make_color_rgb(8, 7, 20);
+    var _inner_margin = 2;
 
-    var _btn_w =
-        sprite_get_width(_spr_btn)
-        *
-        _btn_scale;
+    draw_set_alpha(_alpha_final);
+    draw_set_color(_border_color);
+    draw_rectangle(_panel_x, _panel_y, _panel_x + _panel_w, _panel_y + _panel_h, false);
+    draw_set_color(_fill_color);
+    draw_rectangle(
+        _panel_x + _inner_margin,
+        _panel_y + _inner_margin,
+        _panel_x + _panel_w - _inner_margin,
+        _panel_y + _panel_h - _inner_margin,
+        false
+    );
 
-
-    var _btn_h =
-        sprite_get_height(_spr_btn)
-        *
-        _btn_scale;
-
-
-    var _btn_x =
-        battle_action_panel_x_base
-        *
-        _s
-        +
-        (_b * _cell_w)
-        +
-        ((_cell_w - _btn_w) * 0.5);
-
-
-    var _btn_y =
-        battle_action_panel_y_base
-        *
-        _s
-        +
-        (
-            (
-                battle_action_panel_height_base
-                *
-                _s
-                -
-                _btn_h
-            )
-            *
-            0.5
+    if (_selected_visual) {
+        draw_set_color(make_color_rgb(83, 47, 118));
+        draw_rectangle(
+            _panel_x + 4,
+            _panel_y + 4,
+            _panel_x + _panel_w - 4,
+            _panel_y + _panel_h - 4,
+            true
         );
+    }
 
+    var _btn_scale = battle_action_button_scale * _s;
+    var _btn_w = sprite_get_width(_spr_btn) * _btn_scale;
+    var _btn_h = sprite_get_height(_spr_btn) * _btn_scale;
+    var _btn_x = _panel_x + (5 * _s);
+    var _btn_y = _panel_y + ((_panel_h - _btn_h) * 0.5);
 
     draw_sprite_ext(
         _spr_btn,
@@ -433,7 +388,31 @@ for (
         _btn_blend,
         _alpha_final
     );
+
+    var _label_color = _disabled ? make_color_rgb(125, 120, 140) : c_white;
+    var _label = _button_labels[_b];
+    var _label_x = _panel_x + (25 * _s);
+    var _label_y = _panel_y + ((_panel_h - (string_height(_label) * 0.62)) * 0.5);
+
+    draw_text_transformed_color(
+        _label_x,
+        _label_y,
+        _label,
+        0.62,
+        0.62,
+        0,
+        _label_color,
+        _label_color,
+        _label_color,
+        _label_color,
+        _alpha_final
+    );
 }
+
+draw_set_alpha(1);
+draw_set_color(c_white);
+draw_set_halign(fa_left);
+draw_set_valign(fa_top);
 
 
 // =========================================================

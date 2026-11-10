@@ -89,36 +89,20 @@ var _total = array_length(enemigos);
 var _idx = parry_pending_enemy_idx;
 var _enemy = enemigos[_idx];
 
-var _screen_center_x = (320 * _s) * 0.5;
-var _enemy_x = _screen_center_x;
-var _enemy_y = 75 * _s;
-
+// Mantener exactamente las mismas posiciones que el dibujo de enemigos.
+var _enemy_x = 250 * _s;
+var _enemy_y = 52 * _s;
 
 if (_total == 2)
 {
-    if (_idx == 0)
-    {
-        _enemy_x = _screen_center_x - (50 * _s);
-    }
-    else if (_idx == 1)
-    {
-        _enemy_x = _screen_center_x + (50 * _s);
-    }
+    _enemy_x = (_idx == 0 ? 190 : 280) * _s;
+    _enemy_y = 57 * _s;
 }
 else if (_total >= 3)
 {
-    if (_idx == 0)
-    {
-        _enemy_x = _screen_center_x - (75 * _s);
-    }
-    else if (_idx == 1)
-    {
-        _enemy_x = _screen_center_x;
-    }
-    else if (_idx == 2)
-    {
-        _enemy_x = _screen_center_x + (75 * _s);
-    }
+    var _group_x = [174, 234, 284];
+    _enemy_x = _group_x[min(_idx, 2)] * _s;
+    _enemy_y = 58 * _s;
 }
 
 

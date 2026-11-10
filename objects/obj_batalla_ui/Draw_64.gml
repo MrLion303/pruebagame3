@@ -41,21 +41,19 @@ if (instance_exists(obj_transicion_bbs)) {
 
 var _alpha_final = alpha_aparicion * _fade_transicion * alpha_salida;
 
-if (!variable_instance_exists(id, "enemigo_img_index")) {
-    enemigo_img_index = 0;
-}
-
 var _total_enemigos = array_length(enemigos);
+
+// Posiciones del campo de batalla (coordenadas base 320x240).
+var _enemy_single_x = 250;
+var _enemy_single_y = 52;
+var _enemy_two_x = [190, 280];
+var _enemy_two_y = 57;
+var _enemy_group_x = [174, 234, 284];
+var _enemy_group_y = [58, 58, 58];
+
 var _centro_pantalla_x = (320 * _s) / 2;
 
-// Tres posiciones diagonales para los enemigos.
-// Con uno se usa el centro; con dos, los extremos; con tres,
-// se ocupan las tres posiciones.
-var _enemy_slot_x = [232, 256, 280];
-var _enemy_slot_y = [36, 62, 88];
-
-// Protagonistas de placeholder: sprites normales de caminata,
-// orientados hacia los enemigos. No se crean instancias nuevas.
+// Maya y Silicio permanecen visibles en el lado izquierdo.
 var _maya_frames = max(1, sprite_get_number(spr_maya_derecha));
 var _silicio_frames = max(1, sprite_get_number(spr_silicio_derecha));
 var _maya_frame = floor(current_time / 200) mod _maya_frames;
@@ -85,20 +83,24 @@ draw_sprite_ext(
     _alpha_final
 );
 
-// Los enemigos se representan provisionalmente con círculos.
-// Los datos, vida, selección y daño siguen ligados al enemigo real.
+// Cada enemigo utiliza el sprite, escala y animación definidos en
+// scr_enemigos_data(). No se generan círculos ni marcadores sustitutos.
 for (var i = 0; i < _total_enemigos; i++) {
     var _en = enemigos[i];
+    var _en_x_base = _enemy_single_x;
+    var _en_y_base = _enemy_single_y;
 
-    var _slot = 1;
     if (_total_enemigos == 2) {
-        _slot = (i == 0) ? 0 : 2;
+        _en_x_base = _enemy_two_x[i];
+        _en_y_base = _enemy_two_y;
     } else if (_total_enemigos >= 3) {
-        _slot = min(i, 2);
+        var _enemy_slot = min(i, 2);
+        _en_x_base = _enemy_group_x[_enemy_slot];
+        _en_y_base = _enemy_group_y[_enemy_slot];
     }
 
-    var _en_x = _enemy_slot_x[_slot] * _s;
-    var _en_y = _enemy_slot_y[_slot] * _s;
+    var _en_x = _en_x_base * _s;
+    var _en_y = _en_y_base * _s;
     var _derrotado = variable_struct_exists(_en, "derrotado") && _en.derrotado;
 
     if (!_derrotado && variable_struct_exists(_en, "shake_timer") && _en.shake_timer > 0) {
@@ -106,32 +108,46 @@ for (var i = 0; i < _total_enemigos; i++) {
         _en_y += irandom_range(-2, 2) * _s;
     }
 
-    var _radio_enemigo = 10 * _s;
-    var _color_relleno = _derrotado ? make_color_rgb(190, 190, 190) : c_white;
-    var _color_borde = (en_seleccion_enemigo && enemigo_seleccionado_idx == i) ? c_yellow : c_black;
+    var _enemy_sprite = variable_struct_exists(_en, "sprite") ? _en.sprite : noone;
+    if (sprite_exists(_enemy_sprite)) {
+        var _enemy_scale = variable_struct_exists(_en, "escala_sprite") ? max(0.1, _en.escala_sprite) : 2.0;
+        var _enemy_frame_count = max(1, sprite_get_number(_enemy_sprite));
+        var _enemy_anim = variable_struct_exists(_en, "anim_index") ? _en.anim_index : 0;
+        var _enemy_frame = floor(_enemy_anim) mod _enemy_frame_count;
+        var _enemy_color = _derrotado ? make_color_rgb(150, 150, 160) : c_white;
+        var _enemy_alpha = _derrotado ? _alpha_final * 0.7 : _alpha_final;
 
-    draw_set_alpha(_alpha_final);
-    draw_set_color(_color_relleno);
-    draw_circle(_en_x, _en_y, _radio_enemigo, true);
-
-    draw_set_color(_color_borde);
-    draw_circle(_en_x, _en_y, _radio_enemigo, false);
-    draw_set_alpha(1);
-    draw_set_color(c_white);
-
-    if (en_seleccion_enemigo && enemigo_seleccionado_idx == i) {
-        var _txt_color_sel = _derrotado ? c_gray : c_yellow;
-
-        draw_text_color(
-            _en_x - (string_width(_en.nombre) * 0.5 * 0.7 * _s),
-            _en_y - (16 * _s),
-            "v " + scr_loc(_en.nombre),
-            _txt_color_sel,
-            _txt_color_sel,
-            _txt_color_sel,
-            _txt_color_sel,
-            _alpha_final
+        draw_sprite_ext(
+            _enemy_sprite,
+            _enemy_frame,
+            _en_x,
+            _en_y,
+            _enemy_scale * _s,
+            _enemy_scale * _s,
+            0,
+            _enemy_color,
+            _enemy_alpha
         );
+
+        if (en_seleccion_enemigo && enemigo_seleccionado_idx == i) {
+            var _enemy_name = scr_loc(_en.nombre);
+            var _enemy_name_y = _en_y - (sprite_get_height(_enemy_sprite) * _enemy_scale * _s * 0.5) - (12 * _s);
+            draw_set_halign(fa_center);
+            draw_text_transformed_color(
+                _en_x,
+                _enemy_name_y,
+                "▼ " + _enemy_name,
+                0.72,
+                0.72,
+                0,
+                c_yellow,
+                c_yellow,
+                c_yellow,
+                c_yellow,
+                _alpha_final
+            );
+            draw_set_halign(fa_left);
+        }
     }
 }
 
@@ -156,19 +172,23 @@ if (
         enemigos[_popup_idx];
 
 
-    var _popup_slot = 1;
+    var _popup_enemy_x_base = _enemy_single_x;
+    var _popup_enemy_y_base = _enemy_single_y;
 
     if (_total_enemigos == 2)
     {
-        _popup_slot = (_popup_idx == 0) ? 0 : 2;
+        _popup_enemy_x_base = _enemy_two_x[_popup_idx];
+        _popup_enemy_y_base = _enemy_two_y;
     }
     else if (_total_enemigos >= 3)
     {
-        _popup_slot = min(_popup_idx, 2);
+        var _popup_slot = min(_popup_idx, 2);
+        _popup_enemy_x_base = _enemy_group_x[_popup_slot];
+        _popup_enemy_y_base = _enemy_group_y[_popup_slot];
     }
 
-    var _popup_enemy_x = _enemy_slot_x[_popup_slot] * _s;
-    var _popup_enemy_y = _enemy_slot_y[_popup_slot] * _s;
+    var _popup_enemy_x = _popup_enemy_x_base * _s;
+    var _popup_enemy_y = _popup_enemy_y_base * _s;
 
     var _popup_enemy_config_scale =
         variable_struct_exists(_popup_enemy, "escala_sprite")
@@ -180,7 +200,19 @@ if (
     var _popup_enemy_scale = max(0.5, _popup_enemy_config_scale * 0.25);
 
     var _enemy_half_w =
-        10 * _s;
+        (
+            variable_struct_exists(_popup_enemy, "sprite")
+            && sprite_exists(_popup_enemy.sprite)
+        )
+        ?
+        (
+            sprite_get_width(_popup_enemy.sprite)
+            * _popup_enemy_config_scale
+            * _s
+            * 0.5
+        )
+        :
+        (10 * _s);
 
 
     var _side =
@@ -588,9 +620,7 @@ if (
 // =========================================================
 // TARJETAS DE VIDA DE MAYA Y SILICIO
 // =========================================================
-// La tarjeta activa queda encima del diálogo. La inactiva se
-// desliza hacia abajo y queda oculta detrás del cuadro grande.
-// =========================================================
+// Ambas permanecen visibles, alineadas y con un acento propio.
 
 var _maya_hp_card = 0;
 var _maya_hp_max_card = 80;
@@ -635,41 +665,29 @@ if (silicio_hp_anterior == -1) {
 
 var _card_scale = _s;
 var _card_w = 116 * _card_scale;
-var _card_h = 19 * _card_scale;
+var _card_h = 21 * _card_scale;
 var _card_x_maya = 42 * _card_scale;
 var _card_x_silicio = 162 * _card_scale;
 var _card_y_maya = maya_card_y * _card_scale;
 var _card_y_silicio = silicio_card_y * _card_scale;
 
-draw_sprite_stretched_ext(
-    spr_bbs_textbox,
-    0,
-    _card_x_maya,
-    _card_y_maya,
-    _card_w,
-    _card_h,
-    c_white,
-    _alpha_final
-);
+var _maya_card_accent = make_color_rgb(190, 120, 255);
+var _silicio_card_accent = make_color_rgb(105, 175, 255);
+var _card_fill = make_color_rgb(8, 7, 19);
 
-draw_sprite_stretched_ext(
-    spr_bbs_textbox,
-    0,
-    _card_x_silicio,
-    _card_y_silicio,
-    _card_w,
-    _card_h,
-    c_white,
-    _alpha_final
-);
+draw_set_alpha(_alpha_final);
+draw_set_color(_maya_card_accent);
+draw_rectangle(_card_x_maya, _card_y_maya, _card_x_maya + _card_w, _card_y_maya + _card_h, false);
+draw_set_color(_card_fill);
+draw_rectangle(_card_x_maya + 2, _card_y_maya + 2, _card_x_maya + _card_w - 2, _card_y_maya + _card_h - 2, false);
+
+draw_set_color(_silicio_card_accent);
+draw_rectangle(_card_x_silicio, _card_y_silicio, _card_x_silicio + _card_w, _card_y_silicio + _card_h, false);
+draw_set_color(_card_fill);
+draw_rectangle(_card_x_silicio + 2, _card_y_silicio + 2, _card_x_silicio + _card_w - 2, _card_y_silicio + _card_h - 2, false);
 
 var _maya_head_frame = (maya_timer_dolor > 0) ? 1 : 0;
-var _silicio_head_blend =
-    (silicio_timer_dolor > 0)
-    ?
-    c_red
-    :
-    c_white;
+var _silicio_head_blend = (silicio_timer_dolor > 0) ? c_red : c_white;
 
 if (maya_timer_dolor > 0) maya_timer_dolor--;
 if (silicio_timer_dolor > 0) silicio_timer_dolor--;
@@ -726,29 +744,73 @@ draw_text_transformed_color(
     _alpha_final
 );
 
-var _maya_hp_y = _card_y_maya + (8 * _card_scale);
-var _silicio_hp_y = _card_y_silicio + (8 * _card_scale);
+var _maya_hp_y = _card_y_maya + (9 * _card_scale);
+var _silicio_hp_y = _card_y_silicio + (9 * _card_scale);
 
 draw_text_transformed_color(
     _card_x_maya + (23 * _card_scale),
     _maya_hp_y,
-    "HP " + string(_maya_hp_card) + "/" + string(_maya_hp_max_card),
-    0.48,
-    0.48,
+    "HP",
+    0.50,
+    0.50,
     0,
-    c_white,
-    c_white,
-    c_white,
-    c_white,
+    _maya_card_accent,
+    _maya_card_accent,
+    _maya_card_accent,
+    _maya_card_accent,
     _alpha_final
 );
 
 draw_text_transformed_color(
     _card_x_silicio + (23 * _card_scale),
     _silicio_hp_y,
-    "HP " + string(_silicio_hp_card) + "/" + string(_silicio_hp_max_card),
-    0.48,
-    0.48,
+    "HP",
+    0.50,
+    0.50,
+    0,
+    _silicio_card_accent,
+    _silicio_card_accent,
+    _silicio_card_accent,
+    _silicio_card_accent,
+    _alpha_final
+);
+
+var _maya_bar_left = _card_x_maya + (39 * _card_scale);
+var _silicio_bar_left = _card_x_silicio + (39 * _card_scale);
+var _maya_bar_right = _card_x_maya + (78 * _card_scale);
+var _silicio_bar_right = _card_x_silicio + (78 * _card_scale);
+var _maya_bar_y = _card_y_maya + (15 * _card_scale);
+var _silicio_bar_y = _card_y_silicio + (15 * _card_scale);
+var _hp_bar_height = 2 * _card_scale;
+
+draw_set_color(make_color_rgb(38, 34, 48));
+draw_rectangle(_maya_bar_left, _maya_bar_y, _maya_bar_right, _maya_bar_y + _hp_bar_height, false);
+draw_rectangle(_silicio_bar_left, _silicio_bar_y, _silicio_bar_right, _silicio_bar_y + _hp_bar_height, false);
+
+draw_set_color(_maya_card_accent);
+draw_rectangle(
+    _maya_bar_left,
+    _maya_bar_y,
+    _maya_bar_left + ((_maya_bar_right - _maya_bar_left) * clamp(_maya_hp_card / _maya_hp_max_card, 0, 1)),
+    _maya_bar_y + _hp_bar_height,
+    false
+);
+
+draw_set_color(_silicio_card_accent);
+draw_rectangle(
+    _silicio_bar_left,
+    _silicio_bar_y,
+    _silicio_bar_left + ((_silicio_bar_right - _silicio_bar_left) * clamp(_silicio_hp_card / _silicio_hp_max_card, 0, 1)),
+    _silicio_bar_y + _hp_bar_height,
+    false
+);
+
+draw_text_transformed_color(
+    _card_x_maya + (82 * _card_scale),
+    _maya_hp_y,
+    string(_maya_hp_card) + "/" + string(_maya_hp_max_card),
+    0.46,
+    0.46,
     0,
     c_white,
     c_white,
@@ -757,48 +819,18 @@ draw_text_transformed_color(
     _alpha_final
 );
 
-var _maya_bar_left = _card_x_maya + (23 * _card_scale);
-var _silicio_bar_left = _card_x_silicio + (23 * _card_scale);
-var _maya_bar_right = _card_x_maya + (111 * _card_scale);
-var _silicio_bar_right = _card_x_silicio + (111 * _card_scale);
-var _maya_bar_y = _card_y_maya + (15 * _card_scale);
-var _silicio_bar_y = _card_y_silicio + (15 * _card_scale);
-
-draw_set_alpha(_alpha_final);
-draw_set_color($202020);
-
-draw_rectangle(
-    _maya_bar_left,
-    _maya_bar_y,
-    _maya_bar_right,
-    _maya_bar_y + (2 * _card_scale),
-    false
-);
-
-draw_rectangle(
-    _silicio_bar_left,
-    _silicio_bar_y,
-    _silicio_bar_right,
-    _silicio_bar_y + (2 * _card_scale),
-    false
-);
-
-draw_set_color(c_yellow);
-
-draw_rectangle(
-    _maya_bar_left,
-    _maya_bar_y,
-    _maya_bar_left + ((_maya_bar_right - _maya_bar_left) * clamp(_maya_hp_card / _maya_hp_max_card, 0, 1)),
-    _maya_bar_y + (2 * _card_scale),
-    false
-);
-
-draw_rectangle(
-    _silicio_bar_left,
-    _silicio_bar_y,
-    _silicio_bar_left + ((_silicio_bar_right - _silicio_bar_left) * clamp(_silicio_hp_card / _silicio_hp_max_card, 0, 1)),
-    _silicio_bar_y + (2 * _card_scale),
-    false
+draw_text_transformed_color(
+    _card_x_silicio + (82 * _card_scale),
+    _silicio_hp_y,
+    string(_silicio_hp_card) + "/" + string(_silicio_hp_max_card),
+    0.46,
+    0.46,
+    0,
+    c_white,
+    c_white,
+    c_white,
+    c_white,
+    _alpha_final
 );
 
 draw_set_alpha(1);
@@ -812,40 +844,9 @@ draw_sprite_stretched_ext(
     battle_dialog_y_base * _s,
     sprite_get_width(spr_bbs_textbox) * 5.666667 * _s,
     battle_dialog_height_base * _s,
-    c_white,
+    make_color_rgb(195, 150, 255),
     _alpha_final
 );
-
-// Extensión inferior integrada al cuadro principal.
-draw_sprite_stretched_ext(
-    spr_bbs_textbox,
-    0,
-    battle_action_panel_x_base * _s,
-    battle_action_panel_y_base * _s,
-    battle_action_panel_width_base * _s,
-    battle_action_panel_height_base * _s,
-    c_white,
-    _alpha_final
-);
-
-// Separadores que convierten la extensión en cuatro botones unidos.
-draw_set_alpha(_alpha_final);
-draw_set_color(c_black);
-for (var _sep = 1; _sep < 4; _sep++) {
-    var _sep_x =
-        (battle_action_panel_x_base
-        + (battle_action_panel_width_base / 4) * _sep) * _s;
-
-    draw_rectangle(
-        _sep_x - 1,
-        (battle_action_panel_y_base + 3) * _s,
-        _sep_x + 1,
-        (battle_action_panel_y_base + battle_action_panel_height_base - 3) * _s,
-        false
-    );
-}
-draw_set_alpha(1);
-draw_set_color(c_white);
 
 if (variable_global_exists("font_main")) {
     draw_set_font(global.font_main);
