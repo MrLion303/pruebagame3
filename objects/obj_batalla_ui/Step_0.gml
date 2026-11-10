@@ -835,7 +835,7 @@ if (draw_char < text_length) {
                     _control_batalla.fase_actual = FASE_BATALLA.ENEMIGO_TURNO;
                     global.battle_active_actor = "maya";
 
-                    var _texto_enemigos = texto_inicio_batalla;
+                    var _texto_enemigos_maya = texto_inicio_batalla;
 
                     if (
                         _control_batalla.primer_turno_pasado
@@ -846,11 +846,11 @@ if (draw_char < text_length) {
                         var _idx_enemigos =
                             irandom(array_length(_control_batalla.dialogos_turno_actual) - 1);
 
-                        _texto_enemigos =
+                        _texto_enemigos_maya =
                             _control_batalla.dialogos_turno_actual[_idx_enemigos];
                     }
 
-                    f_procesar_dialogo(_texto_enemigos);
+                    f_procesar_dialogo(_texto_enemigos_maya);
                 }
 
                 audio_play_sound(snd_menumove, 10, false);
@@ -864,7 +864,7 @@ if (draw_char < text_length) {
                 _control_batalla.fase_actual = FASE_BATALLA.ENEMIGO_TURNO;
                 // Silicio conserva el foco visual hasta que termine la ronda enemiga.
 
-                var _texto_enemigos = texto_inicio_batalla;
+                var _texto_enemigos_silicio = texto_inicio_batalla;
 
                 if (
                     _control_batalla.primer_turno_pasado
@@ -875,11 +875,11 @@ if (draw_char < text_length) {
                     var _idx_enemigos =
                         irandom(array_length(_control_batalla.dialogos_turno_actual) - 1);
 
-                    _texto_enemigos =
+                    _texto_enemigos_silicio =
                         _control_batalla.dialogos_turno_actual[_idx_enemigos];
                 }
 
-                f_procesar_dialogo(_texto_enemigos);
+                f_procesar_dialogo(_texto_enemigos_silicio);
                 audio_play_sound(snd_menumove, 10, false);
             }
             else
