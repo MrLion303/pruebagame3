@@ -30,8 +30,6 @@ if (room == game_over)
 var _s = 2;
 
 if (!variable_instance_exists(id, "alpha_aparicion")) alpha_aparicion = 0.0;
-if (!variable_instance_exists(id, "timer_dolor")) timer_dolor = 0;
-if (!variable_instance_exists(id, "hp_anterior")) hp_anterior = -1;
 
 if (alpha_aparicion < 1.0) alpha_aparicion += 0.05;
 
@@ -587,11 +585,6 @@ if (
 }
 
 
-var _dialog_scale_y =
-    battle_dialog_height_base
-    /
-    sprite_get_height(spr_bbs_textbox);
-
 // =========================================================
 // TARJETAS DE VIDA DE MAYA Y SILICIO
 // =========================================================
@@ -661,7 +654,7 @@ draw_sprite_stretched_ext(
 );
 
 var _maya_head_frame = (maya_timer_dolor > 0) ? 1 : 0;
-var _silicio_head_frame = 0;
+var _silicio_head_frame = (silicio_timer_dolor > 0) ? 1 : 0;
 
 if (maya_timer_dolor > 0) maya_timer_dolor--;
 if (silicio_timer_dolor > 0) silicio_timer_dolor--;
@@ -693,7 +686,7 @@ draw_sprite_ext(
 draw_text_transformed_color(
     _card_x_maya + (23 * _card_scale),
     _card_y_maya + (1 * _card_scale),
-    scr_loc("MAYA"),
+    string_upper(scr_loc("Maya")),
     0.62,
     0.62,
     0,
