@@ -862,7 +862,7 @@ if (draw_char < text_length) {
 
                 _control_batalla.turno_enemigo_idx = 0;
                 _control_batalla.fase_actual = FASE_BATALLA.ENEMIGO_TURNO;
-                global.battle_active_actor = "maya";
+                // Silicio conserva el foco visual hasta que termine la ronda enemiga.
 
                 var _texto_enemigos = texto_inicio_batalla;
 
