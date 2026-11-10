@@ -86,6 +86,16 @@ function scr_enemy_toy_apply(_controller, _toy_id, _enemy_name = "Enemigo")
 
 function scr_battle_get_weapon_data()
 {
+    // Silicio no hereda el arma ni sus modificadores de Maya.
+    if (
+        variable_global_exists("battle_active_actor")
+        &&
+        global.battle_active_actor == "silicio"
+    )
+    {
+        return undefined;
+    }
+
     if (!instance_exists(obj_player))
         return undefined;
 
