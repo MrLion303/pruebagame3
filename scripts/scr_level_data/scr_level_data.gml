@@ -129,6 +129,8 @@ function scr_silicio_ganar_experiencia(_cantidad)
     while (
         _stats.nivel < _stats.nivel_max
         &&
+        _stats.exp_siguiente > 0
+        &&
         _stats.exp_actual >= _stats.exp_siguiente
     )
     {
