@@ -593,12 +593,15 @@ switch (fase_actual)
             );
 
 
+        var _variacion_ataque =
+            irandom_range(0, 3);
+
         var _dano_enemigo =
             max(
                 0,
                 _ataque_real
                 +
-                irandom_range(0, 3)
+                _variacion_ataque
             );
 
         // Los enemigos pueden elegir a cualquiera de los dos
@@ -685,7 +688,7 @@ switch (fase_actual)
                     0,
                     _ataque_real
                     +
-                    irandom_range(0, 3)
+                    _variacion_ataque
                 );
         }
 
