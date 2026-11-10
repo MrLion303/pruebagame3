@@ -1855,7 +1855,7 @@ function()
             var _stats_silicio_curacion =
                 scr_silicio_stats_data();
 
-            var _hp_before =
+            var _hp_before_silicio =
                 _stats_silicio_curacion.hp;
 
             _stats_silicio_curacion.hp =
@@ -1869,14 +1869,14 @@ function()
             _curado =
                 _stats_silicio_curacion.hp
                 -
-                _hp_before;
+                _hp_before_silicio;
 
             global.silicio_stats =
                 _stats_silicio_curacion;
         }
         else if (instance_exists(obj_player))
         {
-            var _hp_before =
+            var _hp_before_maya =
                 obj_player.hp;
 
             obj_player.hp =
@@ -1890,7 +1890,7 @@ function()
             _curado =
                 obj_player.hp
                 -
-                _hp_before;
+                _hp_before_maya;
 
             global.player_hp_current =
                 obj_player.hp;
