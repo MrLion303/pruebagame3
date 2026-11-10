@@ -249,9 +249,11 @@ if (instance_exists(obj_batalla_controller))
     _main_action_deciding =
         _main_action_deciding
         &&
-        obj_batalla_controller.fase_actual
-        ==
-        FASE_BATALLA.JUGADOR_MENU;
+        (
+            obj_batalla_controller.fase_actual == FASE_BATALLA.JUGADOR_MENU
+            ||
+            obj_batalla_controller.fase_actual == FASE_BATALLA.SILICIO_MENU
+        );
 }
 
 
