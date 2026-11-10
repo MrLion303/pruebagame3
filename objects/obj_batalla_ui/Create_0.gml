@@ -17,6 +17,14 @@ battle_action_panel_width_base = 232;
 battle_action_panel_height_base = 25;
 battle_action_button_scale = 0.72;
 
+// Posiciones animadas de las tarjetas superiores.
+maya_card_y = 99;
+silicio_card_y = 121;
+maya_hp_anterior = -1;
+maya_timer_dolor = 0;
+silicio_hp_anterior = -1;
+silicio_timer_dolor = 0;
+
 opcion_seleccionada = 0;
 opciones = [spr_bbs_fight, spr_bbs_item, spr_bbs_toy, spr_bbs_huir];
 en_menu_fight = false;
@@ -157,8 +165,20 @@ f_calcular_dano_maximo = function(_enemy_idx)
     var _en = enemigos[_enemy_idx];
     var _atk_base = 0;
 
+    var _silicio_atacando =
+        variable_global_exists("battle_active_actor")
+        &&
+        global.battle_active_actor == "silicio";
 
-    if (instance_exists(obj_player))
+    if (_silicio_atacando)
+    {
+        var _silicio_ataque_stats =
+            scr_silicio_stats_data();
+
+        _atk_base =
+            _silicio_ataque_stats.ataque_base;
+    }
+    else if (instance_exists(obj_player))
     {
         _atk_base = obj_player.ataque_base;
 
