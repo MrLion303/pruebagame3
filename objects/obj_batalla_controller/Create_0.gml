@@ -4,6 +4,7 @@
 enum FASE_BATALLA {
     INICIO,
     JUGADOR_MENU,
+    SILICIO_MENU,
     JUGADOR_ACCION,
     ENEMIGO_TURNO,
     ENEMIGO_ATACANDO,
@@ -14,6 +15,11 @@ enum FASE_BATALLA {
 }
  
 fase_actual = FASE_BATALLA.INICIO;
+
+// Estadísticas independientes de Silicio, conservadas entre batallas.
+scr_silicio_stats_data();
+global.battle_active_actor = "maya";
+current_enemy_target_actor = "maya";
  
 if (!variable_global_exists("enemigo_actual_id")) {
     global.enemigo_actual_id = "variante 1";
@@ -70,6 +76,7 @@ if (audio_exists(musica_batalla_actual)) {
 turno_enemigo_idx = 0;
 temporizador_turno_enemigo = 0;
 esperando_input_texto_enemigo = false;
+silicio_turnos_stun = 0;
 
 
 // =========================================================
