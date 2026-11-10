@@ -611,6 +611,18 @@ function scr_guardar_juego(_seccion)
 
 
     // =====================================================
+    // ESTADÍSTICAS DE SILICIO
+    // =====================================================
+
+    var _silicio_stats =
+        scr_silicio_stats_data();
+
+    // Igual que Maya, guardar con HP completo.
+    _silicio_stats.hp =
+        _silicio_stats.hp_max;
+
+
+    // =====================================================
     // MÚSICA
     // =====================================================
 
@@ -644,6 +656,9 @@ function scr_guardar_juego(_seccion)
 
         party:
             scr_party_export(),
+
+        silicio_stats:
+            _silicio_stats,
 
         music:
             _music
@@ -958,6 +973,26 @@ function scr_cargar_juego(_seccion)
         global.level_data =
             _save_data.nivel;
     }
+
+
+    // =====================================================
+    // ESTADÍSTICAS DE SILICIO
+    // =====================================================
+
+    // Si el slot es antiguo, no heredar datos de otro slot.
+    scr_silicio_stats_data(true);
+
+    if (
+        variable_struct_exists(_save_data, "silicio_stats")
+        &&
+        is_struct(_save_data.silicio_stats)
+    )
+    {
+        global.silicio_stats =
+            _save_data.silicio_stats;
+    }
+
+    scr_silicio_stats_data();
 
 
     // =====================================================
