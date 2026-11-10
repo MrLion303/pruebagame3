@@ -637,9 +637,6 @@ switch (fase_actual)
             :
             "maya";
 
-        global.battle_active_actor =
-            current_enemy_target_actor;
-
         var _nombre_objetivo =
             _objetivo_silicio
             ?
@@ -1636,6 +1633,17 @@ switch (fase_actual)
     // =====================================================
 
     case FASE_BATALLA.DERROTA:
+
+        // Liberar el mapa de muertes de enemigos antes de salir.
+        if (
+            variable_instance_exists(id, "mapa_enemigos_muertos")
+            &&
+            ds_exists(mapa_enemigos_muertos, ds_type_map)
+        )
+        {
+            ds_map_destroy(mapa_enemigos_muertos);
+            mapa_enemigos_muertos = -1;
+        }
 
         global.gameover_death_freeze_active = false;
         room_goto(game_over);
