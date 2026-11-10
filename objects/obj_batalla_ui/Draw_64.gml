@@ -1478,38 +1478,7 @@ else if (en_menu_toys) {
     }
 }
 
-// HP de los dos protagonistas: las tarjetas se dibujan encima del diálogo.
-
-// Botones centrados dentro de las cuatro celdas inferiores.
-draw_set_color(c_white);
-var _btn_scale = battle_action_button_scale * _s;
-var _cell_w = (battle_action_panel_width_base / 4) * _s;
-
-for (var i = 0; i < 4; i++) {
-    var _spr_btn = opciones[i];
-    var _btn_w = sprite_get_width(_spr_btn) * _btn_scale;
-    var _btn_h = sprite_get_height(_spr_btn) * _btn_scale;
-    var _btn_x =
-        battle_action_panel_x_base * _s
-        + (i * _cell_w)
-        + ((_cell_w - _btn_w) * 0.5);
-    var _btn_y =
-        battle_action_panel_y_base * _s
-        + ((battle_action_panel_height_base * _s - _btn_h) * 0.5);
-    var _frame = (opcion_seleccionada == i) ? 1 : 0;
-
-    draw_sprite_ext(
-        _spr_btn,
-        _frame,
-        _btn_x,
-        _btn_y,
-        _btn_scale,
-        _btn_scale,
-        0,
-        c_white,
-        _alpha_final
-    );
-}
+// Los botones modernos se dibujan en Draw GUI End (Draw_75.gml).
 
 draw_set_alpha(1.0);
 draw_set_color(c_white);
