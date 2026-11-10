@@ -56,3 +56,98 @@ function scr_level_ganar_experiencia(_cantidad) {
     global.level_data.hp_max = _p.hp_max;
     return _subidas;
 }
+
+// =========================================================
+// ESTADÍSTICAS PROPIAS DE SILICIO
+// =========================================================
+// Se guardan aparte de las estadísticas de Maya.
+// Los saves anteriores reciben estos valores iniciales.
+// =========================================================
+
+function scr_silicio_stats_data(_reset = false)
+{
+    if (
+        _reset
+        ||
+        !variable_global_exists("silicio_stats")
+        ||
+        !is_struct(global.silicio_stats)
+    )
+    {
+        global.silicio_stats =
+        {
+            nivel: 1,
+            exp_actual: 0,
+            exp_siguiente: 100,
+            ataque_base: 1,
+            defensa_base: 1,
+            hp: 70,
+            hp_max: 70,
+            nivel_max: 20
+        };
+    }
+
+    var _stats = global.silicio_stats;
+
+    if (!variable_struct_exists(_stats, "nivel")) _stats.nivel = 1;
+    if (!variable_struct_exists(_stats, "exp_actual")) _stats.exp_actual = 0;
+    if (!variable_struct_exists(_stats, "exp_siguiente")) _stats.exp_siguiente = 100;
+    if (!variable_struct_exists(_stats, "ataque_base")) _stats.ataque_base = 1;
+    if (!variable_struct_exists(_stats, "defensa_base")) _stats.defensa_base = 1;
+    if (!variable_struct_exists(_stats, "hp_max")) _stats.hp_max = 70;
+    if (!variable_struct_exists(_stats, "hp")) _stats.hp = _stats.hp_max;
+    if (!variable_struct_exists(_stats, "nivel_max")) _stats.nivel_max = 20;
+
+    _stats.nivel_max = max(1, round(_stats.nivel_max));
+    _stats.nivel = clamp(round(_stats.nivel), 1, _stats.nivel_max);
+    _stats.hp_max = max(1, round(_stats.hp_max));
+    _stats.hp = clamp(round(_stats.hp), 0, _stats.hp_max);
+    _stats.ataque_base = max(0, round(_stats.ataque_base));
+    _stats.defensa_base = max(0, round(_stats.defensa_base));
+    _stats.exp_actual = max(0, round(_stats.exp_actual));
+    _stats.exp_siguiente = max(0, round(_stats.exp_siguiente));
+
+    global.silicio_stats = _stats;
+    return global.silicio_stats;
+}
+
+
+// =========================================================
+// EXPERIENCIA / NIVEL DE SILICIO
+// =========================================================
+
+function scr_silicio_ganar_experiencia(_cantidad)
+{
+    if (_cantidad <= 0)
+        return 0;
+
+    var _stats = scr_silicio_stats_data();
+    var _subidas = 0;
+
+    _stats.exp_actual += _cantidad;
+
+    while (
+        _stats.nivel < _stats.nivel_max
+        &&
+        _stats.exp_actual >= _stats.exp_siguiente
+    )
+    {
+        _stats.exp_actual -= _stats.exp_siguiente;
+        _stats.nivel++;
+        _stats.ataque_base += 1;
+        _stats.defensa_base += 1;
+        _stats.hp_max += 5;
+        _stats.hp = min(_stats.hp_max, _stats.hp + 5);
+        _stats.exp_siguiente += 25;
+        _subidas++;
+    }
+
+    if (_stats.nivel >= _stats.nivel_max)
+    {
+        _stats.nivel = _stats.nivel_max;
+        _stats.exp_siguiente = 0;
+    }
+
+    global.silicio_stats = _stats;
+    return _subidas;
+}
