@@ -309,11 +309,9 @@ if (setup == false)
 
 
         var _star_txt_y =
-            (125 * _s_star)
-            +
-            (8 * _s_star)
-            +
-            (1 * _s_star);
+            (battle_dialog_y_base + 9)
+            *
+            _s_star;
 
 
         var _star_txt_line =
