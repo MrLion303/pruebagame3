@@ -50,6 +50,29 @@ if (
 )
 {
     player_turnos_stun--;
+
+    var _silicio_turno_disponible =
+        scr_silicio_stats_data().hp > 0;
+
+    if (_silicio_turno_disponible)
+    {
+        // Maya pierde su acción, pero Silicio conserva la suya.
+        if (instance_exists(obj_batalla_ui))
+        {
+            obj_batalla_ui.en_resultado_ataque = true;
+
+            obj_batalla_ui.f_procesar_dialogo(
+                scr_loc_src(
+                    "* El Toy enemigo inmoviliza a Maya. ¡Pierde su turno!"
+                )
+            );
+        }
+
+        exit;
+    }
+
+    // Si Silicio también está fuera de combate, se mantiene
+    // el comportamiento de perder la ronda completa.
     turno_enemigo_idx = -1;
 
     if (instance_exists(obj_batalla_ui))
