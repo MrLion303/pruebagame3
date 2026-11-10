@@ -670,10 +670,6 @@ if (draw_char < text_length) {
                         scr_loc("Maya");
 
                     var _hp_antes =
-                        is_struct(_objetivo_combate)
-                        ?
-                        _objetivo_combate.hp
-                        :
                         _objetivo_combate.hp;
 
                     if (variable_struct_exists(_item_data, "efecto")) {
@@ -685,10 +681,6 @@ if (draw_char < text_length) {
                     }
 
                     var _hp_despues =
-                        is_struct(_objetivo_combate)
-                        ?
-                        _objetivo_combate.hp
-                        :
                         _objetivo_combate.hp;
 
                     var _hp_curado = max(0, _hp_despues - _hp_antes);
