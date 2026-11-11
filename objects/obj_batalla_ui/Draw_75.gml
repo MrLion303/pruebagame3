@@ -384,14 +384,14 @@ for (
     var _label_color = _disabled ? make_color_rgb(125, 120, 140) : c_white;
     var _label = _button_labels[_b];
     var _label_x = _panel_x + (25 * _s);
-    var _label_y = _panel_y + ((_panel_h - (string_height(_label) * 0.70)) * 0.5);
+    var _label_y = _panel_y + ((_panel_h - (string_height(_label) * 0.74)) * 0.5);
 
     draw_text_transformed_color(
         _label_x,
         _label_y,
         _label,
-        0.70,
-        0.70,
+        0.74,
+        0.74,
         0,
         _label_color,
         _label_color,
