@@ -84,7 +84,7 @@ _alpha_final =
 
 
 var _s =
-    2;
+    1.8;
 
 
 // =========================================================
@@ -344,34 +344,26 @@ for (
     var _panel_x = battle_action_panel_x_base * _s + (_b * (_cell_w + _cell_gap));
     var _panel_w = _cell_w;
     var _selected_visual = (_btn_frame == 1 && !_disabled);
-    var _border_color = _selected_visual ? make_color_rgb(194, 126, 255) : make_color_rgb(104, 97, 135);
-    var _fill_color = _selected_visual ? make_color_rgb(42, 22, 67) : make_color_rgb(8, 7, 20);
-    var _inner_margin = 2;
+    var _panel_tint =
+        _disabled
+        ?
+        make_color_rgb(135, 130, 145)
+        :
+        (_selected_visual ? make_color_rgb(190, 130, 245) : c_white);
 
-    draw_set_alpha(_alpha_final);
-    draw_set_color(_border_color);
-    draw_rectangle(_panel_x, _panel_y, _panel_x + _panel_w, _panel_y + _panel_h, false);
-    draw_set_color(_fill_color);
-    draw_rectangle(
-        _panel_x + _inner_margin,
-        _panel_y + _inner_margin,
-        _panel_x + _panel_w - _inner_margin,
-        _panel_y + _panel_h - _inner_margin,
-        false
+    // Cada botón usa el mismo sprite de caja que el diálogo y las tarjetas HP.
+    draw_sprite_stretched_ext(
+        spr_bbs_textbox,
+        0,
+        _panel_x,
+        _panel_y,
+        _panel_w,
+        _panel_h,
+        _panel_tint,
+        _alpha_final
     );
 
-    if (_selected_visual) {
-        draw_set_color(make_color_rgb(83, 47, 118));
-        draw_rectangle(
-            _panel_x + 4,
-            _panel_y + 4,
-            _panel_x + _panel_w - 4,
-            _panel_y + _panel_h - 4,
-            true
-        );
-    }
-
-    var _btn_scale = battle_action_button_scale * _s;
+    var _btn_scale = 0.48 * _s;
     var _btn_w = sprite_get_width(_spr_btn) * _btn_scale;
     var _btn_h = sprite_get_height(_spr_btn) * _btn_scale;
     var _btn_x = _panel_x + (5 * _s);
@@ -392,14 +384,14 @@ for (
     var _label_color = _disabled ? make_color_rgb(125, 120, 140) : c_white;
     var _label = _button_labels[_b];
     var _label_x = _panel_x + (25 * _s);
-    var _label_y = _panel_y + ((_panel_h - (string_height(_label) * 0.62)) * 0.5);
+    var _label_y = _panel_y + ((_panel_h - (string_height(_label) * 0.70)) * 0.5);
 
     draw_text_transformed_color(
         _label_x,
         _label_y,
         _label,
-        0.62,
-        0.62,
+        0.70,
+        0.70,
         0,
         _label_color,
         _label_color,

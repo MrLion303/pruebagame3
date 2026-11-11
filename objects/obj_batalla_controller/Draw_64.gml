@@ -81,7 +81,7 @@ if (
 // MISMA DISTRIBUCIÓN DE ENEMIGOS QUE OBJ_BATALLA_UI
 // =========================================================
 
-var _s = 2;
+var _s = 1.8;
 var _gw = display_get_gui_width();
 var _gh = display_get_gui_height();
 

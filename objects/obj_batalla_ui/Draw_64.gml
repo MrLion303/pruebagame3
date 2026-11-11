@@ -27,7 +27,7 @@ if (room == game_over)
 }
 
 
-var _s = 2;
+var _s = 1.8;
 
 if (!variable_instance_exists(id, "alpha_aparicion")) alpha_aparicion = 0.0;
 
@@ -673,46 +673,61 @@ var _card_y_silicio = silicio_card_y * _card_scale;
 
 var _maya_card_accent = make_color_rgb(190, 120, 255);
 var _silicio_card_accent = make_color_rgb(105, 175, 255);
-var _card_fill = make_color_rgb(8, 7, 19);
 
-draw_set_alpha(_alpha_final);
-draw_set_color(_maya_card_accent);
-draw_rectangle(_card_x_maya, _card_y_maya, _card_x_maya + _card_w, _card_y_maya + _card_h, false);
-draw_set_color(_card_fill);
-draw_rectangle(_card_x_maya + 2, _card_y_maya + 2, _card_x_maya + _card_w - 2, _card_y_maya + _card_h - 2, false);
+// Las tarjetas reutilizan el mismo asset del cuadro de diálogo.
+draw_sprite_stretched_ext(
+    spr_bbs_textbox,
+    0,
+    _card_x_maya,
+    _card_y_maya,
+    _card_w,
+    _card_h,
+    _maya_card_accent,
+    _alpha_final
+);
 
-draw_set_color(_silicio_card_accent);
-draw_rectangle(_card_x_silicio, _card_y_silicio, _card_x_silicio + _card_w, _card_y_silicio + _card_h, false);
-draw_set_color(_card_fill);
-draw_rectangle(_card_x_silicio + 2, _card_y_silicio + 2, _card_x_silicio + _card_w - 2, _card_y_silicio + _card_h - 2, false);
+draw_sprite_stretched_ext(
+    spr_bbs_textbox,
+    0,
+    _card_x_silicio,
+    _card_y_silicio,
+    _card_w,
+    _card_h,
+    _silicio_card_accent,
+    _alpha_final
+);
 
 var _maya_head_frame = (maya_timer_dolor > 0) ? 1 : 0;
-var _silicio_head_blend = (silicio_timer_dolor > 0) ? c_red : c_white;
+var _silicio_head_frame = (silicio_timer_dolor > 0) ? 1 : 0;
+var _head_sprite = spr_bbs_prota_head;
+var _head_scale = 0.45 * _card_scale;
 
 if (maya_timer_dolor > 0) maya_timer_dolor--;
 if (silicio_timer_dolor > 0) silicio_timer_dolor--;
 
+// Los retratos usan el mismo sprite y la misma posición vertical,
+// centrados dentro de la altura de cada tarjeta.
 draw_sprite_ext(
-    spr_bbs_prota_head,
-    clamp(_maya_head_frame, 0, sprite_get_number(spr_bbs_prota_head) - 1),
+    _head_sprite,
+    clamp(_maya_head_frame, 0, sprite_get_number(_head_sprite) - 1),
     _card_x_maya + (4 * _card_scale),
-    _card_y_maya + (1 * _card_scale),
-    0.45 * _card_scale,
-    0.45 * _card_scale,
+    _card_y_maya + (4 * _card_scale),
+    _head_scale,
+    _head_scale,
     0,
     c_white,
     _alpha_final
 );
 
 draw_sprite_ext(
-    spr_silicio_abajo,
+    _head_sprite,
+    clamp(_silicio_head_frame, 0, sprite_get_number(_head_sprite) - 1),
+    _card_x_silicio + (4 * _card_scale),
+    _card_y_silicio + (4 * _card_scale),
+    _head_scale,
+    _head_scale,
     0,
-    _card_x_silicio + (11 * _card_scale),
-    _card_y_silicio + (19 * _card_scale),
-    0.34 * _card_scale,
-    0.34 * _card_scale,
-    0,
-    _silicio_head_blend,
+    c_white,
     _alpha_final
 );
 
@@ -720,8 +735,8 @@ draw_text_transformed_color(
     _card_x_maya + (23 * _card_scale),
     _card_y_maya + (1 * _card_scale),
     string_upper(scr_loc("Maya")),
-    0.62,
-    0.62,
+    0.58,
+    0.58,
     0,
     c_white,
     c_white,
@@ -734,8 +749,8 @@ draw_text_transformed_color(
     _card_x_silicio + (23 * _card_scale),
     _card_y_silicio + (1 * _card_scale),
     scr_loc("Silicio"),
-    0.62,
-    0.62,
+    0.58,
+    0.58,
     0,
     c_white,
     c_white,
@@ -751,8 +766,8 @@ draw_text_transformed_color(
     _card_x_maya + (23 * _card_scale),
     _maya_hp_y,
     "HP",
-    0.50,
-    0.50,
+    0.46,
+    0.46,
     0,
     _maya_card_accent,
     _maya_card_accent,
@@ -765,8 +780,8 @@ draw_text_transformed_color(
     _card_x_silicio + (23 * _card_scale),
     _silicio_hp_y,
     "HP",
-    0.50,
-    0.50,
+    0.46,
+    0.46,
     0,
     _silicio_card_accent,
     _silicio_card_accent,
@@ -809,8 +824,8 @@ draw_text_transformed_color(
     _card_x_maya + (82 * _card_scale),
     _maya_hp_y,
     string(_maya_hp_card) + "/" + string(_maya_hp_max_card),
-    0.46,
-    0.46,
+    0.42,
+    0.42,
     0,
     c_white,
     c_white,
@@ -823,8 +838,8 @@ draw_text_transformed_color(
     _card_x_silicio + (82 * _card_scale),
     _silicio_hp_y,
     string(_silicio_hp_card) + "/" + string(_silicio_hp_max_card),
-    0.46,
-    0.46,
+    0.42,
+    0.42,
     0,
     c_white,
     c_white,

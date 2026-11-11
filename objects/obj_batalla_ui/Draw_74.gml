@@ -25,7 +25,7 @@
 if (setup == false)
 {
     var _s_star =
-        2;
+        1.8;
 
 
     if (
